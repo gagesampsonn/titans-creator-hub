@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { GoogleGenAI } from "@google/genai";
 import ReactMarkdown from 'react-markdown';
-import { Upload, Video, Link as LinkIcon, Play, CheckCircle, AlertTriangle, Loader2, Sparkles, History, ExternalLink } from 'lucide-react';
+import { Upload, Video, Link as LinkIcon, Play, CheckCircle, AlertTriangle, Loader2, Sparkles, History } from 'lucide-react';
 
 interface AuditRecord {
   id: string;
@@ -64,47 +64,45 @@ const VideoAudit = () => {
       
       The user has uploaded a video or provided a link. Analyze the visual and audio content deeply.
 
-      ### 🚨 CRITICAL RULE: OPENING LINE CHECK
+      ### CRITICAL RULE: OPENING LINE CHECK
       You MUST listen to the first 3 seconds.
       1. **Statement vs. Question**: 
-         - **WEAK**: Starts with a question (e.g., "Do you want clear skin?", "Have you ever...?"). **PENALTY**: Deduct 15-20 points from Hook Score.
-         - **STRONG**: Starts with a bold statement/claim (e.g., "This fixed my acne in 3 days", "Stop using retinol"). **BONUS**: Boost Hook Score +10.
+         - **WEAK**: Starts with a question. **PENALTY**: Deduct 15-20 points from Hook Score.
+         - **STRONG**: Starts with a bold statement/claim. **BONUS**: Boost Hook Score +10.
 
-      ### 🔬 EVALUATION RUBRIC (Score 0-10 each)
-      1. **Controversy / Pattern Interrupt**: Does the visual/audio break the scroll immediately? Is there shock value or tension?
-      2. **Snappy Hook**: Is it fast? Does it promise a result? (Apply Opening Line Rule here).
-      3. **Curiosity Gap**: Does it create "information tension" (e.g. "What you don't know is...")?
-      4. **Target Audience Clarity**: Does it call out a specific avatar? (e.g. "If you're a busy mom...", "Gym bros, listen up").
-      5. **Pain Point + Product**: Is the problem clear? Is the solution (product) integrated early?
-      6. **Call-to-Action (CTA)**: Is it urgent and clear? ("Link in bio", "Grab the sample").
+      ### EVALUATION RUBRIC (Score 0-10 each)
+      1. **Controversy / Pattern Interrupt**: Does the visual/audio break the scroll immediately?
+      2. **Snappy Hook**: Is it fast? Does it promise a result?
+      3. **Curiosity Gap**: Does it create "information tension"?
+      4. **Target Audience Clarity**: Does it call out a specific avatar?
+      5. **Pain Point + Product**: Is the problem clear? Is the solution integrated early?
+      6. **Call-to-Action (CTA)**: Is it urgent and clear?
       7. **Pacing & Editing**: Is fluff removed? Is it fast and punchy?
 
-      ### 📤 OUTPUT FORMAT (Markdown)
+      ### OUTPUT FORMAT (Markdown)
       
-      # 🚀 Audit Results
-
-      ## 🏆 Overall Score: [0-100] / 100
-      **Success Probability:** [Percentage]% (Estimate based on hook & pacing)
+      ## Overall Score: [0-100]/100
+      **Success Probability:** [Percentage]%
 
       ---
 
-      ### 📊 Category Breakdown
-      *   **Hook (Opening):** [Score]/10 - [State CLEARLY: "You started with a Question/Statement". Give feedback.]
+      ### Category Breakdown
+      *   **Hook:** [Score]/10 - [Feedback]
       *   **Pattern Interrupt:** [Score]/10 - [Brief analysis]
       *   **Curiosity Gap:** [Score]/10 - [Brief analysis]
       *   **Audience Clarity:** [Score]/10 - [Brief analysis]
       *   **Pain & Product:** [Score]/10 - [Brief analysis]
       *   **CTA Strength:** [Score]/10 - [Brief analysis]
-      *   **Pacing & Editing:** [Score]/10 - [Brief analysis]
+      *   **Pacing:** [Score]/10 - [Brief analysis]
 
       ---
 
-      ### 💡 Actionable Fixes (Brutal & Specific)
+      ### Actionable Fixes
       *   [Fix 1]
       *   [Fix 2]
       *   [Fix 3]
 
-      ### 📝 Summary
+      ### Summary
       [Brief encouraging summary]
       `;
 
@@ -115,7 +113,6 @@ const VideoAudit = () => {
           { text: systemPrompt }
         ];
       } else {
-         // Fallback if only link is provided
          promptParts = [
            { text: `${systemPrompt}\n\nNOTE: The user only provided a link: ${videoLink}. I cannot watch external links directly. Please provide a general checklist for a viral TikTok Shop video based on the URL structure or remind the user to upload the video file for a real audit.` }
          ];
@@ -129,11 +126,9 @@ const VideoAudit = () => {
       const responseText = response.text || "Analysis failed. Please try again.";
       setResult(responseText);
 
-      // Extract a score if possible for the history (simple regex)
       const scoreMatch = responseText.match(/Overall Score:\s*(\d+)/i);
       const extractedScore = scoreMatch ? scoreMatch[1] : 'N/A';
 
-      // Save to history
       const newRecord: AuditRecord = {
         id: Date.now().toString(),
         link: videoLink || undefined,
@@ -152,36 +147,37 @@ const VideoAudit = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 py-12 px-4">
+    <div className="min-h-screen bg-titan-bg py-8 px-6 lg:px-8">
       <div className="max-w-6xl mx-auto">
         
-        <div className="text-center mb-12">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-500 text-xs font-bold uppercase tracking-wide mb-4">
-            <Sparkles size={14} />
-            AI Powered Audit
+        {/* Header */}
+        <div className="mb-8">
+          <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded bg-accent-fuchsia/10 border border-accent-fuchsia/20 text-accent-fuchsia text-[10px] font-semibold uppercase tracking-wider mb-3">
+            <Sparkles size={10} />
+            AI Powered
           </div>
-          <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-4">
-            Rate My <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-red-600">Creative</span>
-          </h1>
-          <p className="text-slate-400 text-lg max-w-2xl mx-auto">
-            Upload your TikTok video draft. Our AI analyzes your hook, pacing, and CTA to predict viral potential using the 7-Point GMV Matrix.
-          </p>
+          <h1 className="text-xl font-semibold text-text-primary tracking-tight">Video Audit</h1>
+          <p className="text-sm text-text-muted">Analyze your content for viral potential</p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
           
           {/* Left Column: Input */}
-          <div className="lg:col-span-1 space-y-6">
-             <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 shadow-xl">
+          <div className="lg:col-span-1 space-y-4">
+            <div className="bg-titan-surface rounded border border-titan-border p-5">
               
               {/* File Upload */}
-              <div className="mb-8">
-                <label className="block text-sm font-bold text-slate-300 mb-2">
-                  Upload Video File <span className="text-orange-500">*Recommended</span>
+              <div className="mb-5">
+                <label className="block text-xs font-medium text-text-secondary mb-2">
+                  Upload Video
                 </label>
                 <div 
                   onClick={() => fileInputRef.current?.click()}
-                  className={`border-2 border-dashed rounded-xl p-8 flex flex-col items-center justify-center text-center cursor-pointer transition-all ${file ? 'border-tiktok-cyan/50 bg-tiktok-cyan/5' : 'border-slate-700 hover:border-slate-500 bg-slate-950'}`}
+                  className={`border border-dashed rounded p-6 flex flex-col items-center justify-center text-center cursor-pointer transition-all ${
+                    file 
+                      ? 'border-accent-teal/50 bg-accent-teal/5' 
+                      : 'border-titan-border hover:border-titan-border-light bg-titan-bg'
+                  }`}
                 >
                   <input 
                     type="file" 
@@ -192,40 +188,40 @@ const VideoAudit = () => {
                   />
                   
                   {file ? (
-                    <div className="relative w-full aspect-[9/16] bg-black rounded-lg overflow-hidden shadow-lg">
+                    <div className="relative w-full aspect-[9/16] bg-titan-bg rounded overflow-hidden">
                       <video src={previewUrl!} className="w-full h-full object-contain" controls />
                       <button 
                         onClick={(e) => { e.stopPropagation(); setFile(null); setPreviewUrl(null); }}
-                        className="absolute top-2 right-2 p-1 bg-black/50 hover:bg-red-600 rounded-full text-white transition-colors"
+                        className="absolute top-2 right-2 p-1.5 bg-titan-bg/80 hover:bg-accent-fuchsia rounded text-text-primary text-xs transition-colors"
                       >
-                        <Upload size={14} className="rotate-45" /> 
+                        ✕
                       </button>
                     </div>
                   ) : (
                     <>
-                      <div className="w-16 h-16 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 mb-4 group-hover:scale-110 transition-transform">
-                        <Video size={32} />
+                      <div className="w-10 h-10 rounded bg-titan-elevated flex items-center justify-center text-text-muted mb-3">
+                        <Video size={18} />
                       </div>
-                      <p className="text-white font-medium mb-1">Click to upload video</p>
-                      <p className="text-slate-500 text-xs">MP4, MOV up to 50MB</p>
+                      <p className="text-xs text-text-secondary mb-0.5">Click to upload</p>
+                      <p className="text-[10px] text-text-muted">MP4, MOV up to 50MB</p>
                     </>
                   )}
                 </div>
               </div>
 
               {/* Link Input */}
-              <div className="mb-6">
-                <label className="block text-sm font-bold text-slate-300 mb-2">
-                  TikTok Link <span className="text-slate-500 font-normal">(Optional)</span>
+              <div className="mb-5">
+                <label className="block text-xs font-medium text-text-secondary mb-2">
+                  Or paste TikTok link
                 </label>
                 <div className="relative">
-                  <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
+                  <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" size={14} />
                   <input 
                     type="url" 
                     value={videoLink}
                     onChange={(e) => setVideoLink(e.target.value)}
                     placeholder="https://tiktok.com/@..." 
-                    className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-white focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none transition-all placeholder-slate-600"
+                    className="w-full pl-9 pr-3 py-2.5 rounded bg-titan-bg border border-titan-border text-text-primary text-sm focus:border-accent-teal focus:outline-none transition-colors placeholder-text-muted"
                   />
                 </div>
               </div>
@@ -233,88 +229,111 @@ const VideoAudit = () => {
               <button 
                 onClick={handleAudit}
                 disabled={isAnalyzing || (!file && !videoLink)}
-                className="w-full bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-500 hover:to-red-500 text-white font-bold py-4 rounded-xl shadow-[0_0_20px_-5px_rgba(249,115,22,0.4)] disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+                className="w-full bg-text-primary hover:bg-white text-titan-bg font-medium py-2.5 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
               >
                 {isAnalyzing ? (
                   <>
-                    <Loader2 className="animate-spin" />
+                    <Loader2 className="animate-spin" size={14} />
                     Analyzing...
                   </>
                 ) : (
                   <>
-                    <Play size={20} fill="currentColor" />
-                    Audit My Video
+                    <Play size={14} />
+                    Analyze Video
                   </>
                 )}
               </button>
             </div>
 
             {/* History */}
-            <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6">
-               <div className="flex items-center gap-2 mb-4">
-                 <History className="text-slate-400" size={18} />
-                 <h3 className="font-bold text-white text-sm uppercase tracking-wide">Recent Audits</h3>
-               </div>
-               <div className="space-y-3">
-                 {auditHistory.map(record => (
-                   <div key={record.id} className="flex items-center justify-between p-3 rounded-lg bg-slate-950 border border-slate-800 hover:border-slate-700 transition-colors">
-                     <div className="flex flex-col">
-                       <span className="text-sm font-medium text-white truncate max-w-[150px]">
-                         {record.fileName || record.link || 'Video Audit'}
-                       </span>
-                       <span className="text-xs text-slate-500">{record.date}</span>
-                     </div>
-                     <span className={`text-xs font-bold px-2 py-1 rounded-full ${
-                       parseInt(record.score) >= 80 ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 
-                       parseInt(record.score) >= 50 ? 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20' : 
-                       'bg-red-500/10 text-red-400 border border-red-500/20'
-                     }`}>
-                       {record.score}
-                     </span>
-                   </div>
-                 ))}
-               </div>
+            <div className="bg-titan-surface rounded border border-titan-border p-5">
+              <div className="flex items-center gap-2 mb-4">
+                <History className="text-text-muted" size={14} />
+                <h3 className="text-xs font-semibold text-text-primary uppercase tracking-wider">History</h3>
+              </div>
+              <div className="space-y-2">
+                {auditHistory.slice(0, 4).map(record => (
+                  <div key={record.id} className="flex items-center justify-between p-2.5 rounded bg-titan-bg border border-titan-border">
+                    <div>
+                      <p className="text-xs text-text-primary truncate max-w-[120px]">
+                        {record.fileName || record.link || 'Video'}
+                      </p>
+                      <p className="text-[10px] text-text-muted">{record.date}</p>
+                    </div>
+                    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded ${
+                      parseInt(record.score) >= 80 ? 'bg-accent-teal/10 text-accent-teal' : 
+                      parseInt(record.score) >= 50 ? 'bg-accent-orange/10 text-accent-orange' : 
+                      'bg-accent-fuchsia/10 text-accent-fuchsia'
+                    }`}>
+                      {record.score}
+                    </span>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
 
           {/* Right Column: Results */}
-          <div className="lg:col-span-2 min-h-[500px]">
+          <div className="lg:col-span-2">
             {result ? (
-              <div className="bg-slate-900 rounded-2xl border border-slate-800 p-8 shadow-2xl relative overflow-hidden animate-fade-in">
-                 <div className="absolute top-0 right-0 w-full h-1 bg-gradient-to-r from-tiktok-cyan to-tiktok-pink"></div>
-                 <div className="flex items-center gap-3 mb-6">
-                   <CheckCircle className="text-green-400" size={24} />
-                   <h2 className="text-2xl font-bold text-white">Audit Results</h2>
-                 </div>
-                 
-                 <div className="prose prose-invert max-w-none prose-p:text-slate-300 prose-headings:text-white prose-headings:font-bold prose-strong:text-orange-400 prose-ul:text-slate-300">
-                   <ReactMarkdown>{result}</ReactMarkdown>
-                 </div>
+              <div className="bg-titan-surface rounded border border-titan-border p-6 relative overflow-hidden">
+                <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-accent-teal to-accent-fuchsia"></div>
+                
+                <div className="flex items-center gap-2 mb-5">
+                  <CheckCircle className="text-accent-teal" size={16} />
+                  <h2 className="text-sm font-semibold text-text-primary">Results</h2>
+                </div>
+                
+                <div className="prose prose-invert max-w-none text-sm">
+                  <ReactMarkdown
+                    components={{
+                      h2: ({node, ...props}) => <h2 className="text-lg font-semibold text-text-primary mt-4 mb-2" {...props} />,
+                      h3: ({node, ...props}) => <h3 className="text-sm font-semibold text-accent-teal mt-4 mb-2" {...props} />,
+                      p: ({node, ...props}) => <p className="text-text-secondary text-sm leading-relaxed mb-3" {...props} />,
+                      li: ({node, ...props}) => <li className="text-text-secondary text-sm mb-1.5" {...props} />,
+                      strong: ({node, ...props}) => <span className="text-text-primary font-semibold" {...props} />,
+                      hr: ({node, ...props}) => <hr className="border-titan-border my-4" {...props} />,
+                    }}
+                  >
+                    {result}
+                  </ReactMarkdown>
+                </div>
 
-                 <div className="mt-8 pt-6 border-t border-slate-800 bg-slate-950/30 rounded-lg p-4">
-                   <div className="flex items-start gap-3">
-                     <AlertTriangle className="text-yellow-500 shrink-0 mt-0.5" size={18} />
-                     <p className="text-sm text-slate-500 italic">
-                       *AI analysis is based on standard TikTok virality metrics and standard affiliate marketing principles. Results may vary based on your specific niche and audience.
-                     </p>
-                   </div>
-                 </div>
+                <div className="mt-6 pt-4 border-t border-titan-border">
+                  <div className="flex items-start gap-2">
+                    <AlertTriangle className="text-accent-orange shrink-0 mt-0.5" size={12} />
+                    <p className="text-[10px] text-text-muted">
+                      AI analysis based on TikTok virality metrics. Results may vary by niche.
+                    </p>
+                  </div>
+                </div>
               </div>
             ) : (
-              <div className="h-full bg-slate-900/50 rounded-2xl border border-slate-800 border-dashed flex flex-col items-center justify-center text-center p-8">
-                <div className="w-24 h-24 bg-slate-800/50 rounded-full flex items-center justify-center text-slate-600 mb-6 relative">
-                  <div className="absolute inset-0 bg-orange-500/10 rounded-full blur-xl animate-pulse-slow"></div>
-                  <Sparkles size={40} />
+              <div className="h-[400px] bg-titan-surface rounded border border-titan-border border-dashed flex flex-col items-center justify-center text-center p-8">
+                <div className="w-14 h-14 bg-titan-elevated rounded flex items-center justify-center text-text-muted mb-4">
+                  <Sparkles size={24} />
                 </div>
-                <h3 className="text-2xl font-bold text-white mb-2">Ready to Audit</h3>
-                <p className="text-slate-500 max-w-sm leading-relaxed mb-8">
-                  Upload your video draft to receive a 7-point performance breakdown, hook score, and conversion probability estimate.
+                <h3 className="text-base font-semibold text-text-primary mb-1">Ready to Audit</h3>
+                <p className="text-sm text-text-muted max-w-xs mb-6">
+                  Upload a video to receive performance analysis and improvement recommendations
                 </p>
-                <div className="grid grid-cols-2 gap-4 text-sm text-slate-500 max-w-md">
-                   <div className="flex items-center gap-2 justify-center"><CheckCircle size={14} className="text-tiktok-cyan"/> Hook Analysis</div>
-                   <div className="flex items-center gap-2 justify-center"><CheckCircle size={14} className="text-tiktok-cyan"/> CTA Strength</div>
-                   <div className="flex items-center gap-2 justify-center"><CheckCircle size={14} className="text-tiktok-cyan"/> Pacing Check</div>
-                   <div className="flex items-center gap-2 justify-center"><CheckCircle size={14} className="text-tiktok-cyan"/> Product Clarity</div>
+                <div className="grid grid-cols-2 gap-3 text-xs text-text-muted">
+                  <div className="flex items-center gap-1.5">
+                    <CheckCircle size={10} className="text-accent-teal" />
+                    Hook Analysis
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <CheckCircle size={10} className="text-accent-teal" />
+                    CTA Strength
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <CheckCircle size={10} className="text-accent-teal" />
+                    Pacing Check
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <CheckCircle size={10} className="text-accent-teal" />
+                    Product Clarity
+                  </div>
                 </div>
               </div>
             )}

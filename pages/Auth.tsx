@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
+import { Loader2 } from 'lucide-react';
 
 interface AuthProps {
   mode: 'login' | 'signup';
@@ -22,7 +23,6 @@ const Auth: React.FC<AuthProps> = ({ mode }) => {
 
     try {
       if (mode === 'signup') {
-        // Sign up with Supabase
         const { data, error: signUpError } = await supabase.auth.signUp({
           email,
           password,
@@ -37,7 +37,6 @@ const Auth: React.FC<AuthProps> = ({ mode }) => {
         if (signUpError) throw signUpError;
 
         if (data.user) {
-          // Create user profile in database
           const { error: profileError } = await supabase
             .from('profiles')
             .insert({
@@ -49,13 +48,11 @@ const Auth: React.FC<AuthProps> = ({ mode }) => {
 
           if (profileError) {
             console.warn('Profile creation error:', profileError);
-            // Continue anyway - profile can be created later
           }
 
           navigate('/dashboard');
         }
       } else {
-        // Log in with Supabase
         const { data, error: signInError } = await supabase.auth.signInWithPassword({
           email,
           password,
@@ -75,66 +72,76 @@ const Auth: React.FC<AuthProps> = ({ mode }) => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4 relative overflow-hidden">
-      <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-tiktok-cyan/5 rounded-full blur-[120px] pointer-events-none"></div>
-      <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-orange-600/5 rounded-full blur-[120px] pointer-events-none"></div>
+    <div className="min-h-screen bg-titan-bg flex flex-col items-center justify-center p-6 relative overflow-hidden">
+      {/* Background Elements */}
+      <div className="absolute top-1/4 left-1/4 w-[400px] h-[400px] bg-accent-teal/5 rounded-full blur-[120px] pointer-events-none"></div>
+      <div className="absolute bottom-1/4 right-1/4 w-[300px] h-[300px] bg-accent-fuchsia/5 rounded-full blur-[120px] pointer-events-none"></div>
 
+      {/* Header */}
       <div className="mb-8 text-center relative z-10">
-        <Link to="/" className="inline-block p-2 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl mb-6 shadow-lg shadow-orange-500/30 transform hover:scale-105 transition-transform">
-          <span className="text-white font-bold text-2xl">T</span>
+        <Link to="/" className="inline-flex items-center gap-2 mb-8">
+          <div className="w-8 h-8 bg-gradient-to-br from-accent-teal to-accent-fuchsia rounded flex items-center justify-center">
+            <span className="text-titan-bg font-bold text-sm">T</span>
+          </div>
+          <span className="text-base font-semibold text-text-primary tracking-tight">TITANS</span>
         </Link>
-        <h1 className="text-3xl font-bold text-white tracking-tight">{mode === 'login' ? 'Welcome Back' : 'Join Titans Hub'}</h1>
-        <p className="text-slate-400 mt-2">
+        <h1 className="text-2xl font-semibold text-text-primary tracking-tight">
+          {mode === 'login' ? 'Welcome back' : 'Create your account'}
+        </h1>
+        <p className="text-sm text-text-muted mt-2">
           {mode === 'login' 
-            ? 'Enter your credentials to access the hub.' 
-            : 'Start earning commissions today.'}
+            ? 'Sign in to access your dashboard' 
+            : 'Start scaling your TikTok Shop revenue'}
         </p>
       </div>
 
-      <div className="bg-slate-900/80 backdrop-blur-xl p-8 rounded-2xl shadow-2xl border border-slate-800 w-full max-w-md relative z-10">
+      {/* Form Card */}
+      <div className="glass-panel p-8 rounded w-full max-w-sm relative z-10">
         {error && (
-          <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm">
+          <div className="mb-5 p-3 bg-accent-fuchsia/10 border border-accent-fuchsia/20 rounded text-accent-fuchsia text-xs">
             {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-4">
           {mode === 'signup' && (
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">Full Name</label>
+              <label className="block text-xs font-medium text-text-secondary mb-1.5">Full Name</label>
               <input 
                 type="text" 
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-700 text-white focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none transition-all placeholder-slate-600" 
-                placeholder="Alex Smith" 
+                className="w-full px-3 py-2.5 rounded bg-titan-bg border border-titan-border text-text-primary text-sm focus:border-accent-teal focus:outline-none transition-colors placeholder-text-muted" 
+                placeholder="Your name" 
                 required 
               />
             </div>
           )}
           
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-2">Email Address</label>
+            <label className="block text-xs font-medium text-text-secondary mb-1.5">Email</label>
             <input 
               type="email" 
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-700 text-white focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none transition-all placeholder-slate-600" 
-              placeholder="alex@example.com" 
+              className="w-full px-3 py-2.5 rounded bg-titan-bg border border-titan-border text-text-primary text-sm focus:border-accent-teal focus:outline-none transition-colors placeholder-text-muted" 
+              placeholder="you@example.com" 
               required 
             />
           </div>
 
           <div>
-             <div className="flex justify-between mb-2">
-              <label className="block text-sm font-medium text-slate-300">Password</label>
-              {mode === 'login' && <a href="#" className="text-sm text-orange-500 font-medium hover:text-orange-400 hover:underline">Forgot?</a>}
-             </div>
+            <div className="flex justify-between mb-1.5">
+              <label className="block text-xs font-medium text-text-secondary">Password</label>
+              {mode === 'login' && (
+                <a href="#" className="text-xs text-accent-teal hover:text-text-primary transition-colors">Forgot?</a>
+              )}
+            </div>
             <input 
               type="password" 
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-700 text-white focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none transition-all placeholder-slate-600" 
+              className="w-full px-3 py-2.5 rounded bg-titan-bg border border-titan-border text-text-primary text-sm focus:border-accent-teal focus:outline-none transition-colors placeholder-text-muted" 
               placeholder="••••••••" 
               required 
               minLength={6}
@@ -142,69 +149,58 @@ const Auth: React.FC<AuthProps> = ({ mode }) => {
           </div>
 
           {mode === 'signup' && (
-            <div className="flex gap-4 p-1 bg-slate-950 rounded-xl border border-slate-800">
-              <label 
-                className={`flex-1 text-center py-2 rounded-lg text-sm font-semibold cursor-pointer transition-all ${
-                  role === 'creator' 
-                    ? 'bg-slate-800 shadow-sm text-white border border-slate-700' 
-                    : 'text-slate-500 hover:text-white'
-                }`}
-              >
-                <input 
-                  type="radio" 
-                  name="role" 
-                  className="hidden" 
-                  checked={role === 'creator'}
-                  onChange={() => setRole('creator')}
-                />
-                I'm a Creator
-              </label>
-              <label 
-                className={`flex-1 text-center py-2 rounded-lg text-sm font-semibold cursor-pointer transition-all ${
-                  role === 'brand' 
-                    ? 'bg-slate-800 shadow-sm text-white border border-slate-700' 
-                    : 'text-slate-500 hover:text-white'
-                }`}
-              >
-                <input 
-                  type="radio" 
-                  name="role" 
-                  className="hidden" 
-                  checked={role === 'brand'}
-                  onChange={() => setRole('brand')}
-                />
-                I'm a Brand
-              </label>
+            <div>
+              <label className="block text-xs font-medium text-text-secondary mb-1.5">I am a</label>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setRole('creator')}
+                  className={`flex-1 py-2 rounded text-sm font-medium transition-all ${
+                    role === 'creator' 
+                      ? 'bg-accent-teal/10 text-accent-teal border border-accent-teal/30' 
+                      : 'bg-titan-bg border border-titan-border text-text-muted hover:text-text-secondary'
+                  }`}
+                >
+                  Creator
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setRole('brand')}
+                  className={`flex-1 py-2 rounded text-sm font-medium transition-all ${
+                    role === 'brand' 
+                      ? 'bg-accent-fuchsia/10 text-accent-fuchsia border border-accent-fuchsia/30' 
+                      : 'bg-titan-bg border border-titan-border text-text-muted hover:text-text-secondary'
+                  }`}
+                >
+                  Brand
+                </button>
+              </div>
             </div>
           )}
 
           <button 
             type="submit" 
             disabled={loading}
-            className="w-full bg-orange-600 hover:bg-orange-500 disabled:bg-orange-600/50 disabled:cursor-not-allowed text-white font-bold py-3.5 rounded-xl transition-all shadow-[0_0_20px_-5px_rgba(249,115,22,0.4)] hover:shadow-[0_0_25px_-5px_rgba(249,115,22,0.6)]"
+            className="w-full bg-text-primary hover:bg-white disabled:bg-text-primary/50 text-titan-bg font-semibold py-2.5 rounded text-sm transition-colors flex items-center justify-center gap-2"
           >
-            {loading ? (
-              <span className="flex items-center justify-center gap-2">
-                <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                </svg>
-                Processing...
-              </span>
-            ) : (
-              mode === 'login' ? 'Log In' : 'Create Account'
-            )}
+            {loading && <Loader2 size={14} className="animate-spin" />}
+            {mode === 'login' ? 'Sign In' : 'Create Account'}
           </button>
         </form>
 
-        <div className="mt-8 text-center text-sm text-slate-500">
+        <div className="mt-6 text-center text-xs text-text-muted">
           {mode === 'login' ? (
-            <>Don't have an account? <Link to="/signup" className="text-orange-500 font-bold hover:underline">Sign up</Link></>
+            <>Don't have an account? <Link to="/signup" className="text-accent-teal hover:text-text-primary transition-colors">Sign up</Link></>
           ) : (
-            <>Already have an account? <Link to="/login" className="text-orange-500 font-bold hover:underline">Log in</Link></>
+            <>Already have an account? <Link to="/login" className="text-accent-teal hover:text-text-primary transition-colors">Sign in</Link></>
           )}
         </div>
       </div>
+
+      {/* Footer */}
+      <p className="mt-8 text-xs text-text-muted relative z-10">
+        By continuing, you agree to our Terms of Service
+      </p>
     </div>
   );
 };

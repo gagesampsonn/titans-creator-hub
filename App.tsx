@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { HashRouter, Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X, User } from 'lucide-react';
+import { Menu, X, User, ChevronRight } from 'lucide-react';
 import { AuthProvider, useAuth } from './lib/AuthContext';
 import Home from './pages/Home';
 import ProductLibrary from './pages/ProductLibrary';
@@ -17,8 +17,10 @@ const Navbar = () => {
   const navigate = useNavigate();
   const { user, loading, signOut } = useAuth();
 
-  // Minimalist active state
-  const isActive = (path: string) => location.pathname === path ? "text-white font-medium" : "text-slate-400 hover:text-white transition-colors";
+  const isActive = (path: string) => 
+    location.pathname === path 
+      ? "text-text-primary font-medium" 
+      : "text-text-secondary hover:text-text-primary transition-colors duration-200";
 
   const handleLogout = async () => {
     await signOut();
@@ -27,19 +29,19 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="sticky top-0 z-50 w-full bg-[#0B0E14]/80 backdrop-blur-md border-b border-[#1F232D]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16 items-center">
+    <nav className="sticky top-0 z-50 w-full bg-titan-bg/90 backdrop-blur-md border-b border-titan-border">
+      <div className="max-w-7xl mx-auto px-6 lg:px-8">
+        <div className="flex justify-between h-14 items-center">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2 group">
-            <div className="w-8 h-8 bg-[#F97316] rounded-lg flex items-center justify-center transform group-hover:rotate-3 transition-transform">
-              <span className="text-white font-bold text-xl">T</span>
+          <Link to="/" className="flex items-center gap-2.5 group">
+            <div className="w-7 h-7 bg-gradient-to-br from-accent-teal to-accent-fuchsia rounded flex items-center justify-center">
+              <span className="text-titan-bg font-bold text-sm">T</span>
             </div>
-            <span className="text-xl font-bold text-white tracking-tight">TITANS</span>
+            <span className="text-base font-semibold text-text-primary tracking-tight">TITANS</span>
           </Link>
 
           {/* Desktop Nav */}
-          <div className="hidden md:flex items-center space-x-8 text-sm">
+          <div className="hidden md:flex items-center gap-8 text-sm">
             <Link to="/products" className={isActive('/products')}>Products</Link>
             <Link to="/trends" className={isActive('/trends')}>Trends</Link>
             <Link to="/audit" className={isActive('/audit')}>Video Audit</Link>
@@ -47,56 +49,125 @@ const Navbar = () => {
           </div>
 
           {/* Desktop Auth */}
-          <div className="hidden md:flex items-center space-x-4">
+          <div className="hidden md:flex items-center gap-3">
             {loading ? (
-              <div className="w-8 h-8 bg-[#1F232D] rounded-full animate-pulse" />
+              <div className="w-7 h-7 bg-titan-surface rounded animate-pulse" />
             ) : user ? (
-               <div className="flex items-center gap-4">
-                 <Link to="/dashboard" className="flex items-center gap-2 text-sm font-medium text-slate-300 hover:text-white transition-colors">
-                   <div className="w-8 h-8 bg-[#1F232D] rounded-full flex items-center justify-center border border-[#2D3342]">
-                     <User size={16} />
-                   </div>
-                   <span>Dashboard</span>
-                 </Link>
-                 <button onClick={handleLogout} className="text-sm text-slate-500 hover:text-white transition-colors">Log Out</button>
-               </div>
+              <div className="flex items-center gap-3">
+                <Link 
+                  to="/dashboard" 
+                  className="flex items-center gap-2 text-sm text-text-secondary hover:text-text-primary transition-colors"
+                >
+                  <div className="w-7 h-7 bg-titan-surface rounded border border-titan-border flex items-center justify-center">
+                    <User size={14} className="text-text-secondary" />
+                  </div>
+                  <span>Dashboard</span>
+                </Link>
+                <button 
+                  onClick={handleLogout} 
+                  className="text-sm text-text-muted hover:text-text-secondary transition-colors"
+                >
+                  Log Out
+                </button>
+              </div>
             ) : (
               <>
-                <Link to="/login" className="text-sm text-slate-400 hover:text-white font-medium transition-colors">Log In</Link>
-                <Link to="/signup" className="bg-[#F97316] hover:bg-[#EA580C] text-white px-5 py-2 rounded-full text-sm font-medium transition-all shadow-sm">
-                  Sign Up
+                <Link 
+                  to="/login" 
+                  className="text-sm text-text-secondary hover:text-text-primary transition-colors"
+                >
+                  Log In
+                </Link>
+                <Link 
+                  to="/signup" 
+                  className="bg-text-primary hover:bg-white text-titan-bg px-4 py-1.5 rounded text-sm font-medium transition-colors"
+                >
+                  Get Started
                 </Link>
               </>
             )}
           </div>
 
           {/* Mobile Menu Button */}
-          <div className="md:hidden flex items-center">
-            <button onClick={() => setIsOpen(!isOpen)} className="text-slate-400 hover:text-white p-2">
-              {isOpen ? <X size={24} /> : <Menu size={24} />}
-            </button>
-          </div>
+          <button 
+            onClick={() => setIsOpen(!isOpen)} 
+            className="md:hidden text-text-secondary hover:text-text-primary p-1.5"
+          >
+            {isOpen ? <X size={20} /> : <Menu size={20} />}
+          </button>
         </div>
       </div>
 
       {/* Mobile Menu */}
       {isOpen && (
-        <div className="md:hidden bg-[#0B0E14] border-b border-[#1F232D]">
-          <div className="px-4 pt-2 pb-6 space-y-1">
-            <Link to="/products" onClick={() => setIsOpen(false)} className="block px-3 py-3 rounded-md text-base font-medium text-slate-300 hover:text-white hover:bg-[#161B26]">Products</Link>
-            <Link to="/trends" onClick={() => setIsOpen(false)} className="block px-3 py-3 rounded-md text-base font-medium text-slate-300 hover:text-white hover:bg-[#161B26]">Trends</Link>
-            <Link to="/audit" onClick={() => setIsOpen(false)} className="block px-3 py-3 rounded-md text-base font-medium text-slate-300 hover:text-white hover:bg-[#161B26]">Video Audit</Link>
-            <Link to="/brands" onClick={() => setIsOpen(false)} className="block px-3 py-3 rounded-md text-base font-medium text-slate-300 hover:text-white hover:bg-[#161B26]">For Brands</Link>
+        <div className="md:hidden bg-titan-surface border-b border-titan-border">
+          <div className="px-4 py-4 space-y-1">
+            <Link 
+              to="/products" 
+              onClick={() => setIsOpen(false)} 
+              className="flex items-center justify-between px-3 py-2.5 text-sm text-text-secondary hover:text-text-primary hover:bg-titan-elevated rounded transition-colors"
+            >
+              Products
+              <ChevronRight size={14} />
+            </Link>
+            <Link 
+              to="/trends" 
+              onClick={() => setIsOpen(false)} 
+              className="flex items-center justify-between px-3 py-2.5 text-sm text-text-secondary hover:text-text-primary hover:bg-titan-elevated rounded transition-colors"
+            >
+              Trends
+              <ChevronRight size={14} />
+            </Link>
+            <Link 
+              to="/audit" 
+              onClick={() => setIsOpen(false)} 
+              className="flex items-center justify-between px-3 py-2.5 text-sm text-text-secondary hover:text-text-primary hover:bg-titan-elevated rounded transition-colors"
+            >
+              Video Audit
+              <ChevronRight size={14} />
+            </Link>
+            <Link 
+              to="/brands" 
+              onClick={() => setIsOpen(false)} 
+              className="flex items-center justify-between px-3 py-2.5 text-sm text-text-secondary hover:text-text-primary hover:bg-titan-elevated rounded transition-colors"
+            >
+              For Brands
+              <ChevronRight size={14} />
+            </Link>
             {user && (
-              <Link to="/dashboard" onClick={() => setIsOpen(false)} className="block px-3 py-3 rounded-md text-base font-medium text-slate-300 hover:text-white hover:bg-[#161B26]">Dashboard</Link>
+              <Link 
+                to="/dashboard" 
+                onClick={() => setIsOpen(false)} 
+                className="flex items-center justify-between px-3 py-2.5 text-sm text-text-secondary hover:text-text-primary hover:bg-titan-elevated rounded transition-colors"
+              >
+                Dashboard
+                <ChevronRight size={14} />
+              </Link>
             )}
-            <div className="border-t border-[#1F232D] my-4 pt-4">
+            <div className="pt-3 mt-3 border-t border-titan-border">
               {user ? (
-                <button onClick={handleLogout} className="w-full text-left px-3 py-2 text-slate-400 hover:text-white">Log Out</button>
+                <button 
+                  onClick={handleLogout} 
+                  className="w-full text-left px-3 py-2 text-sm text-text-muted hover:text-text-primary transition-colors"
+                >
+                  Log Out
+                </button>
               ) : (
-                <div className="flex flex-col gap-3 p-2">
-                  <Link to="/login" onClick={() => setIsOpen(false)} className="w-full text-center py-2 text-slate-300 border border-[#2D3342] rounded-lg hover:bg-[#161B26]">Log In</Link>
-                  <Link to="/signup" onClick={() => setIsOpen(false)} className="w-full text-center py-2 bg-[#F97316] text-white rounded-lg">Sign Up</Link>
+                <div className="flex flex-col gap-2">
+                  <Link 
+                    to="/login" 
+                    onClick={() => setIsOpen(false)} 
+                    className="w-full text-center py-2 text-sm text-text-secondary border border-titan-border rounded hover:bg-titan-elevated transition-colors"
+                  >
+                    Log In
+                  </Link>
+                  <Link 
+                    to="/signup" 
+                    onClick={() => setIsOpen(false)} 
+                    className="w-full text-center py-2 text-sm bg-text-primary text-titan-bg rounded font-medium"
+                  >
+                    Get Started
+                  </Link>
                 </div>
               )}
             </div>
@@ -108,40 +179,61 @@ const Navbar = () => {
 };
 
 const Footer = () => (
-  <footer className="bg-[#0B0E14] text-slate-400 py-16 border-t border-[#1F232D]">
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-4 gap-8">
-      <div className="col-span-1 md:col-span-1">
-        <span className="text-white font-bold text-xl tracking-tight">TITANS</span>
-        <p className="mt-4 text-sm leading-relaxed text-slate-500">
-          The premier ecosystem for TikTok Shop professional creators.
+  <footer className="bg-titan-bg border-t border-titan-border">
+    <div className="max-w-7xl mx-auto px-6 lg:px-8 py-12">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-8">
+        {/* Brand */}
+        <div className="col-span-2 md:col-span-2">
+          <div className="flex items-center gap-2.5 mb-4">
+            <div className="w-6 h-6 bg-gradient-to-br from-accent-teal to-accent-fuchsia rounded flex items-center justify-center">
+              <span className="text-titan-bg font-bold text-xs">T</span>
+            </div>
+            <span className="text-sm font-semibold text-text-primary tracking-tight">TITANS</span>
+          </div>
+          <p className="text-sm text-text-muted leading-relaxed max-w-xs">
+            The command center for TikTok Shop creators. Data-driven tools for modern commerce.
+          </p>
+        </div>
+
+        {/* Platform */}
+        <div>
+          <h4 className="text-xs font-semibold text-text-primary uppercase tracking-wider mb-4">Platform</h4>
+          <ul className="space-y-2.5 text-sm text-text-muted">
+            <li><Link to="/products" className="hover:text-text-secondary transition-colors">Products</Link></li>
+            <li><Link to="/trends" className="hover:text-text-secondary transition-colors">Trend Pulse</Link></li>
+            <li><Link to="/audit" className="hover:text-text-secondary transition-colors">Video Audit</Link></li>
+          </ul>
+        </div>
+
+        {/* Company */}
+        <div>
+          <h4 className="text-xs font-semibold text-text-primary uppercase tracking-wider mb-4">Company</h4>
+          <ul className="space-y-2.5 text-sm text-text-muted">
+            <li><Link to="/brands" className="hover:text-text-secondary transition-colors">For Brands</Link></li>
+            <li><a href="#" className="hover:text-text-secondary transition-colors">About</a></li>
+            <li><a href="#" className="hover:text-text-secondary transition-colors">Contact</a></li>
+          </ul>
+        </div>
+
+        {/* Legal */}
+        <div>
+          <h4 className="text-xs font-semibold text-text-primary uppercase tracking-wider mb-4">Legal</h4>
+          <ul className="space-y-2.5 text-sm text-text-muted">
+            <li><a href="#" className="hover:text-text-secondary transition-colors">Privacy</a></li>
+            <li><a href="#" className="hover:text-text-secondary transition-colors">Terms</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div className="mt-12 pt-6 border-t border-titan-border flex flex-col sm:flex-row justify-between items-center gap-4">
+        <p className="text-xs text-text-muted">
+          © {new Date().getFullYear()} Titans. All rights reserved.
         </p>
+        <div className="flex items-center gap-1 text-xs text-text-muted">
+          <span className="w-1.5 h-1.5 bg-accent-teal rounded-full animate-pulse"></span>
+          <span>All systems operational</span>
+        </div>
       </div>
-      <div>
-        <h3 className="text-white font-semibold mb-4 text-sm">Platform</h3>
-        <ul className="space-y-3 text-sm text-slate-500">
-          <li><Link to="/products" className="hover:text-white transition-colors">Product Library</Link></li>
-          <li><Link to="/trends" className="hover:text-white transition-colors">Trend Pulse</Link></li>
-          <li><Link to="/audit" className="hover:text-white transition-colors">Video Audit</Link></li>
-        </ul>
-      </div>
-      <div>
-        <h3 className="text-white font-semibold mb-4 text-sm">Company</h3>
-        <ul className="space-y-3 text-sm text-slate-500">
-          <li><Link to="/brands" className="hover:text-white transition-colors">For Brands</Link></li>
-          <li><a href="#" className="hover:text-white transition-colors">Success Stories</a></li>
-          <li><a href="#" className="hover:text-white transition-colors">Contact</a></li>
-        </ul>
-      </div>
-      <div>
-        <h3 className="text-white font-semibold mb-4 text-sm">Legal</h3>
-        <ul className="space-y-3 text-sm text-slate-500">
-          <li><a href="#" className="hover:text-white transition-colors">Privacy</a></li>
-          <li><a href="#" className="hover:text-white transition-colors">Terms</a></li>
-        </ul>
-      </div>
-    </div>
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-16 pt-8 border-t border-[#1F232D] text-sm text-center text-slate-600">
-      © {new Date().getFullYear()} Titans Creator Hub. All rights reserved.
     </div>
   </footer>
 );
@@ -150,7 +242,7 @@ const App = () => {
   return (
     <HashRouter>
       <AuthProvider>
-        <div className="min-h-screen flex flex-col bg-[#0B0E14] font-sans text-slate-50 selection:bg-[#F97316] selection:text-white">
+        <div className="min-h-screen flex flex-col bg-titan-bg font-sans text-text-primary">
           <Navbar />
           <main className="flex-grow">
             <Routes>

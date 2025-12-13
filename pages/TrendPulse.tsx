@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { GoogleGenAI } from "@google/genai";
 import ReactMarkdown from 'react-markdown';
-import { Newspaper, Loader, Globe, ArrowRight, RefreshCw, AlertCircle } from 'lucide-react';
+import { Newspaper, Loader2, Globe, ArrowRight, RefreshCw, AlertCircle } from 'lucide-react';
 
 const TrendPulse = () => {
   const [loading, setLoading] = useState(false);
@@ -53,13 +53,11 @@ const TrendPulse = () => {
       
       setData(response.text || "No trends found.");
       
-      // Extract grounding metadata if available
       const chunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
       const extractedSources = chunks
         .filter((c: any) => c.web?.uri && c.web?.title)
         .map((c: any) => ({ title: c.web.title, uri: c.web.uri }));
         
-      // Deduplicate sources
       const uniqueSources = Array.from(new Map(extractedSources.map((item:any) => [item['uri'], item])).values());
       setSources(uniqueSources);
 
@@ -71,131 +69,134 @@ const TrendPulse = () => {
     }
   };
 
-  // Initial fetch
   useEffect(() => {
     fetchTrends();
   }, []);
 
   return (
-    <div className="min-h-screen bg-slate-950 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-5xl mx-auto">
+    <div className="min-h-screen bg-titan-bg py-8 px-6 lg:px-8">
+      <div className="max-w-6xl mx-auto">
         
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-tiktok-cyan/10 border border-tiktok-cyan/20 text-tiktok-cyan text-xs font-bold uppercase tracking-wide mb-3">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-tiktok-cyan opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-tiktok-cyan"></span>
-              </span>
-              Live Intelligence
+            <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded bg-accent-teal/10 border border-accent-teal/20 text-accent-teal text-[10px] font-semibold uppercase tracking-wider mb-3">
+              <span className="w-1.5 h-1.5 bg-accent-teal rounded-full animate-pulse"></span>
+              Live
             </div>
-            <h1 className="text-4xl md:text-5xl font-extrabold text-white tracking-tight">
-              Trend <span className="text-transparent bg-clip-text bg-gradient-to-r from-tiktok-cyan to-tiktok-pink">Pulse</span>
-            </h1>
-            <p className="text-slate-400 mt-2 text-lg">Real-time cross-platform intelligence (FastMoss, Kalodata, X, TikTok).</p>
+            <h1 className="text-xl font-semibold text-text-primary tracking-tight">Trend Pulse</h1>
+            <p className="text-sm text-text-muted">Real-time cross-platform intelligence</p>
           </div>
           
           <button 
             onClick={fetchTrends}
             disabled={loading}
-            className="flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-6 py-4 rounded-xl font-bold border border-slate-700 hover:border-tiktok-cyan/50 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center justify-center gap-2 bg-titan-surface hover:bg-titan-elevated border border-titan-border text-text-primary px-4 py-2 rounded text-sm font-medium transition-colors disabled:opacity-50"
           >
-            {loading ? <Loader className="animate-spin" size={20} /> : <RefreshCw size={20} />}
-            {loading ? 'Scanning Networks...' : 'Refresh Trends'}
+            {loading ? <Loader2 className="animate-spin" size={14} /> : <RefreshCw size={14} />}
+            {loading ? 'Scanning...' : 'Refresh'}
           </button>
         </div>
 
-        {/* Error State */}
+        {/* Error */}
         {error && (
-          <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-6 rounded-2xl flex items-start gap-4 mb-8">
-            <AlertCircle className="shrink-0 mt-1" />
+          <div className="bg-accent-fuchsia/10 border border-accent-fuchsia/20 text-accent-fuchsia p-4 rounded flex items-start gap-3 mb-6">
+            <AlertCircle size={16} className="shrink-0 mt-0.5" />
             <div>
-              <h3 className="font-bold mb-1">Error Loading Trends</h3>
-              <p className="text-sm opacity-90">{error}</p>
+              <p className="text-sm font-medium">Error loading trends</p>
+              <p className="text-xs opacity-80 mt-0.5">{error}</p>
             </div>
           </div>
         )}
 
-        {/* Content Area */}
+        {/* Content */}
         {loading && !data ? (
-          <div className="space-y-6 animate-pulse">
-            <div className="h-64 bg-slate-900 rounded-2xl border border-slate-800"></div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-               <div className="h-40 bg-slate-900 rounded-2xl border border-slate-800"></div>
-               <div className="h-40 bg-slate-900 rounded-2xl border border-slate-800"></div>
+          <div className="space-y-4 animate-pulse">
+            <div className="h-48 bg-titan-surface rounded border border-titan-border"></div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="h-32 bg-titan-surface rounded border border-titan-border"></div>
+              <div className="h-32 bg-titan-surface rounded border border-titan-border"></div>
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             
-            {/* Main AI Report */}
-            <div className="lg:col-span-2 space-y-8">
-              <div className="bg-slate-900 rounded-2xl border border-slate-800 p-8 shadow-xl relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-tiktok-cyan/5 rounded-full blur-[80px] pointer-events-none"></div>
-                <div className="flex items-center gap-3 mb-6 border-b border-slate-800 pb-4">
-                  <Newspaper className="text-orange-500" size={24} />
-                  <h2 className="text-xl font-bold text-white">Latest Affiliate Briefing</h2>
+            {/* Main Report */}
+            <div className="lg:col-span-2">
+              <div className="bg-titan-surface rounded border border-titan-border p-6 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-48 h-48 bg-accent-teal/5 rounded-full blur-[80px] pointer-events-none"></div>
+                
+                <div className="flex items-center gap-2 mb-5 pb-4 border-b border-titan-border">
+                  <Newspaper className="text-accent-teal" size={16} />
+                  <h2 className="text-sm font-semibold text-text-primary">Intelligence Report</h2>
                 </div>
                 
-                <div className="prose prose-invert prose-orange max-w-none">
+                <div className="prose prose-invert max-w-none text-sm">
                   {data ? (
                     <ReactMarkdown 
                       components={{
-                        h1: ({node, ...props}) => <h3 className="text-xl font-bold text-white mt-6 mb-3 border-b border-slate-800 pb-2" {...props} />,
-                        h2: ({node, ...props}) => <h4 className="text-lg font-bold text-tiktok-cyan mt-5 mb-2" {...props} />,
-                        h3: ({node, ...props}) => <h5 className="text-base font-bold text-orange-400 mt-4 mb-1" {...props} />,
-                        li: ({node, ...props}) => <li className="text-slate-300 mb-2" {...props} />,
-                        strong: ({node, ...props}) => <span className="text-white font-bold" {...props} />,
+                        h1: ({node, ...props}) => <h3 className="text-base font-semibold text-text-primary mt-6 mb-2 pb-2 border-b border-titan-border" {...props} />,
+                        h2: ({node, ...props}) => <h4 className="text-sm font-semibold text-accent-teal mt-5 mb-2" {...props} />,
+                        h3: ({node, ...props}) => <h5 className="text-sm font-semibold text-accent-fuchsia mt-4 mb-1" {...props} />,
+                        li: ({node, ...props}) => <li className="text-text-secondary text-sm mb-1.5" {...props} />,
+                        p: ({node, ...props}) => <p className="text-text-secondary text-sm leading-relaxed mb-3" {...props} />,
+                        strong: ({node, ...props}) => <span className="text-text-primary font-semibold" {...props} />,
                       }}
                     >
                       {data}
                     </ReactMarkdown>
                   ) : (
-                    <div className="text-slate-500 italic">No trend data available. Hit refresh to scan.</div>
+                    <p className="text-text-muted">No trend data available. Hit refresh to scan.</p>
                   )}
                 </div>
               </div>
             </div>
 
-            {/* Sources Sidebar */}
-            <div className="space-y-6">
-              <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6">
+            {/* Sidebar */}
+            <div className="space-y-4">
+              {/* Sources */}
+              <div className="bg-titan-surface rounded border border-titan-border p-5">
                 <div className="flex items-center gap-2 mb-4">
-                  <Globe className="text-slate-400" size={18} />
-                  <h3 className="font-bold text-white text-sm uppercase tracking-wide">Verified Sources</h3>
+                  <Globe className="text-text-muted" size={14} />
+                  <h3 className="text-xs font-semibold text-text-primary uppercase tracking-wider">Sources</h3>
                 </div>
                 {sources.length > 0 ? (
-                  <ul className="space-y-3">
-                    {sources.map((source: any, i) => (
+                  <ul className="space-y-2">
+                    {sources.slice(0, 6).map((source: any, i) => (
                       <li key={i}>
                         <a 
                           href={source.uri} 
                           target="_blank" 
                           rel="noopener noreferrer"
-                          className="group block p-3 rounded-lg bg-slate-950 border border-slate-800 hover:border-tiktok-cyan/30 hover:bg-slate-900 transition-all"
+                          className="group block p-2.5 rounded bg-titan-bg border border-titan-border hover:border-titan-border-light transition-colors"
                         >
-                          <div className="text-sm font-medium text-slate-300 group-hover:text-tiktok-cyan line-clamp-2 transition-colors mb-1">
+                          <p className="text-xs text-text-secondary group-hover:text-text-primary line-clamp-2 transition-colors">
                             {source.title}
-                          </div>
-                          <div className="flex items-center gap-1 text-xs text-slate-500">
-                            <span>Read Source</span>
-                            <ArrowRight size={10} className="transform group-hover:translate-x-1 transition-transform" />
+                          </p>
+                          <div className="flex items-center gap-1 text-[10px] text-text-muted mt-1">
+                            <span>View</span>
+                            <ArrowRight size={8} />
                           </div>
                         </a>
                       </li>
                     ))}
                   </ul>
                 ) : (
-                  <div className="text-slate-500 text-sm">Sources will appear here after a search.</div>
+                  <p className="text-xs text-text-muted">Sources appear after scanning</p>
                 )}
               </div>
 
-              <div className="bg-gradient-to-br from-orange-600 to-red-600 rounded-2xl p-6 text-white border border-white/10 relative overflow-hidden">
-                <h3 className="font-bold text-lg mb-2 relative z-10">Spot a Winning Product?</h3>
-                <p className="text-orange-100 text-sm mb-4 relative z-10">Use the Product Library to find matching offers instantly.</p>
-                <a href="#/products" className="inline-block bg-white text-orange-600 px-4 py-2 rounded-lg text-sm font-bold relative z-10 shadow-lg hover:bg-orange-50 transition-colors">
-                  Find Products
+              {/* CTA Card */}
+              <div className="bg-titan-bg border border-accent-teal/20 rounded p-5 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-20 h-20 bg-accent-teal/10 rounded-full blur-3xl"></div>
+                <h3 className="text-sm font-semibold text-text-primary mb-1 relative z-10">Found a trend?</h3>
+                <p className="text-xs text-text-muted mb-4 relative z-10">Match it with products in the library</p>
+                <a 
+                  href="#/products" 
+                  className="inline-flex items-center gap-1.5 bg-text-primary hover:bg-white text-titan-bg px-3 py-1.5 rounded text-xs font-medium transition-colors relative z-10"
+                >
+                  Browse Products
+                  <ArrowRight size={12} />
                 </a>
               </div>
             </div>

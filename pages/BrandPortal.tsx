@@ -3,123 +3,176 @@ import { Check, ArrowRight } from 'lucide-react';
 
 const BrandPortal = () => {
   return (
-    <div className="bg-slate-950 min-h-screen">
+    <div className="bg-titan-bg min-h-screen">
       {/* Hero */}
-      <div className="bg-slate-950 pb-20 pt-10 border-b border-slate-900 relative overflow-hidden">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-orange-600/10 rounded-full blur-[100px] pointer-events-none"></div>
-        <div className="max-w-4xl mx-auto px-4 text-center relative z-10">
-          <span className="text-orange-500 font-bold uppercase tracking-wider text-sm mb-6 block border border-orange-500/20 bg-orange-500/10 w-fit mx-auto px-4 py-1 rounded-full">For Brands & Sellers</span>
-          <h1 className="text-4xl md:text-6xl font-extrabold text-white mb-6 leading-tight tracking-tight">
-            Get Your Product in Front of <br/>
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-tiktok-pink">Top TikTok Creators</span>
+      <div className="bg-titan-bg py-16 border-b border-titan-border relative overflow-hidden">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[500px] h-[300px] bg-accent-fuchsia/5 rounded-full blur-[100px] pointer-events-none"></div>
+        <div className="max-w-3xl mx-auto px-6 text-center relative z-10">
+          <span className="inline-flex items-center gap-2 text-accent-fuchsia text-[10px] font-semibold uppercase tracking-wider mb-4 px-2.5 py-1 rounded bg-accent-fuchsia/10 border border-accent-fuchsia/20">
+            For Brands
+          </span>
+          <h1 className="text-3xl md:text-4xl font-bold text-text-primary mb-4 leading-tight tracking-tight">
+            Get your product in front of
+            <br />
+            <span className="text-gradient-fuchsia">top TikTok creators</span>
           </h1>
-          <p className="text-xl text-slate-400 mb-10 max-w-2xl mx-auto leading-relaxed">
-            Stop sending cold DMs. List your product on Titans Creator Hub and let hundreds of qualified creators apply to promote you.
+          <p className="text-base text-text-secondary mb-8 max-w-xl mx-auto leading-relaxed">
+            List your product on Titans and let qualified creators apply to promote you. No cold outreach needed.
           </p>
-          <button onClick={() => document.getElementById('apply-form')?.scrollIntoView({behavior: 'smooth'})} className="bg-white text-slate-950 px-10 py-4 rounded-xl font-bold hover:bg-slate-200 transition-all shadow-[0_0_25px_-5px_rgba(255,255,255,0.3)]">
-            Apply to Feature Product
+          <button 
+            onClick={() => document.getElementById('apply-form')?.scrollIntoView({behavior: 'smooth'})} 
+            className="bg-text-primary hover:bg-white text-titan-bg px-6 py-2.5 rounded text-sm font-medium transition-colors"
+          >
+            Apply to List Product
           </button>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
+      <div className="max-w-6xl mx-auto px-6 lg:px-8 py-16">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           
           {/* Info Side */}
-          <div className="space-y-12">
+          <div className="space-y-10">
             <div>
-              <h2 className="text-3xl font-bold text-white mb-8">How It Works</h2>
-              <div className="space-y-10">
+              <h2 className="text-lg font-semibold text-text-primary mb-6">How it works</h2>
+              <div className="space-y-6">
                 {[
                   { title: "Submit Application", text: "Tell us about your product, budget, and target audience." },
                   { title: "Strategy Review", text: "Our team reviews your offer to ensure high conversion potential." },
-                  { title: "Launch to Creators", text: "Your product goes live in the Hub. Creators request samples and start posting." }
+                  { title: "Launch to Creators", text: "Your product goes live. Creators request samples and start posting." }
                 ].map((step, i) => (
-                  <div key={i} className="flex gap-6">
-                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-slate-900 border border-slate-800 text-orange-500 flex items-center justify-center font-bold text-lg shadow-lg">
+                  <div key={i} className="flex gap-4">
+                    <div className="flex-shrink-0 w-7 h-7 rounded bg-accent-teal/10 text-accent-teal flex items-center justify-center font-semibold text-xs">
                       {i + 1}
                     </div>
                     <div>
-                      <h3 className="font-bold text-white text-xl mb-2">{step.title}</h3>
-                      <p className="text-slate-400 leading-relaxed">{step.text}</p>
+                      <h3 className="font-medium text-text-primary text-sm mb-1">{step.title}</h3>
+                      <p className="text-sm text-text-muted leading-relaxed">{step.text}</p>
                     </div>
                   </div>
                 ))}
               </div>
             </div>
 
-            <div className="bg-slate-900 p-8 rounded-2xl border border-slate-800 shadow-xl">
-              <h3 className="font-bold text-xl text-white mb-6">Placement Options</h3>
-              <div className="space-y-4">
-                <div className="p-5 border border-slate-800 rounded-xl bg-slate-950/50 hover:border-orange-500/30 transition-colors">
-                  <div className="font-bold text-white mb-1">Featured Listing</div>
-                  <p className="text-sm text-slate-500">Top of category + Homepage placement</p>
-                </div>
-                <div className="p-5 border border-slate-800 rounded-xl bg-slate-950/50 hover:border-orange-500/30 transition-colors">
-                  <div className="font-bold text-white mb-1">Email Blast</div>
-                  <p className="text-sm text-slate-500">Dedicated email to 5,000+ creators</p>
-                </div>
-                <div className="p-5 border border-slate-800 rounded-xl bg-slate-950/50 hover:border-orange-500/30 transition-colors">
-                  <div className="font-bold text-white mb-1">Sample Management</div>
-                  <p className="text-sm text-slate-500">We handle vetting and shipping logistics</p>
-                </div>
+            <div className="bg-titan-surface p-6 rounded border border-titan-border">
+              <h3 className="font-semibold text-sm text-text-primary mb-4">Placement Options</h3>
+              <div className="space-y-3">
+                {[
+                  { title: "Featured Listing", desc: "Top of category + Homepage placement" },
+                  { title: "Email Blast", desc: "Dedicated email to 5,000+ creators" },
+                  { title: "Sample Management", desc: "We handle vetting and shipping logistics" }
+                ].map((option, i) => (
+                  <div key={i} className="p-3 border border-titan-border rounded bg-titan-bg hover:border-titan-border-light transition-colors">
+                    <p className="font-medium text-text-primary text-sm">{option.title}</p>
+                    <p className="text-xs text-text-muted">{option.desc}</p>
+                  </div>
+                ))}
               </div>
+            </div>
+
+            {/* Stats */}
+            <div className="grid grid-cols-3 gap-4">
+              {[
+                { value: "5,000+", label: "Creators" },
+                { value: "$2.4M+", label: "GMV Generated" },
+                { value: "850+", label: "Brands" }
+              ].map((stat, i) => (
+                <div key={i} className="text-center p-4 bg-titan-surface rounded border border-titan-border">
+                  <p className="text-lg font-semibold text-text-primary">{stat.value}</p>
+                  <p className="text-[10px] text-text-muted uppercase tracking-wider">{stat.label}</p>
+                </div>
+              ))}
             </div>
           </div>
 
           {/* Form Side */}
-          <div id="apply-form" className="bg-slate-900 p-8 md:p-10 rounded-3xl border border-slate-800 shadow-2xl relative">
-            <div className="absolute top-0 right-0 w-full h-2 bg-gradient-to-r from-orange-500 to-tiktok-pink rounded-t-3xl opacity-80"></div>
-            <h2 className="text-2xl font-bold text-white mb-2">Application Form</h2>
-            <p className="text-slate-400 mb-8">Fill out the details below and our team will get back to you within 24 hours.</p>
+          <div id="apply-form" className="bg-titan-surface p-6 md:p-8 rounded border border-titan-border relative">
+            <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-accent-teal to-accent-fuchsia rounded-t"></div>
+            <h2 className="text-base font-semibold text-text-primary mb-1">Application Form</h2>
+            <p className="text-sm text-text-muted mb-6">We'll get back to you within 24 hours.</p>
 
-            <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">Brand Name</label>
-                  <input type="text" className="w-full px-4 py-3 rounded-lg bg-slate-950 border border-slate-800 text-white focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none transition-all placeholder-slate-600" placeholder="e.g. Lumina Skin" />
+                  <label className="block text-xs font-medium text-text-secondary mb-1.5">Brand Name</label>
+                  <input 
+                    type="text" 
+                    className="w-full px-3 py-2.5 rounded bg-titan-bg border border-titan-border text-text-primary text-sm focus:border-accent-teal focus:outline-none transition-colors placeholder-text-muted" 
+                    placeholder="Your brand" 
+                  />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">Contact Name</label>
-                  <input type="text" className="w-full px-4 py-3 rounded-lg bg-slate-950 border border-slate-800 text-white focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none transition-all placeholder-slate-600" placeholder="John Doe" />
+                  <label className="block text-xs font-medium text-text-secondary mb-1.5">Contact Email</label>
+                  <input 
+                    type="email" 
+                    className="w-full px-3 py-2.5 rounded bg-titan-bg border border-titan-border text-text-primary text-sm focus:border-accent-teal focus:outline-none transition-colors placeholder-text-muted" 
+                    placeholder="you@brand.com" 
+                  />
+                </div>
+              </div>
+              
+              <div>
+                <label className="block text-xs font-medium text-text-secondary mb-1.5">Product Name</label>
+                <input 
+                  type="text" 
+                  className="w-full px-3 py-2.5 rounded bg-titan-bg border border-titan-border text-text-primary text-sm focus:border-accent-teal focus:outline-none transition-colors placeholder-text-muted" 
+                  placeholder="Product to feature" 
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-text-secondary mb-1.5">TikTok Shop URL</label>
+                <input 
+                  type="url" 
+                  className="w-full px-3 py-2.5 rounded bg-titan-bg border border-titan-border text-text-primary text-sm focus:border-accent-teal focus:outline-none transition-colors placeholder-text-muted" 
+                  placeholder="https://tiktok.com/..." 
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-text-secondary mb-1.5">Commission Rate (%)</label>
+                <input 
+                  type="number" 
+                  className="w-full px-3 py-2.5 rounded bg-titan-bg border border-titan-border text-text-primary text-sm focus:border-accent-teal focus:outline-none transition-colors placeholder-text-muted" 
+                  placeholder="15" 
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-text-secondary mb-1.5">Can you send samples?</label>
+                <div className="flex gap-3">
+                  {['Yes', 'No', 'Case-by-case'].map((opt) => (
+                    <label key={opt} className="flex items-center gap-2 cursor-pointer group">
+                      <input type="radio" name="samples" className="hidden peer" />
+                      <div className="w-4 h-4 rounded-full border border-titan-border bg-titan-bg peer-checked:border-accent-teal peer-checked:bg-accent-teal/20 transition-colors flex items-center justify-center">
+                        <div className="w-1.5 h-1.5 rounded-full bg-accent-teal opacity-0 peer-checked:opacity-100"></div>
+                      </div>
+                      <span className="text-sm text-text-secondary group-hover:text-text-primary transition-colors">{opt}</span>
+                    </label>
+                  ))}
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">Email Address</label>
-                <input type="email" className="w-full px-4 py-3 rounded-lg bg-slate-950 border border-slate-800 text-white focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none transition-all placeholder-slate-600" placeholder="john@brand.com" />
+                <label className="block text-xs font-medium text-text-secondary mb-1.5">Additional Notes</label>
+                <textarea 
+                  rows={3} 
+                  className="w-full px-3 py-2.5 rounded bg-titan-bg border border-titan-border text-text-primary text-sm focus:border-accent-teal focus:outline-none transition-colors placeholder-text-muted resize-none" 
+                  placeholder="Tell us about your campaign goals..."
+                />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">TikTok Shop Product Link</label>
-                <input type="url" className="w-full px-4 py-3 rounded-lg bg-slate-950 border border-slate-800 text-white focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none transition-all placeholder-slate-600" placeholder="https://..." />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">Category</label>
-                  <select className="w-full px-4 py-3 rounded-lg bg-slate-950 border border-slate-800 text-white focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none transition-all">
-                    <option>Beauty</option>
-                    <option>Supplements</option>
-                    <option>Fashion</option>
-                    <option>Tech</option>
-                    <option>Home/Lifestyle</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">Target Commission %</label>
-                  <input type="number" className="w-full px-4 py-3 rounded-lg bg-slate-950 border border-slate-800 text-white focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none transition-all placeholder-slate-600" placeholder="20" />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">Notes / Campaign Goals</label>
-                <textarea rows={4} className="w-full px-4 py-3 rounded-lg bg-slate-950 border border-slate-800 text-white focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none transition-all placeholder-slate-600" placeholder="Tell us about your product USP and what kind of creators you're looking for..."></textarea>
-              </div>
-
-              <button type="submit" className="w-full bg-orange-600 hover:bg-orange-500 text-white font-bold py-4 rounded-xl transition-all shadow-[0_0_20px_-5px_rgba(249,115,22,0.4)] flex items-center justify-center gap-2 mt-4">
-                Submit Application <ArrowRight size={20} />
+              <button 
+                type="submit" 
+                className="w-full bg-text-primary hover:bg-white text-titan-bg font-medium py-2.5 rounded text-sm transition-colors flex items-center justify-center gap-2"
+              >
+                Submit Application
+                <ArrowRight size={14} />
               </button>
+
+              <p className="text-[10px] text-text-muted text-center">
+                By submitting, you agree to our Terms of Service and Privacy Policy
+              </p>
             </form>
           </div>
         </div>
