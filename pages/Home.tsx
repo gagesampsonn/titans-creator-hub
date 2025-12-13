@@ -1,8 +1,94 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Search, ShoppingBag, Zap, Check, TrendingUp, BarChart3, Video } from 'lucide-react';
+import { ArrowRight, Search, Check, TrendingUp, BarChart3, Video, ChevronLeft, ChevronRight, Quote } from 'lucide-react';
+
+// Testimonials data
+const TESTIMONIALS = [
+  {
+    name: "Levi",
+    role: "Top Live Seller",
+    headline: "From New Creator to Top Live Seller",
+    quote: "Titans showed me exactly how to go live and sell. Once I followed the game plan, my lives stopped being random — every session had a purpose and the sales started stacking.",
+    stat: "350k+ GMV across all accounts • Top live seller for a 15-day cleanse campaign",
+    accent: "teal"
+  },
+  {
+    name: "Chris",
+    role: "Creator Coach",
+    headline: "Went From 0 TikTok Experience to Coaching Creators",
+    quote: "I joined Titans with zero TikTok experience. Within my first 3 days, I was already seeing results. Now I coach inside the community and help other members do the same thing.",
+    stat: "From complete beginner → profitable in 3 days → Titans coach",
+    accent: "fuchsia"
+  },
+  {
+    name: "Mark",
+    role: "Affiliate Creator",
+    headline: "Hit His First $1K Week… Then Passed $120K GMV",
+    quote: "I set a goal for my first $1k week on Titans and just locked in. The community kept me motivated and the assignments gave me a clear path. That turned into over $120K GMV and completely changed how I look at content.",
+    stat: "$120k+ GMV • First $1k/week on TikTok Shop",
+    accent: "teal"
+  },
+  {
+    name: "Gabby",
+    role: "Consistency Machine",
+    headline: "Proved What Consistency on TikTok Shop Really Looks Like",
+    quote: "Since joining Titans, I've stayed consistent with the assignments, showed up for every brand, and never missed posts. That consistency is exactly why my deals and results keep growing.",
+    stat: "Multiple brand deals • Ongoing growth from strict consistency",
+    accent: "fuchsia"
+  },
+  {
+    name: "DigitallyHer",
+    role: "Top Performer",
+    headline: "Turned Long-Term Effort Into 960K GMV",
+    quote: "I've been with Titans for a long time, and staying locked in has paid off. Every day I show up for brands, follow the plan, and my GMV keeps climbing. Titans keeps me focused on the right moves.",
+    stat: "960k GMV on TikTok Shop",
+    accent: "teal"
+  },
+  {
+    name: "GoatAB",
+    role: "High Performer",
+    headline: "$50,000+ Profit in 3 Days",
+    quote: "Showing up every single day is what changed everything. Titans gave me the blueprint, but it was about putting in reps. Three days of the right strategy turned into over $50,000 profit.",
+    stat: "$50k+ profit in 3 days • Daily assignments + execution",
+    accent: "fuchsia"
+  },
+  {
+    name: "Brittany",
+    role: "Brand Partner",
+    headline: "Closed Huge Brand Deals With Titans Support",
+    quote: "Titans has been my backbone for the last 8 months. The assignments, coaching, and accountability helped me land huge deals I never thought I'd touch as a creator.",
+    stat: "$171,941+ Affiliate GMV • 5,305 affiliate orders",
+    accent: "teal"
+  },
+  {
+    name: "Krystal Kanarii",
+    role: "Viral Creator",
+    headline: "From Discouraged Creator to 'Printing' With TikTok Shop",
+    quote: "I posted my first TikTok Shop video and it didn't sell. I was discouraged but didn't quit. Finding Titans changed everything. The daily assignments made my videos start to print. I've hit multiple virals, closed brand deals, and finally feel like I'm living up to my potential.",
+    stat: "Why Not Natural brand deal • Multiple viral videos • Consistent GMV growth",
+    accent: "fuchsia"
+  },
+  {
+    name: "Beau",
+    role: "Side Hustle Success",
+    headline: "Used Titans to Turn a Side Hustle Into Real Opportunities",
+    quote: "I joined Titans just wanting to make a little money on the side. A year later I'm still posting, growing, and now I'm getting packages from brands like YSL. TikTok Shop gave me options I never thought were possible, and Titans gave me the roadmap.",
+    stat: "1+ year consistent posting • Brand gifts from YSL & more",
+    accent: "teal"
+  }
+];
 
 const Home = () => {
+  const [currentTestimonial, setCurrentTestimonial] = useState(0);
+
+  const nextTestimonial = () => {
+    setCurrentTestimonial((prev) => (prev + 1) % TESTIMONIALS.length);
+  };
+
+  const prevTestimonial = () => {
+    setCurrentTestimonial((prev) => (prev - 1 + TESTIMONIALS.length) % TESTIMONIALS.length);
+  };
+
   return (
     <div className="flex flex-col bg-titan-bg overflow-hidden">
       {/* Hero Section - Cinematic */}
@@ -176,12 +262,145 @@ const Home = () => {
         </div>
       </section>
 
+      {/* Success Stories / Testimonials Section */}
+      <section className="py-24 bg-titan-surface border-t border-titan-border relative overflow-hidden">
+        {/* Background accent */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] bg-accent-teal/3 rounded-full blur-[150px] pointer-events-none"></div>
+        
+        <div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
+          {/* Section Header */}
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded bg-titan-bg border border-titan-border text-text-secondary text-xs font-medium tracking-wide mb-4">
+              <span className="w-1.5 h-1.5 bg-accent-fuchsia rounded-full"></span>
+              Success Stories
+            </div>
+            <h2 className="text-3xl font-bold text-text-primary tracking-tight mb-4">Real creators. Real results.</h2>
+            <p className="text-text-secondary max-w-xl mx-auto">See how Titans members are scaling their TikTok Shop income with our tools and community.</p>
+          </div>
+
+          {/* Featured Testimonial */}
+          <div className="max-w-4xl mx-auto mb-12">
+            <div className="bg-titan-bg rounded border border-titan-border p-8 md:p-10 relative overflow-hidden">
+              {/* Accent line */}
+              <div className={`absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r ${
+                TESTIMONIALS[currentTestimonial].accent === 'teal' 
+                  ? 'from-accent-teal to-accent-teal/20' 
+                  : 'from-accent-fuchsia to-accent-fuchsia/20'
+              }`}></div>
+              
+              <div className="flex flex-col md:flex-row gap-8">
+                {/* Avatar placeholder */}
+                <div className="flex-shrink-0">
+                  <div className={`w-20 h-20 rounded-lg flex items-center justify-center text-2xl font-bold ${
+                    TESTIMONIALS[currentTestimonial].accent === 'teal'
+                      ? 'bg-accent-teal/10 text-accent-teal'
+                      : 'bg-accent-fuchsia/10 text-accent-fuchsia'
+                  }`}>
+                    {TESTIMONIALS[currentTestimonial].name.charAt(0)}
+                  </div>
+                </div>
+                
+                {/* Content */}
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    <h3 className="text-lg font-semibold text-text-primary">{TESTIMONIALS[currentTestimonial].name}</h3>
+                    <span className="text-xs text-text-muted">•</span>
+                    <span className={`text-xs font-medium ${
+                      TESTIMONIALS[currentTestimonial].accent === 'teal' ? 'text-accent-teal' : 'text-accent-fuchsia'
+                    }`}>{TESTIMONIALS[currentTestimonial].role}</span>
+                  </div>
+                  
+                  <p className="text-sm text-text-muted mb-4">{TESTIMONIALS[currentTestimonial].headline}</p>
+                  
+                  <div className="relative mb-6">
+                    <Quote size={24} className="absolute -left-2 -top-2 text-titan-border opacity-50" />
+                    <p className="text-text-secondary leading-relaxed pl-6">
+                      "{TESTIMONIALS[currentTestimonial].quote}"
+                    </p>
+                  </div>
+                  
+                  {/* Stat badge */}
+                  <div className={`inline-flex items-center gap-2 px-3 py-2 rounded text-xs font-medium ${
+                    TESTIMONIALS[currentTestimonial].accent === 'teal'
+                      ? 'bg-accent-teal/10 text-accent-teal border border-accent-teal/20'
+                      : 'bg-accent-fuchsia/10 text-accent-fuchsia border border-accent-fuchsia/20'
+                  }`}>
+                    <TrendingUp size={12} />
+                    {TESTIMONIALS[currentTestimonial].stat}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Navigation */}
+          <div className="flex items-center justify-center gap-4">
+            <button 
+              onClick={prevTestimonial}
+              className="w-10 h-10 rounded border border-titan-border bg-titan-bg flex items-center justify-center text-text-muted hover:text-text-primary hover:border-titan-border-light transition-colors"
+            >
+              <ChevronLeft size={18} />
+            </button>
+            
+            {/* Dots */}
+            <div className="flex items-center gap-2">
+              {TESTIMONIALS.map((_, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setCurrentTestimonial(idx)}
+                  className={`w-2 h-2 rounded-full transition-all ${
+                    idx === currentTestimonial 
+                      ? 'bg-accent-teal w-6' 
+                      : 'bg-titan-border hover:bg-text-muted'
+                  }`}
+                />
+              ))}
+            </div>
+            
+            <button 
+              onClick={nextTestimonial}
+              className="w-10 h-10 rounded border border-titan-border bg-titan-bg flex items-center justify-center text-text-muted hover:text-text-primary hover:border-titan-border-light transition-colors"
+            >
+              <ChevronRight size={18} />
+            </button>
+          </div>
+
+          {/* Mini testimonial grid */}
+          <div className="mt-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {TESTIMONIALS.slice(0, 6).map((t, idx) => (
+              <button
+                key={idx}
+                onClick={() => setCurrentTestimonial(idx)}
+                className={`text-left p-4 rounded border transition-all ${
+                  idx === currentTestimonial
+                    ? 'bg-titan-bg border-accent-teal/30'
+                    : 'bg-titan-bg/50 border-titan-border hover:border-titan-border-light'
+                }`}
+              >
+                <div className="flex items-center gap-3 mb-2">
+                  <div className={`w-8 h-8 rounded flex items-center justify-center text-xs font-bold ${
+                    t.accent === 'teal' ? 'bg-accent-teal/10 text-accent-teal' : 'bg-accent-fuchsia/10 text-accent-fuchsia'
+                  }`}>
+                    {t.name.charAt(0)}
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-text-primary">{t.name}</p>
+                    <p className="text-[10px] text-text-muted">{t.role}</p>
+                  </div>
+                </div>
+                <p className="text-xs text-text-muted line-clamp-2">"{t.quote.substring(0, 80)}..."</p>
+              </button>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Two Column Section */}
-      <section className="py-24 bg-titan-surface border-t border-titan-border">
+      <section className="py-24 bg-titan-bg border-t border-titan-border">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* For Creators */}
-            <div className="bg-titan-bg p-8 rounded border border-titan-border">
+            <div className="bg-titan-surface p-8 rounded border border-titan-border">
               <div className="flex items-center gap-2 text-accent-teal text-xs font-medium uppercase tracking-wider mb-4">
                 <span className="w-1 h-1 bg-accent-teal rounded-full"></span>
                 For Creators
@@ -207,7 +426,7 @@ const Home = () => {
             </div>
 
             {/* For Brands */}
-            <div className="bg-titan-bg p-8 rounded border border-titan-border">
+            <div className="bg-titan-surface p-8 rounded border border-titan-border">
               <div className="flex items-center gap-2 text-accent-fuchsia text-xs font-medium uppercase tracking-wider mb-4">
                 <span className="w-1 h-1 bg-accent-fuchsia rounded-full"></span>
                 For Brands
@@ -236,7 +455,7 @@ const Home = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-24 bg-titan-bg border-t border-titan-border">
+      <section className="py-24 bg-titan-surface border-t border-titan-border">
         <div className="max-w-3xl mx-auto px-6 text-center">
           <h2 className="text-3xl font-bold text-text-primary tracking-tight mb-4">Ready to scale?</h2>
           <p className="text-text-secondary mb-8">Join thousands of creators already using Titans to grow their TikTok Shop revenue.</p>
