@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
-import { HelpCircle, ChevronDown, Calendar, Download, MoreHorizontal } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { HelpCircle, ChevronDown, Calendar, Download, MoreHorizontal, Link2, AlertCircle, CheckCircle, Loader2 } from 'lucide-react';
 import { MOCK_PRODUCTS } from '../lib/mockData';
+import { useAuth } from '../lib/AuthContext';
+import { getTikTokStatus, connectTikTok, disconnectTikTok, getTikTokMetrics, TikTokStatus, TikTokMetrics } from '../lib/tiktokService';
 
-// Mock Data for the Chart
+// Mock Data for the Chart (will be replaced with real data when TikTok connected)
 const CHART_DATA = [
   { date: '11-10', gmv: 6500, comm: 1200 },
   { date: '11-12', gmv: 5800, comm: 1100 },
@@ -23,7 +25,71 @@ const CHART_DATA = [
 ];
 
 const Dashboard = () => {
+  const { user } = useAuth();
   const [timeRange, setTimeRange] = useState('Last 30 days');
+  const [tiktokStatus, setTiktokStatus] = useState<TikTokStatus | null>(null);
+  const [tiktokMetrics, setTiktokMetrics] = useState<TikTokMetrics | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [connecting, setConnecting] = useState(false);
+  const [disconnecting, setDisconnecting] = useState(false);
+
+  // Check TikTok connection status on mount
+  useEffect(() => {
+    const checkStatus = async () => {
+      try {
+        const status = await getTikTokStatus();
+        setTiktokStatus(status);
+
+        // If connected, fetch metrics
+        if (status.connected) {
+          const metrics = await getTikTokMetrics();
+          setTiktokMetrics(metrics);
+        }
+      } catch (error) {
+        console.error('Failed to check TikTok status:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (user) {
+      checkStatus();
+    } else {
+      setLoading(false);
+    }
+
+    // Check for connection result from URL params
+    const params = new URLSearchParams(window.location.hash.split('?')[1] || '');
+    if (params.get('tiktok') === 'connected') {
+      checkStatus();
+      // Clean URL
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }, [user]);
+
+  const handleConnectTikTok = async () => {
+    if (!user) return;
+    setConnecting(true);
+    try {
+      await connectTikTok(user.id);
+    } catch (error) {
+      console.error('Failed to start TikTok connection:', error);
+      setConnecting(false);
+    }
+  };
+
+  const handleDisconnectTikTok = async () => {
+    setDisconnecting(true);
+    try {
+      await disconnectTikTok();
+      setTiktokStatus({ connected: false });
+      setTiktokMetrics(null);
+    } catch (error) {
+      console.error('Failed to disconnect TikTok:', error);
+    } finally {
+      setDisconnecting(false);
+    }
+  };
 
   // Helper to render trend percentage
   const Trend = ({ val }: { val: string }) => (
@@ -32,10 +98,89 @@ const Dashboard = () => {
     </span>
   );
 
+  // Use real metrics if available, otherwise show placeholders
+  const metrics = tiktokMetrics?.metrics?.summary || {
+    gmv7Day: 0,
+    gmv30Day: 0,
+    commission7Day: 0,
+    commission30Day: 0,
+    ordersTotal: 0,
+    itemsSold: 0,
+    refundRate: 0,
+  };
+
   return (
     <div className="min-h-screen bg-[#0B0E14] pb-20 font-sans">
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
         
+        {/* TikTok Connection Banner */}
+        {!loading && (
+          <div className={`mb-6 p-4 rounded-xl border ${
+            tiktokStatus?.connected 
+              ? 'bg-emerald-500/10 border-emerald-500/30' 
+              : 'bg-orange-500/10 border-orange-500/30'
+          }`}>
+            <div className="flex items-center justify-between flex-wrap gap-4">
+              <div className="flex items-center gap-3">
+                {tiktokStatus?.connected ? (
+                  <>
+                    <CheckCircle className="text-emerald-400" size={20} />
+                    <div>
+                      <p className="text-white font-medium">TikTok Shop Connected</p>
+                      <p className="text-sm text-slate-400">
+                        Linked as @{tiktokStatus.username || 'Unknown'} • Live data syncing
+                      </p>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <AlertCircle className="text-orange-400" size={20} />
+                    <div>
+                      <p className="text-white font-medium">Connect TikTok Shop</p>
+                      <p className="text-sm text-slate-400">
+                        Link your account to see real GMV, commissions, and analytics
+                      </p>
+                    </div>
+                  </>
+                )}
+              </div>
+
+              {tiktokStatus?.connected ? (
+                <button
+                  onClick={handleDisconnectTikTok}
+                  disabled={disconnecting}
+                  className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-sm transition-colors disabled:opacity-50"
+                >
+                  {disconnecting ? <Loader2 size={14} className="animate-spin" /> : null}
+                  Disconnect
+                </button>
+              ) : (
+                <button
+                  onClick={handleConnectTikTok}
+                  disabled={connecting}
+                  className="flex items-center gap-2 px-4 py-2 bg-[#FF004F] hover:bg-[#E6004A] text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+                >
+                  {connecting ? (
+                    <Loader2 size={14} className="animate-spin" />
+                  ) : (
+                    <Link2 size={14} />
+                  )}
+                  Connect TikTok Shop
+                </button>
+              )}
+            </div>
+
+            {tiktokStatus?.needsReauth && (
+              <div className="mt-3 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg flex items-center gap-2">
+                <AlertCircle className="text-yellow-400" size={16} />
+                <span className="text-sm text-yellow-200">
+                  Your TikTok session has expired. Please reconnect to continue syncing data.
+                </span>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Header Actions */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
           <div>
@@ -76,8 +221,15 @@ const Dashboard = () => {
                 <span className="text-sm font-semibold text-white">Affiliate GMV</span>
                 <HelpCircle size={12} className="text-slate-500" />
               </div>
-              <div className="text-2xl font-bold text-white mb-2">$291,265.57</div>
+              <div className="text-2xl font-bold text-white mb-2">
+                ${tiktokStatus?.connected ? metrics.gmv30Day.toLocaleString() : '291,265.57'}
+              </div>
               <Trend val="+29.94%" />
+              {!tiktokStatus?.connected && (
+                <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-[1px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                  <span className="text-xs text-slate-400">Sample data</span>
+                </div>
+              )}
             </div>
 
             {/* Active Card 2 - Commissions */}
@@ -88,15 +240,22 @@ const Dashboard = () => {
                 <span className="text-sm font-semibold text-white">Est. commissions</span>
                 <HelpCircle size={12} className="text-slate-500" />
               </div>
-              <div className="text-2xl font-bold text-white mb-2">$51,090.42</div>
+              <div className="text-2xl font-bold text-white mb-2">
+                ${tiktokStatus?.connected ? metrics.commission30Day.toLocaleString() : '51,090.42'}
+              </div>
               <Trend val="+25.25%" />
+              {!tiktokStatus?.connected && (
+                <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-[1px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                  <span className="text-xs text-slate-400">Sample data</span>
+                </div>
+              )}
             </div>
 
             {/* Inactive Cards */}
             {[
               { label: 'Commission base', val: '$301,286.64', trend: '+36.35%' },
-              { label: 'Items sold', val: '13,688', trend: '+35.62%' },
-              { label: 'Affiliate orders', val: '12,919', trend: '+35.15%' },
+              { label: 'Items sold', val: tiktokStatus?.connected ? metrics.itemsSold.toLocaleString() : '13,688', trend: '+35.62%' },
+              { label: 'Affiliate orders', val: tiktokStatus?.connected ? metrics.ordersTotal.toLocaleString() : '12,919', trend: '+35.15%' },
               { label: 'Direct GMV', val: '$257,717.10', trend: '+26.45%' },
               { label: 'Direct refund GMV', val: '$13,279.94', trend: '+15.84%' },
               { label: 'Refunded items', val: '631', trend: '-1.71%' },
@@ -151,14 +310,14 @@ const Dashboard = () => {
                
                {/* Commission Line (Blue) */}
                <path 
-                 d={`M ${CHART_DATA.map((d, i) => `${(i / (CHART_DATA.length - 1)) * 100}% ${100 - ((d.comm * 4) / 18000) * 100}%`).join(' L ')}`} // Scaling comm x4 to look good on graph
+                 d={`M ${CHART_DATA.map((d, i) => `${(i / (CHART_DATA.length - 1)) * 100}% ${100 - ((d.comm * 4) / 18000) * 100}%`).join(' L ')}`}
                  fill="none" 
                  stroke="#3B82F6" 
                  strokeWidth="2"
                  vectorEffect="non-scaling-stroke"
                />
 
-               {/* Area under curve (Optional subtle gradient) */}
+               {/* Area under curve */}
                <defs>
                  <linearGradient id="gmvGradient" x1="0" x2="0" y1="0" y2="1">
                    <stop offset="0%" stopColor="#25F4EE" stopOpacity="0.1" />
