@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
+import { useAuth } from '../lib/AuthContext';
 import { Loader2 } from 'lucide-react';
 
 interface AuthProps {
@@ -9,12 +10,49 @@ interface AuthProps {
 
 const Auth: React.FC<AuthProps> = ({ mode }) => {
   const navigate = useNavigate();
+  const { user, loading: authLoading } = useAuth();
+  
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [role, setRole] = useState<'creator' | 'brand'>('creator');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showResendConfirmation, setShowResendConfirmation] = useState(false);
+  const [resendSuccess, setResendSuccess] = useState(false);
+
+  const handleResendConfirmation = async () => {
+    if (!email) {
+      setError('Please enter your email address first');
+      return;
+    }
+    
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: email,
+      });
+      
+      if (error) throw error;
+      
+      setResendSuccess(true);
+      setError(null);
+      setTimeout(() => setResendSuccess(false), 5000);
+    } catch (err: any) {
+      setError(err.message || 'Failed to resend confirmation email');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (!authLoading && user) {
+      console.log('[Auth] User already logged in, redirecting to dashboard');
+      navigate('/dashboard');
+    }
+  }, [user, authLoading, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,6 +61,7 @@ const Auth: React.FC<AuthProps> = ({ mode }) => {
 
     try {
       if (mode === 'signup') {
+        console.log('[Auth] Signing up...');
         const { data, error: signUpError } = await supabase.auth.signUp({
           email,
           password,
@@ -37,22 +76,26 @@ const Auth: React.FC<AuthProps> = ({ mode }) => {
         if (signUpError) throw signUpError;
 
         if (data.user) {
+          console.log('[Auth] Signup successful, creating profile...');
+          // Profile will also be created by AuthContext, but create here for immediate data
           const { error: profileError } = await supabase
             .from('profiles')
-            .insert({
+            .upsert({
               id: data.user.id,
               email: email,
               full_name: fullName,
               role: role,
-            });
+            }, { onConflict: 'id' });
 
           if (profileError) {
-            console.warn('Profile creation error:', profileError);
+            console.warn('[Auth] Profile creation warning:', profileError);
           }
 
-          navigate('/dashboard');
+          // Small delay to let AuthContext pick up the session
+          setTimeout(() => navigate('/dashboard'), 100);
         }
       } else {
+        console.log('[Auth] Signing in...');
         const { data, error: signInError } = await supabase.auth.signInWithPassword({
           email,
           password,
@@ -61,15 +104,44 @@ const Auth: React.FC<AuthProps> = ({ mode }) => {
         if (signInError) throw signInError;
 
         if (data.user) {
-          navigate('/dashboard');
+          console.log('[Auth] Sign in successful, user:', data.user.id.slice(0, 8));
+          // Small delay to let AuthContext pick up the session
+          setTimeout(() => navigate('/dashboard'), 100);
         }
       }
     } catch (err: any) {
-      setError(err.message || 'An error occurred');
+      console.error('[Auth] Error:', err);
+      
+      // Provide helpful error messages
+      let errorMessage = err.message || 'An error occurred';
+      
+      if (err.message?.includes('Email not confirmed')) {
+        errorMessage = 'Please check your email and click the confirmation link to verify your account.';
+        setShowResendConfirmation(true);
+      } else if (err.message?.includes('Invalid login credentials')) {
+        errorMessage = 'Invalid email or password. Please try again.';
+        setShowResendConfirmation(false);
+      } else if (err.message?.includes('User already registered')) {
+        errorMessage = 'This email is already registered. Try logging in instead.';
+        setShowResendConfirmation(false);
+      } else {
+        setShowResendConfirmation(false);
+      }
+      
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
   };
+
+  // Show loading while checking auth status
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-titan-bg flex items-center justify-center">
+        <Loader2 size={24} className="animate-spin text-accent-teal" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-titan-bg flex flex-col items-center justify-center p-6 relative overflow-hidden">
@@ -80,9 +152,7 @@ const Auth: React.FC<AuthProps> = ({ mode }) => {
       {/* Header */}
       <div className="mb-8 text-center relative z-10">
         <Link to="/" className="inline-flex items-center gap-2 mb-8">
-          <div className="w-8 h-8 bg-gradient-to-br from-accent-teal to-accent-fuchsia rounded flex items-center justify-center">
-            <span className="text-titan-bg font-bold text-sm">T</span>
-          </div>
+          <img src="/titans-logo.png" alt="Titans" className="w-9 h-9 object-contain" />
           <span className="text-base font-semibold text-text-primary tracking-tight">TITANS</span>
         </Link>
         <h1 className="text-2xl font-semibold text-text-primary tracking-tight">
@@ -99,7 +169,30 @@ const Auth: React.FC<AuthProps> = ({ mode }) => {
       <div className="glass-panel p-8 rounded w-full max-w-sm relative z-10">
         {error && (
           <div className="mb-5 p-3 bg-accent-fuchsia/10 border border-accent-fuchsia/20 rounded text-accent-fuchsia text-xs">
-            {error}
+            <p>{error}</p>
+            {showResendConfirmation && (
+              <button
+                type="button"
+                onClick={handleResendConfirmation}
+                disabled={loading}
+                className="mt-2 text-accent-teal hover:underline flex items-center gap-1"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 size={12} className="animate-spin" />
+                    Sending...
+                  </>
+                ) : (
+                  'Resend confirmation email'
+                )}
+              </button>
+            )}
+          </div>
+        )}
+        
+        {resendSuccess && (
+          <div className="mb-5 p-3 bg-accent-teal/10 border border-accent-teal/20 rounded text-accent-teal text-xs">
+            ✓ Confirmation email sent! Check your inbox (and spam folder).
           </div>
         )}
 

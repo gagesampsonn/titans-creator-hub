@@ -1,7 +1,9 @@
 import React, { useState, useRef } from 'react';
 import { GoogleGenAI } from "@google/genai";
 import ReactMarkdown from 'react-markdown';
-import { Upload, Video, Link as LinkIcon, Play, CheckCircle, AlertTriangle, Loader2, Sparkles, History } from 'lucide-react';
+import { Upload, Video, Link as LinkIcon, Play, CheckCircle, AlertTriangle, Loader2, Sparkles, History, AlertCircle } from 'lucide-react';
+import { useAuth } from '../lib/AuthContext';
+import { supabase } from '../lib/supabase';
 
 interface AuditRecord {
   id: string;
@@ -11,8 +13,45 @@ interface AuditRecord {
   score: string;
 }
 
+/**
+ * Validate TikTok URL format
+ * Accepts: tiktok.com, www.tiktok.com, vm.tiktok.com, vt.tiktok.com
+ */
+function isValidTikTokUrl(url: string): boolean {
+  if (!url.trim()) return false;
+  try {
+    const parsed = new URL(url);
+    const validHosts = [
+      'tiktok.com',
+      'www.tiktok.com',
+      'vm.tiktok.com',
+      'vt.tiktok.com',
+      'm.tiktok.com',
+    ];
+    return validHosts.some(host => parsed.hostname === host || parsed.hostname.endsWith('.' + host));
+  } catch {
+    return false;
+  }
+}
+
 const VideoAudit = () => {
-  const [videoLink, setVideoLink] = useState('');
+  const { user, session, loading: authLoading } = useAuth();
+  
+  // Debug log auth state
+  React.useEffect(() => {
+    console.log('[VideoAudit] Auth state:', { 
+      hasUser: !!user, 
+      userId: user?.id?.slice(0, 8),
+      hasSession: !!session, 
+      authLoading 
+    });
+  }, [user, session, authLoading]);
+  
+  // Controlled state for TikTok URL input
+  const [tiktokUrl, setTiktokUrl] = useState('');
+  const [urlError, setUrlError] = useState<string | null>(null);
+  const [urlTouched, setUrlTouched] = useState(false);
+  
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -22,7 +61,47 @@ const VideoAudit = () => {
     { id: '2', fileName: 'hook_test_v2.mp4', date: '5 days ago', score: '45/100' }
   ]);
   
+  // Optional context fields for better analysis
+  const [productName, setProductName] = useState('');
+  const [niche, setNiche] = useState('');
+  
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  /**
+   * Handle TikTok URL input change with validation
+   */
+  const handleUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setTiktokUrl(value);
+    
+    // Validate on change if field was touched
+    if (urlTouched && value.trim()) {
+      if (!isValidTikTokUrl(value)) {
+        setUrlError('Please enter a valid TikTok URL (tiktok.com or vm.tiktok.com)');
+      } else {
+        setUrlError(null);
+      }
+    } else if (!value.trim()) {
+      setUrlError(null);
+    }
+  };
+
+  /**
+   * Handle URL input blur - validate and show error
+   */
+  const handleUrlBlur = () => {
+    setUrlTouched(true);
+    if (tiktokUrl.trim() && !isValidTikTokUrl(tiktokUrl)) {
+      setUrlError('Please enter a valid TikTok URL (tiktok.com or vm.tiktok.com)');
+    } else {
+      setUrlError(null);
+    }
+  };
+
+  /**
+   * Check if we can analyze (file OR valid URL)
+   */
+  const canAnalyze = file || (tiktokUrl.trim() && isValidTikTokUrl(tiktokUrl));
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -30,6 +109,9 @@ const VideoAudit = () => {
       setFile(selectedFile);
       setPreviewUrl(URL.createObjectURL(selectedFile));
       setResult(null);
+      // Clear URL when file is selected
+      setTiktokUrl('');
+      setUrlError(null);
     }
   };
 
@@ -44,105 +126,177 @@ const VideoAudit = () => {
     };
   };
 
+  /**
+   * Handle video audit submission
+   * - If file is provided: use client-side Gemini (existing flow)
+   * - If only tiktokUrl: call server-side /api/audit/url endpoint
+   */
   const handleAudit = async () => {
-    if (!file && !videoLink) return;
+    if (!canAnalyze) return;
     
     setIsAnalyzing(true);
     setResult(null);
 
-    try {
-      if (!process.env.API_KEY) {
-         throw new Error("API Key not found.");
+    // ═══════════════════════════════════════════════════════════════════════
+    // FLOW 1: TikTok URL Analysis (server-side)
+    // This takes priority over file upload
+    // ═══════════════════════════════════════════════════════════════════════
+    if (!file && tiktokUrl.trim() && isValidTikTokUrl(tiktokUrl)) {
+      try {
+        console.log('[VideoAudit] Using server-side URL analysis for:', tiktokUrl);
+        console.log('[VideoAudit] Session from context:', session ? 'exists' : 'none');
+        
+        // Use session from context, fallback to getSession() if needed
+        let accessToken = session?.access_token;
+        
+        if (!accessToken) {
+          console.log('[VideoAudit] No session in context, trying getSession()...');
+          const { data } = await supabase.auth.getSession();
+          accessToken = data.session?.access_token;
+        }
+        
+        if (!accessToken) {
+          console.log('[VideoAudit] No access token available');
+          setResult("## Please Log In\n\nTo analyze TikTok URLs, please log in to your account first.\n\n[Log In](#/login)");
+          setIsAnalyzing(false);
+          return;
+        }
+
+        console.log('[VideoAudit] Calling /api/audit/url with token...');
+        const response = await fetch('/api/audit/url', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            tiktokUrl: tiktokUrl.trim(),
+            productName: productName.trim() || undefined,
+            niche: niche.trim() || undefined,
+          }),
+        });
+
+        console.log('[VideoAudit] Response status:', response.status);
+        const data = await response.json();
+        console.log('[VideoAudit] Response data:', data);
+
+        if (!response.ok || !data.success) {
+          setResult(`## Analysis Failed\n\n${data.error || "Failed to analyze video. Please try again."}\n\n**Tip:** Make sure you're using a valid TikTok video URL.`);
+          setIsAnalyzing(false);
+          return;
+        }
+
+        setResult(data.feedback);
+
+        // Extract score and add to history
+        const extractedScore = data.score !== null ? data.score.toString() : 'N/A';
+        const newRecord: AuditRecord = {
+          id: data.auditId || Date.now().toString(),
+          link: tiktokUrl,
+          date: 'Just now',
+          score: extractedScore + '/100'
+        };
+        setAuditHistory([newRecord, ...auditHistory]);
+      } catch (error) {
+        console.error('[VideoAudit] URL analysis error:', error);
+        setResult(`## Error\n\nFailed to analyze TikTok URL. Please try again.\n\n**Error:** ${error instanceof Error ? error.message : 'Unknown error'}`);
+      } finally {
+        setIsAnalyzing(false);
       }
-      
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-      let promptParts: any[] = [];
-      
-      const systemPrompt = `
-      You are a world-class TikTok Shop affiliate strategist and video auditor. 
-      Your goal is to help the creator maximize GMV (Gross Merchandise Value) through viral, high-converting content.
-      
-      The user has uploaded a video or provided a link. Analyze the visual and audio content deeply.
+      return;
+    }
 
-      ### CRITICAL RULE: OPENING LINE CHECK
-      You MUST listen to the first 3 seconds.
-      1. **Statement vs. Question**: 
-         - **WEAK**: Starts with a question. **PENALTY**: Deduct 15-20 points from Hook Score.
-         - **STRONG**: Starts with a bold statement/claim. **BONUS**: Boost Hook Score +10.
+    // ═══════════════════════════════════════════════════════════════════════
+    // FLOW 2: File Upload Analysis (client-side Gemini)
+    // ═══════════════════════════════════════════════════════════════════════
+    if (file) {
+      try {
+        console.log('[VideoAudit] Using client-side file analysis');
+        
+        if (!process.env.API_KEY) {
+          throw new Error("API Key not found. Please configure VITE_GEMINI_API_KEY.");
+        }
+        
+        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+        
+        const systemPrompt = `
+        You are a world-class TikTok Shop affiliate strategist and video auditor. 
+        Your goal is to help the creator maximize GMV (Gross Merchandise Value) through viral, high-converting content.
+        
+        The user has uploaded a video. Analyze the visual and audio content deeply.
 
-      ### EVALUATION RUBRIC (Score 0-10 each)
-      1. **Controversy / Pattern Interrupt**: Does the visual/audio break the scroll immediately?
-      2. **Snappy Hook**: Is it fast? Does it promise a result?
-      3. **Curiosity Gap**: Does it create "information tension"?
-      4. **Target Audience Clarity**: Does it call out a specific avatar?
-      5. **Pain Point + Product**: Is the problem clear? Is the solution integrated early?
-      6. **Call-to-Action (CTA)**: Is it urgent and clear?
-      7. **Pacing & Editing**: Is fluff removed? Is it fast and punchy?
+        ### CRITICAL RULE: OPENING LINE CHECK
+        You MUST listen to the first 3 seconds.
+        1. **Statement vs. Question**: 
+           - **WEAK**: Starts with a question. **PENALTY**: Deduct 15-20 points from Hook Score.
+           - **STRONG**: Starts with a bold statement/claim. **BONUS**: Boost Hook Score +10.
 
-      ### OUTPUT FORMAT (Markdown)
-      
-      ## Overall Score: [0-100]/100
-      **Success Probability:** [Percentage]%
+        ### EVALUATION RUBRIC (Score 0-10 each)
+        1. **Controversy / Pattern Interrupt**: Does the visual/audio break the scroll immediately?
+        2. **Snappy Hook**: Is it fast? Does it promise a result?
+        3. **Curiosity Gap**: Does it create "information tension"?
+        4. **Target Audience Clarity**: Does it call out a specific avatar?
+        5. **Pain Point + Product**: Is the problem clear? Is the solution integrated early?
+        6. **Call-to-Action (CTA)**: Is it urgent and clear?
+        7. **Pacing & Editing**: Is fluff removed? Is it fast and punchy?
 
-      ---
+        ### OUTPUT FORMAT (Markdown)
+        
+        ## Overall Score: [0-100]/100
+        **Success Probability:** [Percentage]%
 
-      ### Category Breakdown
-      *   **Hook:** [Score]/10 - [Feedback]
-      *   **Pattern Interrupt:** [Score]/10 - [Brief analysis]
-      *   **Curiosity Gap:** [Score]/10 - [Brief analysis]
-      *   **Audience Clarity:** [Score]/10 - [Brief analysis]
-      *   **Pain & Product:** [Score]/10 - [Brief analysis]
-      *   **CTA Strength:** [Score]/10 - [Brief analysis]
-      *   **Pacing:** [Score]/10 - [Brief analysis]
+        ---
 
-      ---
+        ### Category Breakdown
+        *   **Hook:** [Score]/10 - [Feedback]
+        *   **Pattern Interrupt:** [Score]/10 - [Brief analysis]
+        *   **Curiosity Gap:** [Score]/10 - [Brief analysis]
+        *   **Audience Clarity:** [Score]/10 - [Brief analysis]
+        *   **Pain & Product:** [Score]/10 - [Brief analysis]
+        *   **CTA Strength:** [Score]/10 - [Brief analysis]
+        *   **Pacing:** [Score]/10 - [Brief analysis]
 
-      ### Actionable Fixes
-      *   [Fix 1]
-      *   [Fix 2]
-      *   [Fix 3]
+        ---
 
-      ### Summary
-      [Brief encouraging summary]
-      `;
+        ### Actionable Fixes
+        *   [Fix 1]
+        *   [Fix 2]
+        *   [Fix 3]
 
-      if (file) {
+        ### Summary
+        [Brief encouraging summary]
+        `;
+
         const videoPart = await fileToGenerativePart(file);
-        promptParts = [
+        const promptParts = [
           videoPart,
           { text: systemPrompt }
         ];
-      } else {
-         promptParts = [
-           { text: `${systemPrompt}\n\nNOTE: The user only provided a link: ${videoLink}. I cannot watch external links directly. Please provide a general checklist for a viral TikTok Shop video based on the URL structure or remind the user to upload the video file for a real audit.` }
-         ];
+
+        const response = await ai.models.generateContent({
+          model: "gemini-2.5-flash",
+          contents: { parts: promptParts },
+        });
+
+        const responseText = response.text || "Analysis failed. Please try again.";
+        setResult(responseText);
+
+        const scoreMatch = responseText.match(/Overall Score:\s*(\d+)/i);
+        const extractedScore = scoreMatch ? scoreMatch[1] : 'N/A';
+
+        const newRecord: AuditRecord = {
+          id: Date.now().toString(),
+          fileName: file.name,
+          date: 'Just now',
+          score: extractedScore + '/100'
+        };
+        setAuditHistory([newRecord, ...auditHistory]);
+      } catch (error) {
+        console.error('[VideoAudit] File analysis error:', error);
+        setResult(`## Error\n\nFailed to analyze video file. Please ensure the file is valid and try again.\n\n**Error:** ${error instanceof Error ? error.message : 'Unknown error'}`);
+      } finally {
+        setIsAnalyzing(false);
       }
-
-      const response = await ai.models.generateContent({
-        model: "gemini-2.5-flash",
-        contents: { parts: promptParts },
-      });
-
-      const responseText = response.text || "Analysis failed. Please try again.";
-      setResult(responseText);
-
-      const scoreMatch = responseText.match(/Overall Score:\s*(\d+)/i);
-      const extractedScore = scoreMatch ? scoreMatch[1] : 'N/A';
-
-      const newRecord: AuditRecord = {
-        id: Date.now().toString(),
-        link: videoLink || undefined,
-        fileName: file?.name,
-        date: 'Just now',
-        score: extractedScore + '/100'
-      };
-      setAuditHistory([newRecord, ...auditHistory]);
-
-    } catch (error) {
-      console.error(error);
-      setResult("Error analyzing video. Please ensure the file is valid and try again.");
-    } finally {
-      setIsAnalyzing(false);
     }
   };
 
@@ -209,26 +363,74 @@ const VideoAudit = () => {
                 </div>
               </div>
 
-              {/* Link Input */}
+              {/* TikTok URL Input */}
               <div className="mb-5">
                 <label className="block text-xs font-medium text-text-secondary mb-2">
                   Or paste TikTok link
                 </label>
                 <div className="relative">
-                  <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" size={14} />
+                  <LinkIcon className={`absolute left-3 top-1/2 -translate-y-1/2 ${urlError ? 'text-accent-fuchsia' : 'text-text-muted'}`} size={14} />
                   <input 
                     type="url" 
-                    value={videoLink}
-                    onChange={(e) => setVideoLink(e.target.value)}
-                    placeholder="https://tiktok.com/@..." 
-                    className="w-full pl-9 pr-3 py-2.5 rounded bg-titan-bg border border-titan-border text-text-primary text-sm focus:border-accent-teal focus:outline-none transition-colors placeholder-text-muted"
+                    value={tiktokUrl}
+                    onChange={handleUrlChange}
+                    onBlur={handleUrlBlur}
+                    placeholder="https://tiktok.com/@... or vm.tiktok.com/..." 
+                    className={`w-full pl-9 pr-3 py-2.5 rounded bg-titan-bg border text-text-primary text-sm focus:outline-none transition-colors placeholder-text-muted ${
+                      urlError 
+                        ? 'border-accent-fuchsia focus:border-accent-fuchsia' 
+                        : tiktokUrl && isValidTikTokUrl(tiktokUrl)
+                          ? 'border-accent-teal focus:border-accent-teal'
+                          : 'border-titan-border focus:border-accent-teal'
+                    }`}
                   />
+                  {/* Valid URL indicator */}
+                  {tiktokUrl && isValidTikTokUrl(tiktokUrl) && (
+                    <CheckCircle className="absolute right-3 top-1/2 -translate-y-1/2 text-accent-teal" size={14} />
+                  )}
                 </div>
+                {/* Inline error message */}
+                {urlError && (
+                  <div className="flex items-center gap-1.5 mt-1.5 text-accent-fuchsia">
+                    <AlertCircle size={12} />
+                    <span className="text-[10px]">{urlError}</span>
+                  </div>
+                )}
+                <p className="text-[10px] text-text-muted mt-1.5">
+                  Supports: tiktok.com, vm.tiktok.com, vt.tiktok.com
+                </p>
               </div>
+
+              {/* Optional Context Fields (shown when URL is entered) */}
+              {tiktokUrl && isValidTikTokUrl(tiktokUrl) && (
+                <div className="mb-5 p-3 bg-titan-bg rounded border border-titan-border space-y-3">
+                  <p className="text-[10px] text-text-muted uppercase tracking-wider font-medium">
+                    Optional: Add context for better analysis
+                  </p>
+                  <div>
+                    <input 
+                      type="text" 
+                      value={productName}
+                      onChange={(e) => setProductName(e.target.value)}
+                      placeholder="Product name (e.g., LED Face Mask)" 
+                      className="w-full px-3 py-2 rounded bg-titan-surface border border-titan-border text-text-primary text-xs focus:border-accent-teal focus:outline-none transition-colors placeholder-text-muted"
+                    />
+                  </div>
+                  <div>
+                    <input 
+                      type="text" 
+                      value={niche}
+                      onChange={(e) => setNiche(e.target.value)}
+                      placeholder="Your niche (e.g., Beauty, Fitness)" 
+                      className="w-full px-3 py-2 rounded bg-titan-surface border border-titan-border text-text-primary text-xs focus:border-accent-teal focus:outline-none transition-colors placeholder-text-muted"
+                    />
+                  </div>
+                </div>
+              )}
 
               <button 
                 onClick={handleAudit}
-                disabled={isAnalyzing || (!file && !videoLink)}
+                disabled={isAnalyzing || !canAnalyze}
                 className="w-full bg-text-primary hover:bg-white text-titan-bg font-medium py-2.5 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
               >
                 {isAnalyzing ? (
@@ -243,6 +445,21 @@ const VideoAudit = () => {
                   </>
                 )}
               </button>
+
+              {/* Login hint for URL analysis */}
+              {!authLoading && !user && tiktokUrl && isValidTikTokUrl(tiktokUrl) && (
+                <p className="text-[10px] text-text-muted mt-2 text-center">
+                  <a href="#/login" className="text-accent-teal hover:underline">Log in</a> to analyze TikTok URLs
+                </p>
+              )}
+              
+              {/* Auth status indicator (for debugging) */}
+              {authLoading && (
+                <p className="text-[10px] text-text-muted mt-2 text-center flex items-center justify-center gap-1">
+                  <Loader2 size={10} className="animate-spin" />
+                  Checking login status...
+                </p>
+              )}
             </div>
 
             {/* History */}

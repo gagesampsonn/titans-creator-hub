@@ -10,6 +10,8 @@ import BrandPortal from './pages/BrandPortal';
 import Auth from './pages/Auth';
 import TrendPulse from './pages/TrendPulse';
 import VideoAudit from './pages/VideoAudit';
+import AdminMetricsImport from './pages/AdminMetricsImport';
+import AdminLinkedCreators from './pages/AdminLinkedCreators';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -34,9 +36,7 @@ const Navbar = () => {
         <div className="flex justify-between h-14 items-center">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2.5 group">
-            <div className="w-7 h-7 bg-gradient-to-br from-accent-teal to-accent-fuchsia rounded flex items-center justify-center">
-              <span className="text-titan-bg font-bold text-sm">T</span>
-            </div>
+            <img src="/titans-logo.png" alt="Titans" className="w-8 h-8 object-contain" />
             <span className="text-base font-semibold text-text-primary tracking-tight">TITANS</span>
           </Link>
 
@@ -185,9 +185,7 @@ const Footer = () => (
         {/* Brand */}
         <div className="col-span-2 md:col-span-2">
           <div className="flex items-center gap-2.5 mb-4">
-            <div className="w-6 h-6 bg-gradient-to-br from-accent-teal to-accent-fuchsia rounded flex items-center justify-center">
-              <span className="text-titan-bg font-bold text-xs">T</span>
-            </div>
+            <img src="/titans-logo.png" alt="Titans" className="w-7 h-7 object-contain" />
             <span className="text-sm font-semibold text-text-primary tracking-tight">TITANS</span>
           </div>
           <p className="text-sm text-text-muted leading-relaxed max-w-xs">
@@ -255,6 +253,8 @@ const App = () => {
               <Route path="/brands" element={<BrandPortal />} />
               <Route path="/login" element={<Auth mode="login" />} />
               <Route path="/signup" element={<Auth mode="signup" />} />
+              <Route path="/admin/metrics-import" element={<AdminMetricsImport />} />
+              <Route path="/admin/linked-creators" element={<AdminLinkedCreators />} />
             </Routes>
           </main>
           <Footer />

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from './supabase';
 
@@ -7,6 +7,7 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   signOut: () => Promise<void>;
+  refreshSession: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -14,6 +15,7 @@ const AuthContext = createContext<AuthContextType>({
   session: null,
   loading: true,
   signOut: async () => {},
+  refreshSession: async () => {},
 });
 
 export const useAuth = () => {
@@ -24,41 +26,127 @@ export const useAuth = () => {
   return context;
 };
 
+/**
+ * Ensure user profile exists in the profiles table
+ * This prevents "no profile" edge cases
+ */
+async function ensureProfileExists(user: User) {
+  try {
+    const { error } = await supabase
+      .from('profiles')
+      .upsert({
+        id: user.id,
+        email: user.email,
+        full_name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
+        role: user.user_metadata?.role || 'creator',
+        updated_at: new Date().toISOString(),
+      }, {
+        onConflict: 'id',
+      });
+
+    if (error) {
+      console.warn('[AuthContext] Profile upsert warning:', error.message);
+    } else {
+      console.log('[AuthContext] Profile ensured for user:', user.id);
+    }
+  } catch (err) {
+    console.warn('[AuthContext] Failed to ensure profile:', err);
+  }
+}
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
+  /**
+   * Update auth state and ensure profile exists
+   */
+  const updateAuthState = useCallback(async (newSession: Session | null) => {
+    console.log('[AuthContext] Updating auth state, session exists:', !!newSession);
+    
+    setSession(newSession);
+    setUser(newSession?.user ?? null);
+    
+    // Ensure profile exists when user signs in
+    if (newSession?.user) {
+      await ensureProfileExists(newSession.user);
+    }
+    
+    setLoading(false);
+  }, []);
+
+  /**
+   * Refresh the current session
+   */
+  const refreshSession = useCallback(async () => {
+    console.log('[AuthContext] Refreshing session...');
+    const { data: { session }, error } = await supabase.auth.getSession();
+    if (error) {
+      console.error('[AuthContext] Session refresh error:', error);
+    }
+    await updateAuthState(session);
+  }, [updateAuthState]);
+
   useEffect(() => {
+    console.log('[AuthContext] Initializing auth...');
+    
     // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      if (error) {
+        console.error('[AuthContext] Initial session error:', error);
+      }
+      console.log('[AuthContext] Initial session:', session ? 'exists' : 'none');
+      updateAuthState(session);
     });
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        setLoading(false);
+        console.log('[AuthContext] Auth state changed:', event, session ? 'session exists' : 'no session');
+        
+        switch (event) {
+          case 'SIGNED_IN':
+          case 'TOKEN_REFRESHED':
+          case 'USER_UPDATED':
+            await updateAuthState(session);
+            break;
+          case 'SIGNED_OUT':
+            setSession(null);
+            setUser(null);
+            setLoading(false);
+            break;
+          default:
+            await updateAuthState(session);
+        }
       }
     );
 
     return () => {
+      console.log('[AuthContext] Cleaning up subscription');
       subscription.unsubscribe();
     };
-  }, []);
+  }, [updateAuthState]);
 
   const signOut = async () => {
+    console.log('[AuthContext] Signing out...');
     await supabase.auth.signOut();
     setUser(null);
     setSession(null);
   };
 
+  // Debug logging
+  useEffect(() => {
+    console.log('[AuthContext] State:', { 
+      hasUser: !!user, 
+      userId: user?.id?.slice(0, 8), 
+      hasSession: !!session, 
+      loading 
+    });
+  }, [user, session, loading]);
+
   return (
-    <AuthContext.Provider value={{ user, session, loading, signOut }}>
+    <AuthContext.Provider value={{ user, session, loading, signOut, refreshSession }}>
       {children}
     </AuthContext.Provider>
   );
