@@ -259,7 +259,10 @@ const Auth: React.FC<AuthProps> = ({ mode }) => {
 
       {/* Footer */}
       <p className="mt-8 text-xs text-text-muted relative z-10">
-        By continuing, you agree to our Terms of Service
+        By continuing, you agree to our{' '}
+        <Link to="/terms" className="text-accent-teal hover:underline">Terms of Service</Link>
+        {' '}and{' '}
+        <Link to="/privacy" className="text-accent-teal hover:underline">Privacy Policy</Link>
       </p>
     </div>
   );

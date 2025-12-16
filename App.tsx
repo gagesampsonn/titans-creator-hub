@@ -11,6 +11,8 @@ import BrandPortal from './pages/BrandPortal';
 import Auth from './pages/Auth';
 import TrendPulse from './pages/TrendPulse';
 import VideoAudit from './pages/VideoAudit';
+import Privacy from './pages/Privacy';
+import Terms from './pages/Terms';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -222,8 +224,8 @@ const Footer = () => (
         <div>
           <h4 className="text-xs font-semibold text-text-primary uppercase tracking-wider mb-4">Legal</h4>
           <ul className="space-y-2.5 text-sm text-text-muted">
-            <li><a href="#" className="hover:text-text-secondary transition-colors">Privacy</a></li>
-            <li><a href="#" className="hover:text-text-secondary transition-colors">Terms</a></li>
+            <li><Link to="/privacy" className="hover:text-text-secondary transition-colors">Privacy Policy</Link></li>
+            <li><Link to="/terms" className="hover:text-text-secondary transition-colors">Terms of Service</Link></li>
           </ul>
         </div>
       </div>
@@ -258,6 +260,8 @@ const App = () => {
               <Route path="/brands" element={<BrandPortal />} />
               <Route path="/login" element={<Auth mode="login" />} />
               <Route path="/signup" element={<Auth mode="signup" />} />
+              <Route path="/privacy" element={<Privacy />} />
+              <Route path="/terms" element={<Terms />} />
             </Routes>
           </main>
           <Footer />
