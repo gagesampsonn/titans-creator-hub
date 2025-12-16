@@ -13,6 +13,7 @@ import TrendPulse from './pages/TrendPulse';
 import VideoAudit from './pages/VideoAudit';
 import Privacy from './pages/Privacy';
 import Terms from './pages/Terms';
+import Profile from './pages/Profile';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -56,12 +57,16 @@ const Navbar = () => {
             ) : user ? (
               <div className="flex items-center gap-2">
                 <Link 
+                  to="/profile" 
+                  className="w-8 h-8 bg-gradient-to-br from-accent-teal to-accent-fuchsia rounded-lg flex items-center justify-center hover:opacity-90 transition-opacity"
+                  title="Profile"
+                >
+                  <User size={16} className="text-white" />
+                </Link>
+                <Link 
                   to="/dashboard" 
                   className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-accent-teal/10 to-accent-fuchsia/10 border border-accent-teal/30 rounded-lg hover:border-accent-teal/50 transition-all group"
                 >
-                  <div className="w-7 h-7 bg-gradient-to-br from-accent-teal to-accent-fuchsia rounded-md flex items-center justify-center">
-                    <User size={14} className="text-white" />
-                  </div>
                   <span className="text-sm font-medium text-text-primary group-hover:text-accent-teal transition-colors">Dashboard</span>
                 </Link>
                 <button 
@@ -262,6 +267,7 @@ const App = () => {
               <Route path="/signup" element={<Auth mode="signup" />} />
               <Route path="/privacy" element={<Privacy />} />
               <Route path="/terms" element={<Terms />} />
+              <Route path="/profile" element={<Profile />} />
             </Routes>
           </main>
           <Footer />
