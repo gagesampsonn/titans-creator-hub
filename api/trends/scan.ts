@@ -64,7 +64,7 @@ Focus on practical, money-making advice for TikTok Shop affiliates. Be specific 
 `;
 
     const response = await ai.models.generateContent({
-      model: "gemini-pro",
+      model: "gemini-2.0-flash",
       contents: prompt,
     });
 
