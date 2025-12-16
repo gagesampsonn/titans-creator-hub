@@ -225,13 +225,18 @@ const Dashboard = () => {
             <h1 className="text-2xl font-bold text-text-primary">Your Dashboard</h1>
             <p className="text-sm text-text-muted">@{data.handle}</p>
           </div>
-          <button
-            onClick={loadMetrics}
-            className="flex items-center gap-2 px-3 py-2 text-sm text-text-muted hover:text-text-primary"
-          >
-            <RefreshCw className="w-4 h-4" />
-            Refresh
-          </button>
+          <div className="text-right">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-titan-surface border border-titan-border rounded-full text-xs text-text-muted">
+              <span>Dec 1 – Dec 14, 2024</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Period Summary Banner */}
+        <div className="mb-6 p-4 bg-accent-teal/10 border border-accent-teal/20 rounded-lg">
+          <p className="text-sm text-accent-teal">
+            📊 Showing your performance for <strong>December 1 – December 14, 2024</strong> (14 days)
+          </p>
         </div>
 
         {/* Stats Grid */}
@@ -239,7 +244,7 @@ const Dashboard = () => {
           <div className="bg-titan-surface border border-titan-border rounded-lg p-5">
             <div className="flex items-center gap-2 mb-2">
               <DollarSign className="w-5 h-5 text-accent-teal" />
-              <span className="text-xs text-text-muted">Total GMV</span>
+              <span className="text-xs text-text-muted">Total GMV (14 days)</span>
             </div>
             <p className="text-2xl font-bold text-text-primary">
               ${data.summary.totalGmv.toLocaleString(undefined, { minimumFractionDigits: 2 })}
@@ -249,7 +254,7 @@ const Dashboard = () => {
           <div className="bg-titan-surface border border-titan-border rounded-lg p-5">
             <div className="flex items-center gap-2 mb-2">
               <Star className="w-5 h-5 text-accent-fuchsia" />
-              <span className="text-xs text-text-muted">Commission</span>
+              <span className="text-xs text-text-muted">Est. Commission (14 days)</span>
             </div>
             <p className="text-2xl font-bold text-text-primary">
               ${data.summary.totalCommission.toLocaleString(undefined, { minimumFractionDigits: 2 })}
@@ -259,7 +264,7 @@ const Dashboard = () => {
           <div className="bg-titan-surface border border-titan-border rounded-lg p-5">
             <div className="flex items-center gap-2 mb-2">
               <Package className="w-5 h-5 text-accent-teal" />
-              <span className="text-xs text-text-muted">Items Sold</span>
+              <span className="text-xs text-text-muted">Items Sold (14 days)</span>
             </div>
             <p className="text-2xl font-bold text-text-primary">
               {data.summary.totalItems.toLocaleString()}
@@ -277,11 +282,12 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Daily Metrics Table */}
+        {/* Metrics Details */}
         {data.dailyMetrics.length > 0 && (
           <div className="bg-titan-surface border border-titan-border rounded-lg overflow-hidden">
             <div className="px-6 py-4 border-b border-titan-border">
-              <h2 className="font-semibold text-text-primary">Daily Breakdown</h2>
+              <h2 className="font-semibold text-text-primary">Performance Summary</h2>
+              <p className="text-xs text-text-muted mt-1">Aggregated data for Dec 1 – Dec 14, 2024</p>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
