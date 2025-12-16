@@ -61,18 +61,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   /**
    * Update auth state and ensure profile exists
    */
-  const updateAuthState = useCallback(async (newSession: Session | null) => {
+  const updateAuthState = useCallback((newSession: Session | null) => {
     console.log('[AuthContext] Updating auth state, session exists:', !!newSession);
     
     setSession(newSession);
     setUser(newSession?.user ?? null);
-    
-    // Ensure profile exists when user signs in
-    if (newSession?.user) {
-      await ensureProfileExists(newSession.user);
-    }
-    
     setLoading(false);
+    
+    // Ensure profile exists in background (don't block loading)
+    if (newSession?.user) {
+      ensureProfileExists(newSession.user);
+    }
   }, []);
 
   /**
@@ -84,7 +83,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (error) {
       console.error('[AuthContext] Session refresh error:', error);
     }
-    await updateAuthState(session);
+    updateAuthState(session);
   }, [updateAuthState]);
 
   useEffect(() => {
@@ -101,22 +100,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         console.log('[AuthContext] Auth state changed:', event, session ? 'session exists' : 'no session');
         
-        switch (event) {
-          case 'SIGNED_IN':
-          case 'TOKEN_REFRESHED':
-          case 'USER_UPDATED':
-            await updateAuthState(session);
-            break;
-          case 'SIGNED_OUT':
-            setSession(null);
-            setUser(null);
-            setLoading(false);
-            break;
-          default:
-            await updateAuthState(session);
+        if (event === 'SIGNED_OUT') {
+          setSession(null);
+          setUser(null);
+          setLoading(false);
+        } else {
+          updateAuthState(session);
         }
       }
     );
