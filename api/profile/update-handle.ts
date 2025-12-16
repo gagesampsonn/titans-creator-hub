@@ -32,7 +32,6 @@ function getSupabaseClient(): SupabaseClient {
 
 interface UpdateHandleRequest {
   handle: string;
-  displayName?: string;
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -77,27 +76,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(400).json({ error: 'Handle can only contain letters, numbers, dots, and underscores' });
   }
   
-  // Update profile
+  // Upsert profile (create if doesn't exist, update if it does)
   const admin = getSupabaseAdmin();
   
-  const updateData: Record<string, any> = {
-    tiktok_handle: normalizedHandle,
-    updated_at: new Date().toISOString(),
-  };
-  
-  if (body.displayName) {
-    updateData.display_name = body.displayName.trim();
-  }
-  
-  const { data, error } = await admin
+  const { error } = await admin
     .from('profiles')
-    .update(updateData)
-    .eq('id', user.id)
-    .select()
-    .single();
+    .upsert({
+      id: user.id,
+      email: user.email || '',
+      tiktok_handle: normalizedHandle,
+      updated_at: new Date().toISOString(),
+    }, { onConflict: 'id' });
   
   if (error) {
-    // Check for unique constraint violation
+    // Check for unique constraint violation on tiktok_handle
     if (error.code === '23505') {
       return res.status(409).json({ error: 'This TikTok handle is already connected to another account' });
     }
@@ -107,8 +99,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   return res.status(200).json({
     success: true,
     profile: {
-      tiktok_handle: data.tiktok_handle,
-      display_name: data.display_name,
+      tiktok_handle: normalizedHandle,
     },
   });
 }
