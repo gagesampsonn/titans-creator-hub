@@ -19,6 +19,7 @@ const Auth: React.FC<AuthProps> = ({ mode }) => {
   const [error, setError] = useState<string | null>(null);
   const [showResendConfirmation, setShowResendConfirmation] = useState(false);
   const [resendSuccess, setResendSuccess] = useState(false);
+  const [signupSuccess, setSignupSuccess] = useState(false);
 
   const handleResendConfirmation = async () => {
     if (!email) {
@@ -31,6 +32,9 @@ const Auth: React.FC<AuthProps> = ({ mode }) => {
       const { error } = await supabase.auth.resend({
         type: 'signup',
         email: email,
+        options: {
+          emailRedirectTo: 'https://titans-creator-hub.vercel.app/dashboard',
+        }
       });
       
       if (error) throw error;
@@ -67,29 +71,25 @@ const Auth: React.FC<AuthProps> = ({ mode }) => {
           options: {
             data: {
               full_name: fullName,
-            }
+            },
+            emailRedirectTo: 'https://titans-creator-hub.vercel.app/dashboard',
           }
         });
 
         if (signUpError) throw signUpError;
 
         if (data.user) {
-          console.log('[Auth] Signup successful, creating profile...');
-          // Profile will also be created by AuthContext, but create here for immediate data
-          const { error: profileError } = await supabase
-            .from('profiles')
-            .upsert({
-              id: data.user.id,
-              email: email,
-              full_name: fullName,
-            }, { onConflict: 'id' });
-
-          if (profileError) {
-            console.warn('[Auth] Profile creation warning:', profileError);
+          console.log('[Auth] Signup successful, user needs to verify email');
+          
+          // Check if email confirmation is required
+          if (data.user.identities && data.user.identities.length === 0) {
+            // User already exists
+            throw new Error('This email is already registered. Try logging in instead.');
           }
-
-          // Small delay to let AuthContext pick up the session
-          setTimeout(() => navigate('/dashboard'), 100);
+          
+          // Show success message - user needs to verify email
+          setSignupSuccess(true);
+          setError(null);
         }
       } else {
         console.log('[Auth] Signing in...');
@@ -164,6 +164,50 @@ const Auth: React.FC<AuthProps> = ({ mode }) => {
 
       {/* Form Card */}
       <div className="glass-panel p-8 rounded w-full max-w-sm relative z-10">
+        {/* Signup Success - Check Email */}
+        {signupSuccess ? (
+          <div className="text-center">
+            <div className="w-16 h-16 bg-accent-teal/10 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-accent-teal" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <h2 className="text-xl font-semibold text-text-primary mb-2">Check your email!</h2>
+            <p className="text-sm text-text-muted mb-4">
+              We sent a verification link to<br />
+              <span className="text-text-primary font-medium">{email}</span>
+            </p>
+            <p className="text-xs text-text-muted mb-6">
+              Click the link in the email to verify your account and start using Titans.
+            </p>
+            <div className="space-y-3">
+              <button
+                onClick={handleResendConfirmation}
+                disabled={loading}
+                className="w-full py-2.5 border border-titan-border rounded text-sm text-text-secondary hover:text-text-primary hover:border-titan-border-light transition-colors flex items-center justify-center gap-2"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 size={14} className="animate-spin" />
+                    Sending...
+                  </>
+                ) : (
+                  "Didn't get the email? Resend"
+                )}
+              </button>
+              <Link 
+                to="/login" 
+                className="block w-full py-2.5 bg-text-primary hover:bg-white text-titan-bg font-semibold rounded text-sm text-center transition-colors"
+              >
+                Go to Login
+              </Link>
+            </div>
+            {resendSuccess && (
+              <p className="mt-4 text-xs text-accent-teal">✓ Email sent! Check your inbox.</p>
+            )}
+          </div>
+        ) : (
+        <>
         {error && (
           <div className="mb-5 p-3 bg-accent-fuchsia/10 border border-accent-fuchsia/20 rounded text-accent-fuchsia text-xs">
             <p>{error}</p>
@@ -255,6 +299,8 @@ const Auth: React.FC<AuthProps> = ({ mode }) => {
             <>Already have an account? <Link to="/login" className="text-accent-teal hover:text-text-primary transition-colors">Sign in</Link></>
           )}
         </div>
+        </>
+        )}
       </div>
 
       {/* Footer */}
