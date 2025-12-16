@@ -25,47 +25,42 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
 
     const prompt = `
-You are a TikTok Shop trend analyst. Scan and analyze current trending topics from multiple platforms.
+You are an expert TikTok Shop affiliate marketing analyst. Your job is to help TikTok Shop affiliates and creators make more money by identifying trending products, viral content strategies, and what's currently being talked about in the TikTok Shop affiliate community.
 
-Based on your knowledge of recent trends (within the last 7 days), identify:
-- Rising products on TikTok Shop
-- Viral content patterns
-- Trending phrases and hashtags
-- Pain points consumers are discussing
-- Cultural moments creators can leverage
+Analyze current trends and provide actionable intelligence for TikTok Shop affiliates:
 
-For each trend you identify, provide:
+## 🔥 HOT PRODUCTS RIGHT NOW
+Identify 3-5 products that are currently selling well on TikTok Shop or have viral potential. For each:
+- Product name/type
+- Why it's trending (viral video, seasonal, problem-solver, etc.)
+- Estimated commission potential
+- Best content angle to promote it
 
-## [Trend Name]
+## 📈 TRENDING CONTENT FORMATS
+What video styles are performing best for TikTok Shop affiliates right now?
+- Specific formats (unboxing, GRWM, POV, etc.)
+- Hook styles that are converting
+- Video length sweet spots
 
-**Summary:** Brief description of what's happening
+## 💬 WHAT AFFILIATES ARE TALKING ABOUT
+Current discussions in the TikTok Shop affiliate community:
+- New features or changes to TikTok Shop
+- Commission rate updates
+- Algorithm changes affecting affiliates
+- Success stories and strategies being shared
 
-**Platform Sources:** Which platforms are showing this trend (TikTok, Twitter/X, Reddit, YouTube, Amazon, etc.)
+## 🎯 NICHE OPPORTUNITIES
+Underserved niches or product categories with high potential:
+- Categories with less competition
+- Emerging trends before they peak
+- Seasonal opportunities coming up
 
-**Affiliate Relevance Score:** X/100 (how relevant for TikTok Shop creators)
+## ⚡ QUICK WINS
+3 things an affiliate can do TODAY to increase their sales:
+- Specific actionable tips
+- Low-effort, high-reward strategies
 
-**Target Audience:** Who is engaging with this trend
-
-**Best Hook Angles:**
-- Hook idea 1
-- Hook idea 2
-- Hook idea 3
-
-**Content Recommendations:**
-- Content format suggestions
-- Best posting times
-- Hashtags to use
-
-**Confidence Level:** High/Medium/Low
-
----
-
-Identify 3-5 actionable trends that TikTok Shop creators can use RIGHT NOW to create content and drive sales.
-
-Focus on trends that have:
-1. High engagement potential
-2. Clear product tie-ins
-3. Urgency (time-sensitive or growing rapidly)
+Focus on practical, money-making advice for TikTok Shop affiliates. Be specific with product examples and content ideas they can use immediately.
 `;
 
     const response = await ai.models.generateContent({
