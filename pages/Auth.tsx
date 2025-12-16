@@ -15,7 +15,6 @@ const Auth: React.FC<AuthProps> = ({ mode }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
-  const [role, setRole] = useState<'creator' | 'brand'>('creator');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showResendConfirmation, setShowResendConfirmation] = useState(false);
@@ -68,7 +67,6 @@ const Auth: React.FC<AuthProps> = ({ mode }) => {
           options: {
             data: {
               full_name: fullName,
-              role: role,
             }
           }
         });
@@ -84,7 +82,6 @@ const Auth: React.FC<AuthProps> = ({ mode }) => {
               id: data.user.id,
               email: email,
               full_name: fullName,
-              role: role,
             }, { onConflict: 'id' });
 
           if (profileError) {
@@ -240,36 +237,6 @@ const Auth: React.FC<AuthProps> = ({ mode }) => {
               minLength={6}
             />
           </div>
-
-          {mode === 'signup' && (
-            <div>
-              <label className="block text-xs font-medium text-text-secondary mb-1.5">I am a</label>
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => setRole('creator')}
-                  className={`flex-1 py-2 rounded text-sm font-medium transition-all ${
-                    role === 'creator' 
-                      ? 'bg-accent-teal/10 text-accent-teal border border-accent-teal/30' 
-                      : 'bg-titan-bg border border-titan-border text-text-muted hover:text-text-secondary'
-                  }`}
-                >
-                  Creator
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setRole('brand')}
-                  className={`flex-1 py-2 rounded text-sm font-medium transition-all ${
-                    role === 'brand' 
-                      ? 'bg-accent-fuchsia/10 text-accent-fuchsia border border-accent-fuchsia/30' 
-                      : 'bg-titan-bg border border-titan-border text-text-muted hover:text-text-secondary'
-                  }`}
-                >
-                  Brand
-                </button>
-              </div>
-            </div>
-          )}
 
           <button 
             type="submit" 

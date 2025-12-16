@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { HashRouter, Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
 import { Menu, X, User, ChevronRight } from 'lucide-react';
+import { Analytics } from '@vercel/analytics/react';
 import { AuthProvider, useAuth } from './lib/AuthContext';
 import Home from './pages/Home';
 import ProductLibrary from './pages/ProductLibrary';
@@ -254,6 +255,7 @@ const App = () => {
             </Routes>
           </main>
           <Footer />
+          <Analytics />
         </div>
       </AuthProvider>
     </HashRouter>
