@@ -97,18 +97,18 @@ async function importProductData(filePath: string) {
   const handleStats: Record<string, { products: number; gmv: number }> = {};
 
   for (const row of rows as Record<string, any>[]) {
-    // Map columns - these match TikTok Partner Center Custom Report format
-    const creatorName = row['Creator name'] || row['Creator'] || row['creator_name'] || row['tiktok_handle'] || row['Handle'];
-    const productName = row['Product name'] || row['Product'] || row['product_name'];
-    const shopName = row['Shop name'] || row['Shop'] || row['shop_name'];
-    const productCategory = row['Product category'] || row['Category'] || row['product_category'];
-    const gmv = parseCurrency(row['GMV'] || row['Affiliate GMV'] || row['gmv'] || row['affiliate_gmv']);
-    const itemsSold = parseInteger(row['Items sold'] || row['items_sold'] || row['Quantity']);
-    const estCommission = parseCurrency(row['Est. commission'] || row['Commission'] || row['est_commission']);
-    const orders = parseInteger(row['Orders'] || row['orders'] || 0);
+    // Map columns - TikTok Partner Center Custom Report format
+    const creatorName = row['Creator username'] || row['Creator name'] || row['Creator'];
+    const productName = row['Product info'] || row['Product name'] || row['Product'];
+    const shopName = row['Shop name'] || row['Shop'];
+    const productCategory = row['Level 1 category'] || row['Level 2 category'] || row['Product category'];
+    const gmv = parseCurrency(row['Affiliate GMV'] || row['GMV']);
+    const itemsSold = parseInteger(row['Items sold']);
+    const estCommission = parseCurrency(row['Est. commission'] || 0);
+    const orders = parseInteger(row['Affiliate orders'] || row['Orders'] || 0);
     
-    // Skip rows without creator or product name
-    if (!creatorName || !productName) {
+    // Skip summary rows and rows without creator or product name
+    if (!creatorName || creatorName === '-' || !productName || productName === '-') {
       skipped++;
       continue;
     }
