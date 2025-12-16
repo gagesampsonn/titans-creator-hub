@@ -10,8 +10,6 @@ import BrandPortal from './pages/BrandPortal';
 import Auth from './pages/Auth';
 import TrendPulse from './pages/TrendPulse';
 import VideoAudit from './pages/VideoAudit';
-import AdminMetricsImport from './pages/AdminMetricsImport';
-import AdminLinkedCreators from './pages/AdminLinkedCreators';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -253,8 +251,6 @@ const App = () => {
               <Route path="/brands" element={<BrandPortal />} />
               <Route path="/login" element={<Auth mode="login" />} />
               <Route path="/signup" element={<Auth mode="signup" />} />
-              <Route path="/admin/metrics-import" element={<AdminMetricsImport />} />
-              <Route path="/admin/linked-creators" element={<AdminLinkedCreators />} />
             </Routes>
           </main>
           <Footer />

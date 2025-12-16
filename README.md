@@ -1,169 +1,102 @@
 # Titans Creator Hub
 
-A creator dashboard for TikTok Shop agencies. Creators enter their TikTok handle and see their metrics — if they're linked to the agency.
+TikTok Shop affiliate dashboard. Creators see their metrics if linked to the agency.
 
 ## How It Works
 
-1. **Admin** exports TikTok Shop reports (CSV/XLSX) from TikTok Partner Center
-2. **Admin** uploads the file to the dashboard → data is parsed and stored
-3. **Creators** sign up, enter their TikTok handle
-4. **If linked** → they see their metrics dashboard
-5. **If not linked** → they see "Your account is not linked to the agency yet"
+1. You manage data by committing files to this repo
+2. Hit the sync endpoint to load data into Supabase
+3. Creators log in, enter their handle, see their metrics
 
 ---
 
-## Quick Setup (3 Steps)
+## Quick Start
 
-### Step 1: Set Up Supabase Database
+### 1. Database Setup (One Time)
 
-1. Go to [supabase.com](https://supabase.com) → Your Project → **SQL Editor**
-2. Copy the entire contents of `supabase/SETUP.sql` and paste it
-3. Click **Run** ✅
-4. Then copy `supabase/SEED_CREATORS.sql` and run it to add your 43 creators ✅
+Go to **supabase.com** → Your Project → **SQL Editor**
 
-### Step 2: Deploy to Vercel
+Paste and run `supabase/SETUP.sql`
 
-1. Push your code to GitHub
-2. Go to [vercel.com](https://vercel.com) → Import Project
-3. Add these **Environment Variables**:
+### 2. Environment Variables (Vercel)
 
-| Variable | Where to find it |
-|----------|------------------|
-| `VITE_SUPABASE_URL` | Supabase → Settings → API → Project URL |
-| `VITE_SUPABASE_ANON_KEY` | Supabase → Settings → API → `anon` `public` key |
-| `SUPABASE_SERVICE_ROLE_KEY` | Supabase → Settings → API → `service_role` key (secret!) |
+| Variable | Value |
+|----------|-------|
+| `VITE_SUPABASE_URL` | Your Supabase URL |
+| `VITE_SUPABASE_ANON_KEY` | Your anon key |
+| `SUPABASE_SERVICE_ROLE_KEY` | Your service role key |
+| `ADMIN_SYNC_KEY` | Any secret string (e.g., `my-sync-key-123`) |
 
-4. Deploy! 🚀
+### 3. Deploy
 
-### Step 3: Import Your First Metrics
-
-1. Log in as admin (gagesampson2016@gmail.com)
-2. Go to Dashboard → **Import Metrics**
-3. Upload your TikTok Partner Center CSV/XLSX
-4. Confirm the import
+Push to GitHub → Vercel auto-deploys
 
 ---
 
-## Admin Features
+## Daily Workflow
 
-| Page | URL | What it does |
-|------|-----|--------------|
-| **Import Metrics** | `/admin/metrics-import` | Upload TikTok reports to update creator data |
-| **Manage Creators** | `/admin/linked-creators` | Add/remove creators from the agency list |
+### Add/Remove Creators
 
----
+Edit `data/linked_creators.csv`:
 
-## Creator Experience
-
-1. Creator signs up with email
-2. Enters their TikTok handle (e.g., `@missxkenshin`)
-3. **If linked to agency** → Sees their dashboard with:
-   - 30-day GMV
-   - 30-day Commission
-   - Items Sold
-   - Video CTR
-   - Daily breakdown chart
-4. **If NOT linked** → Sees message: "Your account is not linked to the agency yet"
-
----
-
-## Project Structure
-
-```
-titans-creator-hub/
-├── api/                    # Vercel serverless functions
-│   ├── admin/
-│   │   ├── import-metrics.ts    # Upload TikTok reports
-│   │   └── linked-creators.ts   # Manage linked creators
-│   └── profile/
-│       ├── metrics.ts           # Get creator's metrics
-│       └── update-handle.ts     # Save TikTok handle
-├── pages/                  # React pages
-│   ├── Dashboard.tsx            # Creator dashboard
-│   ├── AdminMetricsImport.tsx   # Admin import page
-│   └── AdminLinkedCreators.tsx  # Admin manage creators
-├── lib/
-│   ├── parseReport.ts           # CSV/XLSX parser
-│   ├── supabase.ts              # Supabase client
-│   └── AuthContext.tsx          # Auth state
-└── supabase/
-    ├── SETUP.sql                # Database schema (run once)
-    └── SEED_CREATORS.sql        # Your 43 creators
+```csv
+tiktok_handle
+missxkenshin
+shopaholicismyname
+newcreator123
 ```
 
----
+### Import Metrics
 
-## Database Tables
+1. Export CSV from TikTok Partner Center
+2. Save to `data/imports/metrics_YYYY-MM-DD.csv`
+3. Commit and push
 
-| Table | Purpose |
-|-------|---------|
-| `profiles` | User accounts (with `tiktok_handle`) |
-| `linked_creators` | Handles confirmed linked to agency |
-| `creator_daily_metrics` | Daily metrics from TikTok imports |
+### Sync to Database
 
----
-
-## CSV Format Expected
-
-Your TikTok Partner Center export should have these columns (flexible naming):
-
-- `Creator username` → TikTok handle
-- `Affiliate GMV` → Sales amount
-- `Items sold` → Units sold  
-- `Est. commission` → Creator earnings
-- `Video CTR` → Click-through rate
-- `Views` → Video views
-
-The parser automatically handles:
-- Currency symbols ($, commas)
-- Percentage values
-- **Totals rows are ignored** (rows with handle like `-`, `Total`, etc.)
-
----
-
-## Local Development
+After pushing, run:
 
 ```bash
-npm install
-npm run dev
+curl -X POST https://your-site.vercel.app/api/admin/sync-repo-data \
+  -H "x-admin-sync-key: your-sync-key"
 ```
 
-Create `.env.local` with:
-```
-VITE_SUPABASE_URL=your-supabase-url
-VITE_SUPABASE_ANON_KEY=your-anon-key
-SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
-```
+Or use any HTTP client (Postman, etc.)
 
 ---
 
-## Your 43 Linked Creators
+## Files
 
-Top performers (from your export):
-- @missxkenshin - $35K GMV
-- @shopaholicismyname - $22K GMV
-- @theebomeister - $16K GMV
-- @justkeedah - $12K GMV
-- @jace_rio - $8K GMV
-- ... and 38 more
+```
+data/
+├── linked_creators.csv      # TikTok handles linked to agency
+└── imports/
+    └── metrics_2024-12-14.csv  # Metrics from TikTok Partner Center
+```
 
-All 43 handles are in `supabase/SEED_CREATORS.sql` ready to import.
+## API Endpoints
 
----
-
-## Troubleshooting
-
-**"Profile not found" error**
-- Make sure you ran `SETUP.sql` in Supabase SQL Editor
-
-**Creator sees "Not linked to agency"**
-- Check that their handle is in `linked_creators` table
-- Go to `/admin/linked-creators` to add them
-
-**Import shows 0 rows**
-- Check the CSV has a `Creator username` column
-- Totals rows (with `-` as username) are correctly ignored
+| Endpoint | Method | Auth | Purpose |
+|----------|--------|------|---------|
+| `/api/admin/sync-repo-data` | POST | x-admin-sync-key header | Sync repo data to Supabase |
+| `/api/profile/metrics` | GET | Bearer token | Get user's metrics |
+| `/api/profile/update-handle` | POST | Bearer token | Save user's TikTok handle |
 
 ---
 
-Built with React + Vite + Supabase + Vercel
+## Creator Flow
+
+1. Creator signs up
+2. Enters TikTok handle
+3. If handle is in `linked_creators` → sees metrics
+4. If not → sees "Not linked to agency"
+
+---
+
+## Your 43 Creators
+
+Already in `data/linked_creators.csv`:
+- missxkenshin ($35K GMV)
+- shopaholicismyname ($22K GMV)
+- theebomeister ($16K GMV)
+- ... and 40 more
