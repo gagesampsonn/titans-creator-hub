@@ -2,7 +2,7 @@
  * Execute SQL migration using Supabase Management API
  */
 
-const SUPABASE_ACCESS_TOKEN = 'sbp_a888772484d59b229aa7ee508ee36ac3a0b35562';
+const SUPABASE_ACCESS_TOKEN = process.env.SUPABASE_ACCESS_TOKEN || '';
 const PROJECT_REF = 'myylgglbtroabqclzvvn';
 
 async function runSqlQuery(sql: string) {
