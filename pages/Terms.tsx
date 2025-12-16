@@ -211,7 +211,7 @@ const Terms = () => {
                 href="mailto:legal@titans-creator-hub.com" 
                 className="text-accent-teal hover:text-accent-teal/80 text-sm transition-colors"
               >
-                gagesampson2016@gmail.com
+                Tiktoktitansmanagement@gmail.com
               </a>
             </div>
           </section>
