@@ -61,11 +61,46 @@ const VideoAudit = () => {
     { id: '2', fileName: 'hook_test_v2.mp4', date: '5 days ago', score: '45/100' }
   ]);
   
-  // Optional context fields for better analysis
+  // Context fields for better analysis
   const [productName, setProductName] = useState('');
+  const [productCategory, setProductCategory] = useState('');
   const [niche, setNiche] = useState('');
+  const [videoStyle, setVideoStyle] = useState('');
+  const [targetAudience, setTargetAudience] = useState('');
+  const [keyBenefit, setKeyBenefit] = useState('');
+  const [showContext, setShowContext] = useState(false);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Video style options
+  const videoStyleOptions = [
+    { value: '', label: 'Select video style...' },
+    { value: 'talking_head', label: 'Talking Head (direct to camera)' },
+    { value: 'skit', label: 'Skit / Story-based' },
+    { value: 'reply_video', label: 'Reply to Comment' },
+    { value: 'product_plug', label: 'Product Plug (authority figure)' },
+    { value: 'product_demo', label: 'Product Features Demo' },
+    { value: 'unboxing', label: 'Unboxing / First Impressions' },
+    { value: 'before_after', label: 'Before & After' },
+    { value: 'tutorial', label: 'Tutorial / How-To' },
+    { value: 'review', label: 'Honest Review' },
+    { value: 'lifestyle', label: 'Lifestyle Integration' },
+  ];
+
+  // Product category options
+  const productCategoryOptions = [
+    { value: '', label: 'Select category...' },
+    { value: 'beauty', label: 'Beauty & Skincare' },
+    { value: 'supplements', label: 'Supplements & Wellness' },
+    { value: 'fitness', label: 'Fitness & Health' },
+    { value: 'fashion', label: 'Fashion & Apparel' },
+    { value: 'home', label: 'Home & Kitchen' },
+    { value: 'tech', label: 'Tech & Gadgets' },
+    { value: 'pets', label: 'Pets' },
+    { value: 'food', label: 'Food & Beverage' },
+    { value: 'baby', label: 'Baby & Kids' },
+    { value: 'other', label: 'Other' },
+  ];
 
   /**
    * Handle TikTok URL input change with validation
@@ -172,7 +207,11 @@ const VideoAudit = () => {
           body: JSON.stringify({
             tiktokUrl: tiktokUrl.trim(),
             productName: productName.trim() || undefined,
+            productCategory: productCategory || undefined,
             niche: niche.trim() || undefined,
+            videoStyle: videoStyle || undefined,
+            targetAudience: targetAudience.trim() || undefined,
+            keyBenefit: keyBenefit.trim() || undefined,
           }),
         });
 
@@ -219,12 +258,42 @@ const VideoAudit = () => {
         
         const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
         
+        // Build context string from user inputs
+        const contextParts: string[] = [];
+        if (productName) contextParts.push(`Product: ${productName}`);
+        if (productCategory) contextParts.push(`Category: ${productCategoryOptions.find(o => o.value === productCategory)?.label || productCategory}`);
+        if (keyBenefit) contextParts.push(`Key Benefit: ${keyBenefit}`);
+        if (videoStyle) contextParts.push(`Video Style: ${videoStyleOptions.find(o => o.value === videoStyle)?.label || videoStyle}`);
+        if (targetAudience) contextParts.push(`Target Audience: ${targetAudience}`);
+        if (niche) contextParts.push(`Niche: ${niche}`);
+        
+        const contextSection = contextParts.length > 0 
+          ? `\n### CONTEXT PROVIDED BY CREATOR\n${contextParts.join('\n')}\n\nUse this context to provide more specific, actionable feedback.\n`
+          : '';
+
+        const videoStyleGuidance = videoStyle ? `
+### VIDEO STYLE CONSIDERATIONS
+The creator indicated this is a "${videoStyleOptions.find(o => o.value === videoStyle)?.label}" style video.
+
+${videoStyle === 'talking_head' ? 'For Talking Head: Focus on eye contact, energy, confidence, and delivery. The hook must be verbally compelling.' : ''}
+${videoStyle === 'skit' ? 'For Skit/Story: Evaluate the narrative structure, entertainment value, and how naturally the product is integrated.' : ''}
+${videoStyle === 'reply_video' ? 'For Reply Video: Check if the comment context is clear, the response is engaging, and it creates curiosity.' : ''}
+${videoStyle === 'product_plug' ? 'For Product Plug: Assess authority positioning, credibility signals, and how convincing the endorsement feels.' : ''}
+${videoStyle === 'product_demo' ? 'For Product Demo: Note that showing features alone is often less effective for supplements. Focus on transformation/results.' : ''}
+${videoStyle === 'unboxing' ? 'For Unboxing: Evaluate the reveal moment, genuine reactions, and first impressions authenticity.' : ''}
+${videoStyle === 'before_after' ? 'For Before/After: Check if the transformation is believable, well-documented, and emotionally compelling.' : ''}
+${videoStyle === 'tutorial' ? 'For Tutorial: Assess clarity of instructions, value provided, and product integration.' : ''}
+${videoStyle === 'review' ? 'For Review: Evaluate authenticity, specific details, and balance of pros/cons.' : ''}
+${videoStyle === 'lifestyle' ? 'For Lifestyle: Check how naturally the product fits into the scene and aspirational value.' : ''}
+` : '';
+
         const systemPrompt = `
         You are a world-class TikTok Shop affiliate strategist and video auditor. 
         Your goal is to help the creator maximize GMV (Gross Merchandise Value) through viral, high-converting content.
         
         The user has uploaded a video. Analyze the visual and audio content deeply.
-
+        ${contextSection}
+        ${videoStyleGuidance}
         ### CRITICAL RULE: OPENING LINE CHECK
         You MUST listen to the first 3 seconds.
         1. **Statement vs. Question**: 
@@ -401,32 +470,130 @@ const VideoAudit = () => {
                 </p>
               </div>
 
-              {/* Optional Context Fields (shown when URL is entered) */}
-              {tiktokUrl && isValidTikTokUrl(tiktokUrl) && (
-                <div className="mb-5 p-3 bg-titan-bg rounded border border-titan-border space-y-3">
-                  <p className="text-[10px] text-text-muted uppercase tracking-wider font-medium">
-                    Optional: Add context for better analysis
-                  </p>
-                  <div>
-                    <input 
-                      type="text" 
-                      value={productName}
-                      onChange={(e) => setProductName(e.target.value)}
-                      placeholder="Product name (e.g., LED Face Mask)" 
-                      className="w-full px-3 py-2 rounded bg-titan-surface border border-titan-border text-text-primary text-xs focus:border-accent-teal focus:outline-none transition-colors placeholder-text-muted"
-                    />
+              {/* Video Context Section */}
+              <div className="mb-5">
+                <button
+                  type="button"
+                  onClick={() => setShowContext(!showContext)}
+                  className="w-full flex items-center justify-between p-3 bg-titan-bg rounded border border-titan-border hover:border-titan-border-light transition-colors"
+                >
+                  <div className="flex items-center gap-2">
+                    <Sparkles size={12} className="text-accent-teal" />
+                    <span className="text-xs font-medium text-text-primary">Add Video Context</span>
+                    <span className="text-[10px] text-accent-teal">(Better AI Analysis)</span>
                   </div>
-                  <div>
-                    <input 
-                      type="text" 
-                      value={niche}
-                      onChange={(e) => setNiche(e.target.value)}
-                      placeholder="Your niche (e.g., Beauty, Fitness)" 
-                      className="w-full px-3 py-2 rounded bg-titan-surface border border-titan-border text-text-primary text-xs focus:border-accent-teal focus:outline-none transition-colors placeholder-text-muted"
-                    />
+                  <svg
+                    className={`w-4 h-4 text-text-muted transition-transform ${showContext ? 'rotate-180' : ''}`}
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                
+                {showContext && (
+                  <div className="mt-2 p-4 bg-titan-bg rounded border border-titan-border space-y-4">
+                    {/* Product Info */}
+                    <div>
+                      <label className="block text-[10px] text-text-muted uppercase tracking-wider font-medium mb-2">
+                        Product Information
+                      </label>
+                      <div className="space-y-2">
+                        <input 
+                          type="text" 
+                          value={productName}
+                          onChange={(e) => setProductName(e.target.value)}
+                          placeholder="Product name (e.g., LED Face Mask Pro)" 
+                          className="w-full px-3 py-2 rounded bg-titan-surface border border-titan-border text-text-primary text-xs focus:border-accent-teal focus:outline-none transition-colors placeholder-text-muted"
+                        />
+                        <select
+                          value={productCategory}
+                          onChange={(e) => setProductCategory(e.target.value)}
+                          className="w-full px-3 py-2 rounded bg-titan-surface border border-titan-border text-text-primary text-xs focus:border-accent-teal focus:outline-none transition-colors"
+                        >
+                          {productCategoryOptions.map(opt => (
+                            <option key={opt.value} value={opt.value} className="bg-titan-surface">
+                              {opt.label}
+                            </option>
+                          ))}
+                        </select>
+                        <input 
+                          type="text" 
+                          value={keyBenefit}
+                          onChange={(e) => setKeyBenefit(e.target.value)}
+                          placeholder="Key benefit (e.g., Clears acne in 2 weeks)" 
+                          className="w-full px-3 py-2 rounded bg-titan-surface border border-titan-border text-text-primary text-xs focus:border-accent-teal focus:outline-none transition-colors placeholder-text-muted"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Video Style */}
+                    <div>
+                      <label className="block text-[10px] text-text-muted uppercase tracking-wider font-medium mb-2">
+                        Video Style
+                      </label>
+                      <select
+                        value={videoStyle}
+                        onChange={(e) => setVideoStyle(e.target.value)}
+                        className="w-full px-3 py-2 rounded bg-titan-surface border border-titan-border text-text-primary text-xs focus:border-accent-teal focus:outline-none transition-colors"
+                      >
+                        {videoStyleOptions.map(opt => (
+                          <option key={opt.value} value={opt.value} className="bg-titan-surface">
+                            {opt.label}
+                          </option>
+                        ))}
+                      </select>
+                      <div className="mt-2 flex flex-wrap gap-1.5">
+                        {['talking_head', 'skit', 'reply_video', 'product_demo'].map(style => (
+                          <button
+                            key={style}
+                            type="button"
+                            onClick={() => setVideoStyle(style)}
+                            className={`px-2 py-1 text-[10px] rounded border transition-colors ${
+                              videoStyle === style
+                                ? 'bg-accent-teal/10 border-accent-teal text-accent-teal'
+                                : 'bg-titan-surface border-titan-border text-text-muted hover:border-titan-border-light'
+                            }`}
+                          >
+                            {videoStyleOptions.find(o => o.value === style)?.label.split(' (')[0]}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Audience */}
+                    <div>
+                      <label className="block text-[10px] text-text-muted uppercase tracking-wider font-medium mb-2">
+                        Target Audience
+                      </label>
+                      <div className="space-y-2">
+                        <input 
+                          type="text" 
+                          value={targetAudience}
+                          onChange={(e) => setTargetAudience(e.target.value)}
+                          placeholder="Who is this for? (e.g., Women 25-45 with acne)" 
+                          className="w-full px-3 py-2 rounded bg-titan-surface border border-titan-border text-text-primary text-xs focus:border-accent-teal focus:outline-none transition-colors placeholder-text-muted"
+                        />
+                        <input 
+                          type="text" 
+                          value={niche}
+                          onChange={(e) => setNiche(e.target.value)}
+                          placeholder="Your niche (e.g., Skincare, Fitness)" 
+                          className="w-full px-3 py-2 rounded bg-titan-surface border border-titan-border text-text-primary text-xs focus:border-accent-teal focus:outline-none transition-colors placeholder-text-muted"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Tips */}
+                    <div className="p-2.5 bg-accent-teal/5 border border-accent-teal/20 rounded">
+                      <p className="text-[10px] text-accent-teal">
+                        💡 <strong>Pro tip:</strong> Adding context helps the AI give you more specific, actionable feedback for your exact product and audience.
+                      </p>
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
 
               <button 
                 onClick={handleAudit}
