@@ -4,12 +4,10 @@
  */
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { GoogleGenAI } from "@google/genai";
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY || process.env.API_KEY || '';
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  // Only allow POST requests
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -22,8 +20,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
-
     const prompt = `
 You are an expert TikTok Shop affiliate marketing analyst. Your job is to help TikTok Shop affiliates and creators make more money by identifying trending products, viral content strategies, and what's currently being talked about in the TikTok Shop affiliate community.
 
@@ -63,28 +59,39 @@ Underserved niches or product categories with high potential:
 Focus on practical, money-making advice for TikTok Shop affiliates. Be specific with product examples and content ideas they can use immediately.
 `;
 
-    const response = await ai.models.generateContent({
-      model: "gemini-2.0-flash",
-      contents: prompt,
-    });
-
-    const text = response.text || "No trends found.";
-    
-    // Extract any grounding sources if available
-    const chunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
-    const sources = chunks
-      .filter((c: any) => c.web?.uri && c.web?.title)
-      .map((c: any) => ({ title: c.web.title, uri: c.web.uri }));
-    
-    // Remove duplicates
-    const uniqueSources = Array.from(
-      new Map(sources.map((item: any) => [item.uri, item])).values()
+    // Use Gemini REST API directly
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          contents: [{
+            parts: [{ text: prompt }]
+          }],
+          generationConfig: {
+            temperature: 0.7,
+            maxOutputTokens: 2048,
+          }
+        }),
+      }
     );
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('Gemini API error:', errorData);
+      throw new Error(errorData.error?.message || 'Failed to generate content');
+    }
+
+    const data = await response.json();
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "No trends found.";
 
     return res.status(200).json({
       success: true,
       data: text,
-      sources: uniqueSources,
+      sources: [],
       generatedAt: new Date().toISOString()
     });
 
