@@ -52,19 +52,19 @@ const Navbar = () => {
             {loading ? (
               <div className="w-7 h-7 bg-titan-surface rounded animate-pulse" />
             ) : user ? (
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
                 <Link 
                   to="/dashboard" 
-                  className="flex items-center gap-2 text-sm text-text-secondary hover:text-text-primary transition-colors"
+                  className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-accent-teal/10 to-accent-fuchsia/10 border border-accent-teal/30 rounded-lg hover:border-accent-teal/50 transition-all group"
                 >
-                  <div className="w-7 h-7 bg-titan-surface rounded border border-titan-border flex items-center justify-center">
-                    <User size={14} className="text-text-secondary" />
+                  <div className="w-7 h-7 bg-gradient-to-br from-accent-teal to-accent-fuchsia rounded-md flex items-center justify-center">
+                    <User size={14} className="text-white" />
                   </div>
-                  <span>Dashboard</span>
+                  <span className="text-sm font-medium text-text-primary group-hover:text-accent-teal transition-colors">Dashboard</span>
                 </Link>
                 <button 
                   onClick={handleLogout} 
-                  className="text-sm text-text-muted hover:text-text-secondary transition-colors"
+                  className="px-3 py-1.5 text-sm text-text-muted hover:text-white hover:bg-red-500/20 border border-transparent hover:border-red-500/30 rounded-lg transition-all"
                 >
                   Log Out
                 </button>
@@ -133,24 +133,30 @@ const Navbar = () => {
               For Brands
               <ChevronRight size={14} />
             </Link>
-            {user && (
-              <Link 
-                to="/dashboard" 
-                onClick={() => setIsOpen(false)} 
-                className="flex items-center justify-between px-3 py-2.5 text-sm text-text-secondary hover:text-text-primary hover:bg-titan-elevated rounded transition-colors"
-              >
-                Dashboard
-                <ChevronRight size={14} />
-              </Link>
-            )}
             <div className="pt-3 mt-3 border-t border-titan-border">
               {user ? (
-                <button 
-                  onClick={handleLogout} 
-                  className="w-full text-left px-3 py-2 text-sm text-text-muted hover:text-text-primary transition-colors"
-                >
-                  Log Out
-                </button>
+                <div className="space-y-2">
+                  <Link 
+                    to="/dashboard" 
+                    onClick={() => setIsOpen(false)} 
+                    className="flex items-center gap-3 px-3 py-3 bg-gradient-to-r from-accent-teal/10 to-accent-fuchsia/10 border border-accent-teal/30 rounded-lg"
+                  >
+                    <div className="w-9 h-9 bg-gradient-to-br from-accent-teal to-accent-fuchsia rounded-lg flex items-center justify-center">
+                      <User size={16} className="text-white" />
+                    </div>
+                    <div>
+                      <span className="text-sm font-medium text-text-primary block">Dashboard</span>
+                      <span className="text-xs text-text-muted">View your stats</span>
+                    </div>
+                    <ChevronRight size={16} className="ml-auto text-accent-teal" />
+                  </Link>
+                  <button 
+                    onClick={handleLogout} 
+                    className="w-full text-center px-3 py-2.5 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 border border-transparent hover:border-red-500/20 rounded-lg transition-all"
+                  >
+                    Log Out
+                  </button>
+                </div>
               ) : (
                 <div className="flex flex-col gap-2">
                   <Link 
