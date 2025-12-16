@@ -134,9 +134,9 @@ const VideoAudit = () => {
   };
 
   /**
-   * Check if we can analyze (file OR valid URL)
+   * Check if we can analyze (file only for now - URL coming soon)
    */
-  const canAnalyze = file || (tiktokUrl.trim() && isValidTikTokUrl(tiktokUrl));
+  const canAnalyze = !!file;
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -432,41 +432,28 @@ ${videoStyle === 'lifestyle' ? 'For Lifestyle: Check how naturally the product f
                 </div>
               </div>
 
-              {/* TikTok URL Input */}
-              <div className="mb-5">
-                <label className="block text-xs font-medium text-text-secondary mb-2">
-                  Or paste TikTok link
-                </label>
-                <div className="relative">
-                  <LinkIcon className={`absolute left-3 top-1/2 -translate-y-1/2 ${urlError ? 'text-accent-fuchsia' : 'text-text-muted'}`} size={14} />
+              {/* TikTok URL Input - Coming Soon */}
+              <div className="mb-5 relative">
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-xs font-medium text-text-secondary">
+                    Or paste TikTok link
+                  </label>
+                  <span className="px-2 py-0.5 bg-accent-fuchsia/10 text-accent-fuchsia text-[10px] font-semibold rounded-full">
+                    Coming Soon
+                  </span>
+                </div>
+                <div className="relative opacity-50 pointer-events-none">
+                  <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" size={14} />
                   <input 
                     type="url" 
-                    value={tiktokUrl}
-                    onChange={handleUrlChange}
-                    onBlur={handleUrlBlur}
+                    disabled
                     placeholder="https://tiktok.com/@... or vm.tiktok.com/..." 
-                    className={`w-full pl-9 pr-3 py-2.5 rounded bg-titan-bg border text-text-primary text-sm focus:outline-none transition-colors placeholder-text-muted ${
-                      urlError 
-                        ? 'border-accent-fuchsia focus:border-accent-fuchsia' 
-                        : tiktokUrl && isValidTikTokUrl(tiktokUrl)
-                          ? 'border-accent-teal focus:border-accent-teal'
-                          : 'border-titan-border focus:border-accent-teal'
-                    }`}
+                    className="w-full pl-9 pr-3 py-2.5 rounded bg-titan-bg border border-titan-border text-text-muted text-sm cursor-not-allowed placeholder-text-muted"
                   />
-                  {/* Valid URL indicator */}
-                  {tiktokUrl && isValidTikTokUrl(tiktokUrl) && (
-                    <CheckCircle className="absolute right-3 top-1/2 -translate-y-1/2 text-accent-teal" size={14} />
-                  )}
                 </div>
-                {/* Inline error message */}
-                {urlError && (
-                  <div className="flex items-center gap-1.5 mt-1.5 text-accent-fuchsia">
-                    <AlertCircle size={12} />
-                    <span className="text-[10px]">{urlError}</span>
-                  </div>
-                )}
-                <p className="text-[10px] text-text-muted mt-1.5">
-                  Supports: tiktok.com, vm.tiktok.com, vt.tiktok.com
+                <p className="text-[10px] text-text-muted mt-1.5 flex items-center gap-1">
+                  <Sparkles size={10} className="text-accent-fuchsia" />
+                  URL analysis feature launching soon!
                 </p>
               </div>
 
@@ -613,20 +600,6 @@ ${videoStyle === 'lifestyle' ? 'For Lifestyle: Check how naturally the product f
                 )}
               </button>
 
-              {/* Login hint for URL analysis */}
-              {!authLoading && !user && tiktokUrl && isValidTikTokUrl(tiktokUrl) && (
-                <p className="text-[10px] text-text-muted mt-2 text-center">
-                  <a href="#/login" className="text-accent-teal hover:underline">Log in</a> to analyze TikTok URLs
-                </p>
-              )}
-              
-              {/* Auth status indicator (for debugging) */}
-              {authLoading && (
-                <p className="text-[10px] text-text-muted mt-2 text-center flex items-center justify-center gap-1">
-                  <Loader2 size={10} className="animate-spin" />
-                  Checking login status...
-                </p>
-              )}
             </div>
 
             {/* History */}
