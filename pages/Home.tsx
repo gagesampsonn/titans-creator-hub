@@ -142,20 +142,30 @@ const Home = () => {
             </div>
             
             {/* Social Proof */}
-            <div className="mt-14 flex items-center justify-center gap-8 text-sm text-text-muted">
+            <div className="mt-14 flex flex-wrap items-center justify-center gap-x-8 gap-y-4 text-sm text-text-muted">
               <div className="flex items-center gap-2">
-                <span className="text-text-primary font-semibold">5,000+</span>
-                <span>Creators</span>
-              </div>
-              <div className="w-px h-4 bg-titan-border"></div>
-              <div className="flex items-center gap-2">
-                <span className="text-text-primary font-semibold">$2.4M+</span>
+                <span className="text-text-primary font-semibold">$5.2M+</span>
                 <span>GMV Generated</span>
               </div>
               <div className="w-px h-4 bg-titan-border hidden sm:block"></div>
-              <div className="hidden sm:flex items-center gap-2">
-                <span className="text-text-primary font-semibold">850+</span>
-                <span>Brands</span>
+              <div className="flex items-center gap-2">
+                <span className="text-text-primary font-semibold">3,600</span>
+                <span>Creators</span>
+              </div>
+              <div className="w-px h-4 bg-titan-border hidden sm:block"></div>
+              <div className="flex items-center gap-2">
+                <span className="text-text-primary font-semibold">60+</span>
+                <span>Brands on TikTok Shop</span>
+              </div>
+              <div className="w-px h-4 bg-titan-border hidden md:block"></div>
+              <div className="flex items-center gap-2">
+                <span className="text-text-primary font-semibold">6,000+</span>
+                <span>Samples Sent</span>
+              </div>
+              <div className="w-px h-4 bg-titan-border hidden md:block"></div>
+              <div className="flex items-center gap-2">
+                <span className="text-text-primary font-semibold">78,000</span>
+                <span>Total Videos</span>
               </div>
             </div>
           </div>
