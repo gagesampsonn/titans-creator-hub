@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   DollarSign, Package, TrendingUp, RefreshCw, AtSign, 
-  AlertCircle, CheckCircle, Loader2, Star
+  AlertCircle, CheckCircle, Loader2, Star, Award, ShoppingBag
 } from 'lucide-react';
 import { useAuth } from '../lib/AuthContext';
 import { supabase } from '../lib/supabase';
@@ -26,10 +26,28 @@ interface MetricsData {
   }>;
 }
 
+interface ProductMetric {
+  id: string;
+  product_name: string;
+  product_category: string;
+  gmv: number;
+  items_sold: number;
+  est_commission: number;
+  date_start: string;
+  date_end: string;
+}
+
+interface TopProductsData {
+  hasProducts: boolean;
+  products: ProductMetric[];
+  dateRange: { start: string; end: string } | null;
+}
+
 const Dashboard = () => {
   const { user, session } = useAuth();
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<MetricsData | null>(null);
+  const [topProducts, setTopProducts] = useState<TopProductsData | null>(null);
   const [showConnect, setShowConnect] = useState(false);
   const [handle, setHandle] = useState('');
   const [saving, setSaving] = useState(false);
@@ -43,13 +61,24 @@ const Dashboard = () => {
     }
 
     try {
-      const response = await fetch('/api/profile/metrics', {
-        headers: { 'Authorization': `Bearer ${session.access_token}` },
-      });
+      // Fetch metrics and top products in parallel
+      const [metricsResponse, productsResponse] = await Promise.all([
+        fetch('/api/profile/metrics', {
+          headers: { 'Authorization': `Bearer ${session.access_token}` },
+        }),
+        fetch('/api/profile/top-products', {
+          headers: { 'Authorization': `Bearer ${session.access_token}` },
+        })
+      ]);
       
-      if (response.ok) {
-        const result = await response.json();
+      if (metricsResponse.ok) {
+        const result = await metricsResponse.json();
         setData(result);
+      }
+      
+      if (productsResponse.ok) {
+        const productsResult = await productsResponse.json();
+        setTopProducts(productsResult);
       }
     } catch (err) {
       console.error('Failed to load metrics:', err);
@@ -281,6 +310,83 @@ const Dashboard = () => {
             </p>
           </div>
         </div>
+
+        {/* Top 5 Products */}
+        {topProducts?.hasProducts && topProducts.products.length > 0 && (
+          <div className="bg-titan-surface border border-titan-border rounded-lg overflow-hidden mb-8">
+            <div className="px-6 py-4 border-b border-titan-border">
+              <div className="flex items-center gap-2">
+                <Award className="w-5 h-5 text-accent-teal" />
+                <h2 className="font-semibold text-text-primary">Top 5 Products</h2>
+              </div>
+              <p className="text-xs text-text-muted mt-1">
+                Your best performing products (Last 14 Days)
+              </p>
+            </div>
+            <div className="divide-y divide-titan-border">
+              {topProducts.products.map((product, index) => (
+                <div 
+                  key={product.id} 
+                  className="px-6 py-4 flex items-center gap-4 hover:bg-titan-elevated/30 transition-colors"
+                >
+                  {/* Rank Badge */}
+                  <div className={`
+                    w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm
+                    ${index === 0 ? 'bg-gradient-to-br from-yellow-400 to-amber-500 text-black' : ''}
+                    ${index === 1 ? 'bg-gradient-to-br from-gray-300 to-gray-400 text-black' : ''}
+                    ${index === 2 ? 'bg-gradient-to-br from-amber-600 to-amber-700 text-white' : ''}
+                    ${index >= 3 ? 'bg-titan-bg border border-titan-border text-text-muted' : ''}
+                  `}>
+                    {index + 1}
+                  </div>
+                  
+                  {/* Product Info */}
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-text-primary truncate">
+                      {product.product_name}
+                    </p>
+                    <p className="text-xs text-text-muted">
+                      {product.product_category || 'Uncategorized'}
+                    </p>
+                  </div>
+                  
+                  {/* Stats */}
+                  <div className="flex items-center gap-6 text-sm">
+                    <div className="text-right">
+                      <p className="text-accent-teal font-semibold">
+                        ${Number(product.gmv).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                      </p>
+                      <p className="text-xs text-text-muted">GMV</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-text-primary font-medium">
+                        {product.items_sold}
+                      </p>
+                      <p className="text-xs text-text-muted">Items</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-accent-fuchsia font-semibold">
+                        ${Number(product.est_commission).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                      </p>
+                      <p className="text-xs text-text-muted">Commission</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* No Products Empty State */}
+        {topProducts && !topProducts.hasProducts && (
+          <div className="bg-titan-surface border border-titan-border rounded-lg p-8 mb-8 text-center">
+            <ShoppingBag className="w-12 h-12 text-text-muted/50 mx-auto mb-4" />
+            <h3 className="font-medium text-text-primary mb-2">No Product Sales Yet</h3>
+            <p className="text-sm text-text-muted">
+              No product sales in this date range yet. Start promoting products to see your top performers here!
+            </p>
+          </div>
+        )}
 
         {/* Metrics Details */}
         {data.dailyMetrics.length > 0 && (
