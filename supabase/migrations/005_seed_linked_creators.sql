@@ -47,7 +47,8 @@ INSERT INTO linked_creators (tiktok_handle, status) VALUES
   ('justbridget5', 'active'),
   ('lindsey.stone7', 'active'),
   ('gigimonique777', 'active'),
-  ('juglifts', 'active')
+  ('juglifts', 'active'),
+  ('britty.finds', 'active')
 ON CONFLICT (tiktok_handle) DO UPDATE SET
   status = EXCLUDED.status,
   updated_at = NOW();

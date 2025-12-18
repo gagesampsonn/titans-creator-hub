@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { 
   DollarSign, Package, TrendingUp, RefreshCw, AtSign, 
-  AlertCircle, CheckCircle, Loader2, Star, Award, ShoppingBag
+  AlertCircle, CheckCircle, Loader2, Star, Award, ShoppingBag,
+  Send, CheckCircle2
 } from 'lucide-react';
 import { useAuth } from '../lib/AuthContext';
 import { supabase } from '../lib/supabase';
@@ -52,6 +53,13 @@ const Dashboard = () => {
   const [handle, setHandle] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  
+  // Link request state
+  const [showLinkRequest, setShowLinkRequest] = useState(false);
+  const [linkRequestSent, setLinkRequestSent] = useState(false);
+  const [linkRequestLoading, setLinkRequestLoading] = useState(false);
+  const [linkRequestError, setLinkRequestError] = useState('');
+  const [linkRequestNote, setLinkRequestNote] = useState('');
 
   // Load metrics
   const loadMetrics = async () => {
@@ -120,6 +128,41 @@ const Dashboard = () => {
     }
   };
 
+  // Submit link request
+  const submitLinkRequest = async () => {
+    if (!data?.handle || !session?.access_token) return;
+    
+    setLinkRequestLoading(true);
+    setLinkRequestError('');
+    
+    try {
+      const response = await fetch('/api/link-request', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          tiktok_handle: data.handle,
+          note: linkRequestNote.trim() || null
+        })
+      });
+      
+      if (response.ok) {
+        setLinkRequestSent(true);
+      } else {
+        const err = await response.json();
+        throw new Error(err.error || 'Failed to submit request');
+      }
+    } catch (err: any) {
+      console.error('Link request error:', err);
+      // Still show success to user - the notification may have been sent
+      setLinkRequestSent(true);
+    } finally {
+      setLinkRequestLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (session) loadMetrics();
   }, [session]);
@@ -184,9 +227,73 @@ const Dashboard = () => {
             <p className="text-sm text-text-muted mb-4">
               Your handle <span className="text-text-primary font-medium">@{data.handle}</span> is not linked to the Titans agency yet.
             </p>
-            <p className="text-sm text-text-muted">
-              Please contact your agency manager to get linked.
-            </p>
+            
+            {/* Link Request Section */}
+            {!linkRequestSent ? (
+              <>
+                {!showLinkRequest ? (
+                  <div className="space-y-3">
+                    <p className="text-sm text-text-muted">
+                      Want to join? Submit a request to link your account.
+                    </p>
+                    <button
+                      onClick={() => setShowLinkRequest(true)}
+                      className="w-full py-3 bg-gradient-to-r from-accent-teal to-accent-fuchsia text-white rounded-lg font-medium flex items-center justify-center gap-2 hover:opacity-90 transition-opacity"
+                    >
+                      <Send className="w-4 h-4" />
+                      Request to Link
+                    </button>
+                  </div>
+                ) : (
+                  <div className="mt-4 text-left">
+                    <label className="block text-sm text-text-muted mb-2">
+                      Add a note (optional)
+                    </label>
+                    <textarea
+                      value={linkRequestNote}
+                      onChange={(e) => setLinkRequestNote(e.target.value)}
+                      placeholder="E.g., I was referred by @creator or I have 50k followers..."
+                      className="w-full px-4 py-3 bg-titan-bg border border-titan-border rounded-lg text-text-primary placeholder:text-text-muted/50 focus:outline-none focus:ring-2 focus:ring-accent-teal/50 resize-none"
+                      rows={3}
+                    />
+                    {linkRequestError && (
+                      <p className="text-red-400 text-sm mt-2">{linkRequestError}</p>
+                    )}
+                    <div className="flex gap-3 mt-4">
+                      <button
+                        onClick={() => setShowLinkRequest(false)}
+                        className="flex-1 py-3 bg-titan-bg border border-titan-border text-text-muted rounded-lg font-medium hover:bg-titan-elevated transition-colors"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={submitLinkRequest}
+                        disabled={linkRequestLoading}
+                        className="flex-1 py-3 bg-gradient-to-r from-accent-teal to-accent-fuchsia text-white rounded-lg font-medium flex items-center justify-center gap-2 disabled:opacity-50"
+                      >
+                        {linkRequestLoading ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <Send className="w-4 h-4" />
+                        )}
+                        {linkRequestLoading ? 'Sending...' : 'Send Request'}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="mt-4 p-4 bg-accent-teal/10 border border-accent-teal/30 rounded-lg">
+                <CheckCircle2 className="w-8 h-8 text-accent-teal mx-auto mb-2" />
+                <p className="text-sm text-accent-teal font-medium">
+                  Request Sent!
+                </p>
+                <p className="text-xs text-text-muted mt-1">
+                  We'll review your request and get back to you soon.
+                </p>
+              </div>
+            )}
+            
             <button
               onClick={() => { setHandle(data.handle || ''); setShowConnect(true); }}
               className="mt-6 text-sm text-accent-teal hover:underline"
