@@ -550,13 +550,16 @@ const Dashboard = () => {
           <div className="bg-titan-surface border border-titan-border rounded-lg overflow-hidden">
             <div className="px-6 py-4 border-b border-titan-border">
               <h2 className="font-semibold text-text-primary">Performance Summary</h2>
-              <p className="text-xs text-text-muted mt-1">Aggregated data for Dec 1 – Dec 14, 2024</p>
+              <p className="text-xs text-text-muted mt-1">
+                Aggregated data for {data.period?.dateStart && data.period?.dateEnd 
+                  ? `${new Date(data.period.dateStart).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} – ${new Date(data.period.dateEnd).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
+                  : 'Dec 1 – Dec 18, 2025'}
+              </p>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="bg-titan-bg/50 text-xs text-text-muted uppercase">
                   <tr>
-                    <th className="px-6 py-3 text-left">Date</th>
                     <th className="px-6 py-3 text-right">GMV</th>
                     <th className="px-6 py-3 text-right">Commission</th>
                     <th className="px-6 py-3 text-right">Items</th>
@@ -566,9 +569,6 @@ const Dashboard = () => {
                 <tbody className="divide-y divide-titan-border">
                   {data.dailyMetrics.map((m, i) => (
                     <tr key={i} className="hover:bg-titan-elevated/30">
-                      <td className="px-6 py-4 text-text-primary">
-                        {new Date(m.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                      </td>
                       <td className="px-6 py-4 text-right text-accent-teal font-medium">
                         ${m.affiliate_gmv.toFixed(2)}
                       </td>
