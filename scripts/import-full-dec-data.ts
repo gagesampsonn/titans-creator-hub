@@ -16,16 +16,36 @@ import { parse } from 'csv-parse/sync';
 const SUPABASE_URL = 'https://myylgglbtroabqclzvvn.supabase.co';
 const SUPABASE_SERVICE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im15eWxnZ2xidHJvYWJxY2x6dnZuIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NTY1OTkxNCwiZXhwIjoyMDgxMjM1OTE0fQ.cvJQ6xQ_c0sVXwKSfAnLgnCSjh4NnBzfAKjSFwN3Hug';
 
-const EXCEL_FILE = 'C:\\Users\\gages\\Downloads\\CustomReport_Creator_Product_Shop 2025-12-01_2025-12-17.xlsx';
+const EXCEL_FILE = 'C:\\Users\\gages\\Downloads\\CustomReport_Creator_Product_Shop 2025-12-01_2025-12-18.xlsx';
 const LINKED_CREATORS_FILE = 'C:\\Users\\gages\\titans-creator-hub\\data\\linked_creators.csv';
 
 // Fixed date range for this import
 const DATE_START = '2025-12-01';
-const DATE_END = '2025-12-17';
+const DATE_END = '2025-12-18';
+const COMPARISON_START = '2025-11-12';
+const COMPARISON_END = '2025-11-30';
 
 function normalizeHandle(handle: string | undefined | null): string {
   if (!handle) return '';
   return handle.toLowerCase().trim().replace(/^@/, '');
+}
+
+// Parse percentage string like "16.93%" or "-12.39%" to number
+function parsePercentage(value: any): number {
+  if (typeof value === 'number') return value;
+  if (!value) return 0;
+  const str = String(value).replace('%', '').trim();
+  const num = parseFloat(str);
+  return isNaN(num) ? 0 : num;
+}
+
+// Calculate previous value from current value and percentage change
+// If current = 100 and change = 20%, then prev = 100 / 1.2 = 83.33
+function calculatePrevious(current: number, changePercent: number): number {
+  if (changePercent === 100 || changePercent === -100) return 0; // New or gone
+  const multiplier = 1 + (changePercent / 100);
+  if (multiplier === 0) return 0;
+  return current / multiplier;
 }
 
 function parseCurrency(value: any): number {
@@ -94,7 +114,15 @@ async function importFullDecData() {
   let skipped = 0;
   let notLinked = 0;
   const errors: string[] = [];
-  const handleStats: Record<string, { products: number; gmv: number; items: number }> = {};
+  const handleStats: Record<string, { 
+    products: number; 
+    gmv: number; 
+    items: number;
+    orders: number;
+    prevGmv: number;
+    prevItems: number;
+    prevOrders: number;
+  }> = {};
 
   for (const row of rows as Record<string, any>[]) {
     const dateStr = row['Date'];
@@ -112,6 +140,16 @@ async function importFullDecData() {
     const itemsSold = parseInteger(row['Items sold']);
     const estCommission = parseCurrency(row['Est. commission'] || gmv * 0.1); // Estimate 10% if not provided
     const orders = parseInteger(row['Affiliate orders']);
+    
+    // Get comparison rates
+    const gmvChangeRate = parsePercentage(row['Affiliate GMV Comparison rate']);
+    const itemsChangeRate = parsePercentage(row['Items sold Comparison rate']);
+    const ordersChangeRate = parsePercentage(row['Affiliate orders Comparison rate']);
+    
+    // Calculate previous period values
+    const prevGmv = calculatePrevious(gmv, gmvChangeRate);
+    const prevItems = Math.round(calculatePrevious(itemsSold, itemsChangeRate));
+    const prevOrders = Math.round(calculatePrevious(orders, ordersChangeRate));
     
     // Skip rows without creator or product
     if (!creatorName || creatorName === '-' || !productName || productName === '-') {
@@ -139,11 +177,23 @@ async function importFullDecData() {
 
     // Track stats
     if (!handleStats[normalizedHandle]) {
-      handleStats[normalizedHandle] = { products: 0, gmv: 0, items: 0 };
+      handleStats[normalizedHandle] = { 
+        products: 0, 
+        gmv: 0, 
+        items: 0, 
+        orders: 0,
+        prevGmv: 0,
+        prevItems: 0,
+        prevOrders: 0
+      };
     }
     handleStats[normalizedHandle].products++;
     handleStats[normalizedHandle].gmv += gmv;
     handleStats[normalizedHandle].items += itemsSold;
+    handleStats[normalizedHandle].orders += orders;
+    handleStats[normalizedHandle].prevGmv += prevGmv;
+    handleStats[normalizedHandle].prevItems += prevItems;
+    handleStats[normalizedHandle].prevOrders += prevOrders;
 
     try {
       const { error } = await admin.rpc('upsert_creator_product_metrics', {
@@ -180,6 +230,49 @@ async function importFullDecData() {
 
   console.log('\n');
 
+  // Step 3: Save creator period summaries
+  console.log('📊 Saving creator period summaries...\n');
+  
+  for (const [handle, stats] of Object.entries(handleStats)) {
+    // Calculate percentage changes
+    const gmvChange = stats.prevGmv > 0 
+      ? ((stats.gmv - stats.prevGmv) / stats.prevGmv) * 100 
+      : (stats.gmv > 0 ? 100 : 0);
+    const itemsChange = stats.prevItems > 0 
+      ? ((stats.items - stats.prevItems) / stats.prevItems) * 100 
+      : (stats.items > 0 ? 100 : 0);
+    const ordersChange = stats.prevOrders > 0 
+      ? ((stats.orders - stats.prevOrders) / stats.prevOrders) * 100 
+      : (stats.orders > 0 ? 100 : 0);
+    
+    const { error } = await admin
+      .from('creator_period_summary')
+      .upsert({
+        tiktok_handle: handle,
+        date_start: DATE_START,
+        date_end: DATE_END,
+        total_gmv: stats.gmv,
+        total_items: stats.items,
+        total_orders: stats.orders,
+        total_commission: stats.gmv * 0.1, // Estimate 10%
+        product_count: stats.products,
+        comparison_start: COMPARISON_START,
+        comparison_end: COMPARISON_END,
+        prev_gmv: stats.prevGmv,
+        prev_items: stats.prevItems,
+        prev_orders: stats.prevOrders,
+        gmv_change_pct: gmvChange,
+        items_change_pct: itemsChange,
+        orders_change_pct: ordersChange,
+        import_source: filename
+      }, { onConflict: 'tiktok_handle,date_start,date_end' });
+    
+    if (error) {
+      console.log(`   ⚠️ Error saving summary for ${handle}: ${error.message}`);
+    }
+  }
+  console.log('✅ Saved creator summaries\n');
+
   // Print summary
   console.log('═══════════════════════════════════════════════════════════');
   console.log('                    IMPORT SUMMARY                          ');
@@ -190,14 +283,21 @@ async function importFullDecData() {
   console.log(`📅 Date range: ${DATE_START} to ${DATE_END}`);
   console.log(`👤 Creators with data: ${Object.keys(handleStats).length}\n`);
 
-  // Show all creators with stats
+  // Show all creators with stats and comparison
   const sortedCreators = Object.entries(handleStats)
     .sort((a, b) => b[1].gmv - a[1].gmv);
 
-  console.log('📊 Creator Performance (Dec 1-17):');
+  console.log(`📊 Creator Performance (${DATE_START} to ${DATE_END}):`);
+  console.log(`   Compared to: ${COMPARISON_START} to ${COMPARISON_END}`);
   console.log('───────────────────────────────────────────────────────────');
   sortedCreators.forEach(([handle, stats], i) => {
-    console.log(`${(i + 1).toString().padStart(2)}. @${handle.padEnd(25)} $${stats.gmv.toFixed(2).padStart(10)} | ${stats.items.toString().padStart(5)} items | ${stats.products} products`);
+    const gmvChange = stats.prevGmv > 0 
+      ? ((stats.gmv - stats.prevGmv) / stats.prevGmv) * 100 
+      : (stats.gmv > 0 ? 100 : 0);
+    const changeStr = gmvChange >= 0 ? `+${gmvChange.toFixed(1)}%` : `${gmvChange.toFixed(1)}%`;
+    const changeIndicator = gmvChange >= 0 ? '▲' : '▼';
+    
+    console.log(`${(i + 1).toString().padStart(2)}. @${handle.padEnd(22)} $${stats.gmv.toFixed(2).padStart(10)} ${changeIndicator} ${changeStr.padStart(8)} | ${stats.items.toString().padStart(5)} items`);
   });
 
   if (errors.length > 0) {

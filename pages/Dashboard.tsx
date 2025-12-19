@@ -2,10 +2,26 @@ import React, { useState, useEffect } from 'react';
 import { 
   DollarSign, Package, TrendingUp, RefreshCw, AtSign, 
   AlertCircle, CheckCircle, Loader2, Star, Award, ShoppingBag,
-  Send, CheckCircle2
+  Send, CheckCircle2, TrendingDown, ArrowUpRight, ArrowDownRight
 } from 'lucide-react';
 import { useAuth } from '../lib/AuthContext';
 import { supabase } from '../lib/supabase';
+
+// Change indicator component
+const ChangeIndicator = ({ value, suffix = '%' }: { value: number; suffix?: string }) => {
+  if (value === 0) return null;
+  
+  const isPositive = value > 0;
+  const color = isPositive ? 'text-emerald-400' : 'text-red-400';
+  const Icon = isPositive ? ArrowUpRight : ArrowDownRight;
+  
+  return (
+    <div className={`flex items-center gap-0.5 text-xs font-medium ${color}`}>
+      <Icon className="w-3 h-3" />
+      <span>{isPositive ? '+' : ''}{value.toFixed(1)}{suffix}</span>
+    </div>
+  );
+};
 
 interface MetricsData {
   connected: boolean;
@@ -16,7 +32,18 @@ interface MetricsData {
     totalGmv: number;
     totalCommission: number;
     totalItems: number;
+    totalOrders: number;
     avgCtr: number;
+    // Comparison percentages
+    gmvChange: number;
+    itemsChange: number;
+    ordersChange: number;
+  };
+  period: {
+    dateStart: string;
+    dateEnd: string;
+    comparisonStart: string;
+    comparisonEnd: string;
   };
   dailyMetrics: Array<{
     date: string;
@@ -363,7 +390,11 @@ const Dashboard = () => {
           </div>
           <div className="text-right">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-titan-surface border border-titan-border rounded-full text-xs text-text-muted">
-              <span>Dec 1 – Dec 14, 2024</span>
+              <span>
+                {data.period?.dateStart && data.period?.dateEnd 
+                  ? `${new Date(data.period.dateStart).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} – ${new Date(data.period.dateEnd).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
+                  : 'Dec 1 – Dec 18, 2025'}
+              </span>
             </div>
           </div>
         </div>
@@ -371,16 +402,26 @@ const Dashboard = () => {
         {/* Period Summary Banner */}
         <div className="mb-6 p-4 bg-accent-teal/10 border border-accent-teal/20 rounded-lg">
           <p className="text-sm text-accent-teal">
-            📊 Showing your performance for <strong>December 1 – December 14, 2024</strong> (14 days)
+            📊 Showing your performance for <strong>
+              {data.period?.dateStart && data.period?.dateEnd 
+                ? `${new Date(data.period.dateStart).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })} – ${new Date(data.period.dateEnd).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`
+                : 'December 1 – December 18, 2025'}
+            </strong>
+            {data.period?.comparisonStart && data.period?.comparisonEnd && (
+              <span className="text-text-muted"> • Compared to {new Date(data.period.comparisonStart).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} – {new Date(data.period.comparisonEnd).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+            )}
           </p>
         </div>
 
         {/* Stats Grid */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <div className="bg-titan-surface border border-titan-border rounded-lg p-5">
-            <div className="flex items-center gap-2 mb-2">
-              <DollarSign className="w-5 h-5 text-accent-teal" />
-              <span className="text-xs text-text-muted">Total GMV (14 days)</span>
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <DollarSign className="w-5 h-5 text-accent-teal" />
+                <span className="text-xs text-text-muted">Total GMV</span>
+              </div>
+              <ChangeIndicator value={data.summary.gmvChange || 0} />
             </div>
             <p className="text-2xl font-bold text-text-primary">
               ${data.summary.totalGmv.toLocaleString(undefined, { minimumFractionDigits: 2 })}
@@ -388,9 +429,12 @@ const Dashboard = () => {
           </div>
 
           <div className="bg-titan-surface border border-titan-border rounded-lg p-5">
-            <div className="flex items-center gap-2 mb-2">
-              <Star className="w-5 h-5 text-accent-fuchsia" />
-              <span className="text-xs text-text-muted">Est. Commission (14 days)</span>
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <Star className="w-5 h-5 text-accent-fuchsia" />
+                <span className="text-xs text-text-muted">Est. Commission</span>
+              </div>
+              <ChangeIndicator value={data.summary.gmvChange || 0} />
             </div>
             <p className="text-2xl font-bold text-text-primary">
               ${data.summary.totalCommission.toLocaleString(undefined, { minimumFractionDigits: 2 })}
@@ -398,9 +442,12 @@ const Dashboard = () => {
           </div>
 
           <div className="bg-titan-surface border border-titan-border rounded-lg p-5">
-            <div className="flex items-center gap-2 mb-2">
-              <Package className="w-5 h-5 text-accent-teal" />
-              <span className="text-xs text-text-muted">Items Sold (14 days)</span>
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <Package className="w-5 h-5 text-accent-teal" />
+                <span className="text-xs text-text-muted">Items Sold</span>
+              </div>
+              <ChangeIndicator value={data.summary.itemsChange || 0} />
             </div>
             <p className="text-2xl font-bold text-text-primary">
               {data.summary.totalItems.toLocaleString()}
@@ -408,12 +455,15 @@ const Dashboard = () => {
           </div>
 
           <div className="bg-titan-surface border border-titan-border rounded-lg p-5">
-            <div className="flex items-center gap-2 mb-2">
-              <TrendingUp className="w-5 h-5 text-accent-fuchsia" />
-              <span className="text-xs text-text-muted">Avg Video CTR</span>
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <ShoppingBag className="w-5 h-5 text-accent-fuchsia" />
+                <span className="text-xs text-text-muted">Total Orders</span>
+              </div>
+              <ChangeIndicator value={data.summary.ordersChange || 0} />
             </div>
             <p className="text-2xl font-bold text-text-primary">
-              {data.summary.avgCtr.toFixed(2)}%
+              {(data.summary.totalOrders || 0).toLocaleString()}
             </p>
           </div>
         </div>

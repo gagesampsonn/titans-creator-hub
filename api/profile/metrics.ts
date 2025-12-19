@@ -70,7 +70,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
   }
 
-  // Get metrics
+  // Get daily metrics (legacy)
   const { data: metrics } = await admin
     .from('creator_daily_metrics')
     .select('*')
@@ -78,13 +78,39 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     .order('date', { ascending: false })
     .limit(30);
 
-  const hasData = metrics && metrics.length > 0;
+  // Get period summary with comparison data
+  const { data: periodSummary } = await admin
+    .from('creator_period_summary')
+    .select('*')
+    .eq('tiktok_handle', handle)
+    .order('date_end', { ascending: false })
+    .limit(1)
+    .single();
 
-  // Calculate summary
-  let totalGmv = 0, totalCommission = 0, totalItems = 0;
+  // Use period summary if available, otherwise fall back to daily metrics
+  const hasData = periodSummary || (metrics && metrics.length > 0);
+
+  // Calculate summary from period summary or daily metrics
+  let totalGmv = 0, totalCommission = 0, totalItems = 0, totalOrders = 0;
+  let gmvChange = 0, itemsChange = 0, ordersChange = 0;
+  let dateStart = '', dateEnd = '', comparisonStart = '', comparisonEnd = '';
   const ctrValues: number[] = [];
 
-  if (hasData) {
+  if (periodSummary) {
+    // Use period summary data
+    totalGmv = Number(periodSummary.total_gmv) || 0;
+    totalCommission = Number(periodSummary.total_commission) || 0;
+    totalItems = Number(periodSummary.total_items) || 0;
+    totalOrders = Number(periodSummary.total_orders) || 0;
+    gmvChange = Number(periodSummary.gmv_change_pct) || 0;
+    itemsChange = Number(periodSummary.items_change_pct) || 0;
+    ordersChange = Number(periodSummary.orders_change_pct) || 0;
+    dateStart = periodSummary.date_start;
+    dateEnd = periodSummary.date_end;
+    comparisonStart = periodSummary.comparison_start;
+    comparisonEnd = periodSummary.comparison_end;
+  } else if (metrics && metrics.length > 0) {
+    // Fall back to daily metrics
     for (const m of metrics) {
       totalGmv += Number(m.affiliate_gmv) || 0;
       totalCommission += Number(m.est_commission) || 0;
@@ -101,8 +127,24 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     connected: true,
     handle,
     isLinked: true,
-    hasData,
-    summary: { totalGmv, totalCommission, totalItems, avgCtr },
+    hasData: !!hasData,
+    summary: { 
+      totalGmv, 
+      totalCommission, 
+      totalItems, 
+      totalOrders,
+      avgCtr,
+      // Comparison data
+      gmvChange,
+      itemsChange,
+      ordersChange,
+    },
+    period: {
+      dateStart,
+      dateEnd,
+      comparisonStart,
+      comparisonEnd,
+    },
     dailyMetrics: metrics || [],
   });
 }
