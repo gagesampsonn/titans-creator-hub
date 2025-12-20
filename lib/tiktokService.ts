@@ -76,21 +76,35 @@ export async function getTikTokStatus(): Promise<TikTokStatus> {
   return authFetch<TikTokStatus>('/status');
 }
 
+export type TikTokOAuthType = 'creator' | 'seller';
+
 /**
  * Get the TikTok authorization URL
  * @param userId - The current user's ID
+ * @param type - The OAuth type: 'creator' for affiliates/creators, 'seller' for brands/sellers
+ * @param returnTo - Optional path to redirect to after OAuth (e.g., 'settings', 'brands')
  */
-export async function getTikTokAuthUrl(userId: string): Promise<string> {
+export async function getTikTokAuthUrl(
+  userId: string, 
+  type: TikTokOAuthType = 'creator',
+  returnTo?: string
+): Promise<string> {
   // Generate CSRF token
   const csrf = crypto.randomUUID();
   
   // Store CSRF in sessionStorage for validation
   sessionStorage.setItem('tiktok_csrf', csrf);
   
-  // Create state parameter with user ID and CSRF
-  const state = btoa(JSON.stringify({ userId, csrf }));
+  // Create state parameter with user ID, CSRF, type, and return path
+  const state = btoa(JSON.stringify({ 
+    userId, 
+    csrf, 
+    type,
+    returnTo,
+    timestamp: Date.now()
+  }));
   
-  const response = await fetch(`${API_BASE}/auth-url?state=${encodeURIComponent(state)}`);
+  const response = await fetch(`${API_BASE}/auth-url?state=${encodeURIComponent(state)}&type=${type}`);
   
   if (!response.ok) {
     throw new Error('Failed to get auth URL');
@@ -101,11 +115,22 @@ export async function getTikTokAuthUrl(userId: string): Promise<string> {
 }
 
 /**
- * Start the TikTok connection flow
- * Opens TikTok OAuth in current window
+ * Start the TikTok connection flow for Creators
+ * Opens TikTok Creator OAuth in current window
+ * @param userId - The current user's ID
  */
 export async function connectTikTok(userId: string) {
-  const authUrl = await getTikTokAuthUrl(userId);
+  const authUrl = await getTikTokAuthUrl(userId, 'creator', 'settings');
+  window.location.href = authUrl;
+}
+
+/**
+ * Start the TikTok connection flow for Sellers/Brands
+ * Opens TikTok Seller OAuth in current window
+ * @param userId - The current user's ID
+ */
+export async function connectTikTokSeller(userId: string) {
+  const authUrl = await getTikTokAuthUrl(userId, 'seller', 'brands');
   window.location.href = authUrl;
 }
 

@@ -4,9 +4,12 @@ import { createClient } from '@supabase/supabase-js';
 /**
  * TikTok Shop OAuth - Generate Authorization URL
  * 
- * GET /api/tiktok/auth-url?state={state}
+ * GET /api/tiktok/auth-url?state={state}&type={creator|seller}
  * 
- * Returns the TikTok Shop authorization URL for seller OAuth flow.
+ * Returns the TikTok Shop authorization URL for either:
+ * - Creator OAuth flow (for creators/affiliates) - type=creator
+ * - Seller OAuth flow (for brands/sellers) - type=seller
+ * 
  * The client must generate a state parameter for CSRF protection.
  * 
  * Based on TikTok Shop Partner Center documentation:
@@ -14,7 +17,7 @@ import { createClient } from '@supabase/supabase-js';
  */
 
 // Environment variables (server-side only)
-const TIKTOK_APP_KEY = process.env.TIKTOK_APP_KEY || '';
+const TIKTOK_APP_KEY = process.env.TIKTOK_APP_KEY || '6icca7gipvtch';
 const TIKTOK_SERVICE_ID = process.env.TIKTOK_SERVICE_ID || '7583435348195739447';
 const FRONTEND_URL = process.env.FRONTEND_URL || 'https://www.titansagency.co';
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL || 'https://myylgglbtroabqclzvvn.supabase.co';
@@ -22,12 +25,18 @@ const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 
 // TikTok Shop OAuth endpoints
 // Seller authorization URL (for local sellers in US)
-const TIKTOK_AUTH_BASE_URL = 'https://services.tiktokshops.us/open/authorize';
+const SELLER_AUTH_URL = 'https://services.tiktokshops.us/open/authorize';
+// Creator authorization URL (for affiliates/creators)
+const CREATOR_AUTH_URL = 'https://shop.tiktok.com/alliance/creator/auth';
+
+type OAuthType = 'creator' | 'seller';
 
 interface StatePayload {
   userId: string;
   csrf: string;
   timestamp: number;
+  type?: OAuthType; // Optional: track which OAuth flow was used
+  returnTo?: string; // Optional: where to redirect after OAuth
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -37,7 +46,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const { state } = req.query;
+    const { state, type = 'creator' } = req.query;
+
+    // Validate type parameter
+    const oauthType: OAuthType = type === 'seller' ? 'seller' : 'creator';
 
     // Validate state parameter
     if (!state || typeof state !== 'string') {
@@ -87,7 +99,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           state: state,
           user_id: statePayload.userId,
           csrf: statePayload.csrf,
-          provider: 'tiktok_shop',
+          provider: oauthType === 'seller' ? 'tiktok_seller' : 'tiktok_creator',
           created_at: new Date().toISOString(),
           expires_at: new Date(Date.now() + 10 * 60 * 1000).toISOString(), // 10 minutes
         }, {
@@ -100,17 +112,27 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
     }
 
-    // Build the TikTok authorization URL
-    // Format: https://services.tiktokshops.us/open/authorize?service_id={service_id}&state={state}
-    const authUrl = new URL(TIKTOK_AUTH_BASE_URL);
-    authUrl.searchParams.set('service_id', TIKTOK_SERVICE_ID);
-    authUrl.searchParams.set('state', state);
+    // Build the TikTok authorization URL based on OAuth type
+    let authUrl: URL;
+    
+    if (oauthType === 'seller') {
+      // Seller OAuth: https://services.tiktokshops.us/open/authorize?service_id={service_id}&state={state}
+      authUrl = new URL(SELLER_AUTH_URL);
+      authUrl.searchParams.set('service_id', TIKTOK_SERVICE_ID);
+      authUrl.searchParams.set('state', state);
+    } else {
+      // Creator OAuth: https://shop.tiktok.com/alliance/creator/auth?app_key={app_key}&state={state}
+      authUrl = new URL(CREATOR_AUTH_URL);
+      authUrl.searchParams.set('app_key', TIKTOK_APP_KEY);
+      authUrl.searchParams.set('state', state);
+    }
 
     // Log for debugging (without sensitive data)
-    console.log('[TikTok Auth] Generated auth URL for user:', statePayload.userId.slice(0, 8) + '...');
+    console.log(`[TikTok Auth] Generated ${oauthType} auth URL for user:`, statePayload.userId.slice(0, 8) + '...');
 
     return res.status(200).json({
       authUrl: authUrl.toString(),
+      type: oauthType,
       expiresIn: 600, // State valid for 10 minutes
     });
 

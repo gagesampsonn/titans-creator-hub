@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../lib/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
+import { connectTikTokSeller } from '../lib/tiktokService';
 
 const BrandPortal = () => {
   const { user, loading: authLoading } = useAuth();
@@ -49,25 +50,9 @@ const BrandPortal = () => {
     setError(null);
 
     try {
-      // Generate state for CSRF protection
-      const statePayload = {
-        userId: user.id,
-        csrf: Math.random().toString(36).substring(2, 15),
-        timestamp: Date.now(),
-        returnTo: 'brands' // So callback knows to redirect to brands page
-      };
-      const state = btoa(JSON.stringify(statePayload));
-
-      // Get the auth URL from our API
-      const response = await fetch(`/api/tiktok/auth-url?state=${encodeURIComponent(state)}`);
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to get authorization URL');
-      }
-
-      // Redirect to TikTok authorization
-      window.location.href = data.authUrl;
+      // Use the seller OAuth flow for brands
+      await connectTikTokSeller(user.id);
+      // User will be redirected to TikTok
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to start connection');
       setIsConnecting(false);
