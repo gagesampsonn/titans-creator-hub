@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { HashRouter, Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X, User, ChevronRight } from 'lucide-react';
+import { Menu, X, User, ChevronRight, Settings as SettingsIcon } from 'lucide-react';
 import { Analytics } from '@vercel/analytics/react';
 import { AuthProvider, useAuth } from './lib/AuthContext';
 import Home from './pages/Home';
@@ -57,6 +57,13 @@ const Navbar = () => {
               <div className="w-7 h-7 bg-titan-surface rounded animate-pulse" />
             ) : user ? (
               <div className="flex items-center gap-2">
+                <Link 
+                  to="/settings" 
+                  className="w-8 h-8 bg-titan-surface border border-titan-border rounded-lg flex items-center justify-center hover:bg-titan-elevated transition-colors"
+                  title="Settings"
+                >
+                  <SettingsIcon size={16} className="text-text-secondary" />
+                </Link>
                 <Link 
                   to="/profile" 
                   className="w-8 h-8 bg-gradient-to-br from-accent-teal to-accent-fuchsia rounded-lg flex items-center justify-center hover:opacity-90 transition-opacity"
