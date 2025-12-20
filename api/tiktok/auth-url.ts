@@ -6,22 +6,23 @@ import { createClient } from '@supabase/supabase-js';
  * 
  * GET /api/tiktok/auth-url?state={state}
  * 
- * Returns the TikTok Shop authorization URL for creator OAuth flow.
+ * Returns the TikTok Shop authorization URL for seller OAuth flow.
  * The client must generate a state parameter for CSRF protection.
  * 
  * Based on TikTok Shop Partner Center documentation:
- * https://partner.tiktokshop.com/docv2/page/creator-authorization-guide
+ * https://partner.tiktokshop.com/docv2/page/650512b42f024f02be19755f
  */
 
 // Environment variables (server-side only)
 const TIKTOK_APP_KEY = process.env.TIKTOK_APP_KEY || '';
+const TIKTOK_SERVICE_ID = process.env.TIKTOK_SERVICE_ID || '7583435348195739447';
 const FRONTEND_URL = process.env.FRONTEND_URL || 'https://www.titansagency.co';
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL || 'https://myylgglbtroabqclzvvn.supabase.co';
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 
 // TikTok Shop OAuth endpoints
-// Creator authorization uses a different URL than seller authorization
-const TIKTOK_AUTH_BASE_URL = 'https://shop.tiktok.com/alliance/creator/auth';
+// Seller authorization URL (for local sellers in US)
+const TIKTOK_AUTH_BASE_URL = 'https://services.tiktokshops.us/open/authorize';
 
 interface StatePayload {
   userId: string;
@@ -100,9 +101,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     // Build the TikTok authorization URL
-    // Format: https://shop.tiktok.com/alliance/creator/auth?app_key={app_key}&state={state}
+    // Format: https://services.tiktokshops.us/open/authorize?service_id={service_id}&state={state}
     const authUrl = new URL(TIKTOK_AUTH_BASE_URL);
-    authUrl.searchParams.set('app_key', TIKTOK_APP_KEY);
+    authUrl.searchParams.set('service_id', TIKTOK_SERVICE_ID);
     authUrl.searchParams.set('state', state);
 
     // Log for debugging (without sensitive data)
