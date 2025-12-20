@@ -3,7 +3,7 @@ import {
   DollarSign, Package, TrendingUp, RefreshCw, AtSign, 
   AlertCircle, CheckCircle, Loader2, Star, Award, ShoppingBag,
   Send, CheckCircle2, TrendingDown, ArrowUpRight, ArrowDownRight,
-  Video, Clock, Radio
+  Video, Clock, Radio, Info, Trophy, PlayCircle
 } from 'lucide-react';
 import { useAuth } from '../lib/AuthContext';
 import { supabase } from '../lib/supabase';
@@ -102,12 +102,31 @@ const formatDuration = (seconds: number): string => {
   return `${minutes}m`;
 };
 
+interface TopVideoData {
+  id: string;
+  handle: string;
+  videoId: string;
+  videoName: string;
+  revenue: number;
+  comparePct: number;
+  contributionPct: number;
+  rank: number;
+}
+
+interface TopVideosResponse {
+  hasTopVideos: boolean;
+  dateRange?: { start: string; end: string };
+  userVideos: TopVideoData[];
+  allTopVideos: TopVideoData[];
+}
+
 const Dashboard = () => {
   const { user, session } = useAuth();
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<MetricsData | null>(null);
   const [topProducts, setTopProducts] = useState<TopProductsData | null>(null);
   const [livestreams, setLivestreams] = useState<LivestreamsResponse | null>(null);
+  const [topVideos, setTopVideos] = useState<TopVideosResponse | null>(null);
   const [showConnect, setShowConnect] = useState(false);
   const [handle, setHandle] = useState('');
   const [saving, setSaving] = useState(false);
@@ -128,8 +147,8 @@ const Dashboard = () => {
     }
 
     try {
-      // Fetch metrics, top products, and livestreams in parallel
-      const [metricsResponse, productsResponse, livestreamsResponse] = await Promise.all([
+      // Fetch metrics, top products, livestreams, and top videos in parallel
+      const [metricsResponse, productsResponse, livestreamsResponse, topVideosResponse] = await Promise.all([
         fetch('/api/profile/metrics', {
           headers: { 'Authorization': `Bearer ${session.access_token}` },
         }),
@@ -137,6 +156,9 @@ const Dashboard = () => {
           headers: { 'Authorization': `Bearer ${session.access_token}` },
         }),
         fetch('/api/profile/livestreams', {
+          headers: { 'Authorization': `Bearer ${session.access_token}` },
+        }),
+        fetch('/api/profile/top-videos', {
           headers: { 'Authorization': `Bearer ${session.access_token}` },
         })
       ]);
@@ -154,6 +176,11 @@ const Dashboard = () => {
       if (livestreamsResponse.ok) {
         const livestreamsResult = await livestreamsResponse.json();
         setLivestreams(livestreamsResult);
+      }
+
+      if (topVideosResponse.ok) {
+        const topVideosResult = await topVideosResponse.json();
+        setTopVideos(topVideosResult);
       }
     } catch (err) {
       console.error('Failed to load metrics:', err);
@@ -673,6 +700,92 @@ const Dashboard = () => {
               <p className="text-sm text-text-muted max-w-sm mx-auto">
                 Start going live on TikTok to see your top performing streams here! 
                 Your best livestreams will be ranked by revenue.
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Top Ranked Videos in Titans Agency */}
+        <div className="bg-titan-surface border border-titan-border rounded-lg overflow-hidden mb-8">
+          <div className="px-6 py-4 border-b border-titan-border">
+            <div className="flex items-center gap-2">
+              <Trophy className="w-5 h-5 text-yellow-500" />
+              <h2 className="font-semibold text-text-primary">Top Ranked Videos in Titans Agency</h2>
+              {/* Info tooltip */}
+              <div className="relative group">
+                <Info className="w-4 h-4 text-text-muted cursor-help" />
+                <div className="absolute left-0 bottom-full mb-2 hidden group-hover:block w-64 p-3 bg-titan-elevated border border-titan-border rounded-lg shadow-xl text-xs text-text-muted z-50">
+                  <p className="font-medium text-text-primary mb-1">How Rankings Work</p>
+                  <p>As a linked Titans Agency creator, your videos compete in our agency-wide Top 20 ranking. Videos are ranked by revenue generated during this period.</p>
+                </div>
+              </div>
+            </div>
+            <p className="text-xs text-text-muted mt-1">
+              Agency-wide video rankings by revenue
+              {topVideos?.dateRange && (
+                <span> • {new Date(topVideos.dateRange.start).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} – {new Date(topVideos.dateRange.end).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+              )}
+            </p>
+          </div>
+
+          {topVideos?.hasTopVideos && topVideos.userVideos.length > 0 ? (
+            <>
+              {/* User's videos in top 20 */}
+              <div className="p-4 bg-gradient-to-r from-yellow-500/10 to-amber-500/10 border-b border-titan-border">
+                <p className="text-sm font-medium text-yellow-400 mb-2">
+                  🎉 You have {topVideos.userVideos.length} video{topVideos.userVideos.length > 1 ? 's' : ''} in the Top 20!
+                </p>
+              </div>
+              <div className="divide-y divide-titan-border">
+                {topVideos.userVideos.map((video) => (
+                  <div 
+                    key={video.id} 
+                    className="px-6 py-4 flex items-center gap-4 bg-yellow-500/5 hover:bg-yellow-500/10 transition-colors"
+                  >
+                    {/* Rank Badge */}
+                    <div className={`
+                      w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm
+                      ${video.rank === 1 ? 'bg-gradient-to-br from-yellow-400 to-amber-500 text-black' : ''}
+                      ${video.rank === 2 ? 'bg-gradient-to-br from-gray-300 to-gray-400 text-black' : ''}
+                      ${video.rank === 3 ? 'bg-gradient-to-br from-amber-600 to-amber-700 text-white' : ''}
+                      ${video.rank > 3 ? 'bg-titan-bg border-2 border-yellow-500/50 text-yellow-400' : ''}
+                    `}>
+                      #{video.rank}
+                    </div>
+                    
+                    {/* Video Info */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <PlayCircle className="w-4 h-4 text-yellow-400 flex-shrink-0" />
+                        <p className="font-medium text-text-primary truncate">
+                          {video.videoName || 'Untitled Video'}
+                        </p>
+                      </div>
+                      <p className="text-xs text-text-muted mt-1 truncate">
+                        {video.contributionPct.toFixed(2)}% of agency revenue
+                      </p>
+                    </div>
+                    
+                    {/* Revenue & Change */}
+                    <div className="text-right">
+                      <p className="text-yellow-400 font-bold">
+                        ${video.revenue.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                      </p>
+                      <ChangeIndicator value={video.comparePct} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
+          ) : (
+            /* Empty state for creators without videos in top 20 */
+            <div className="p-8 text-center">
+              <div className="w-16 h-16 bg-titan-bg rounded-full flex items-center justify-center mx-auto mb-4">
+                <PlayCircle className="w-8 h-8 text-text-muted/50" />
+              </div>
+              <h3 className="font-medium text-text-primary mb-2">Not in the Top 20 Yet</h3>
+              <p className="text-sm text-text-muted max-w-sm mx-auto">
+                Keep creating great content! When your videos rank in the agency's Top 20 by revenue, they'll appear here.
               </p>
             </div>
           )}
