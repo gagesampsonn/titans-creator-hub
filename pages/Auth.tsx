@@ -57,6 +57,14 @@ const Auth: React.FC<AuthProps> = ({ mode }) => {
     }
   }, [user, authLoading, navigate]);
 
+  // Reset state when mode changes (login <-> signup)
+  useEffect(() => {
+    setSignupSuccess(false);
+    setError(null);
+    setShowResendConfirmation(false);
+    setResendSuccess(false);
+  }, [mode]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
