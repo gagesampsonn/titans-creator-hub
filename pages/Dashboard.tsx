@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { 
   DollarSign, Package, TrendingUp, RefreshCw, AtSign, 
   AlertCircle, CheckCircle, Loader2, Star, Award, ShoppingBag,
-  Send, CheckCircle2, TrendingDown, ArrowUpRight, ArrowDownRight
+  Send, CheckCircle2, TrendingDown, ArrowUpRight, ArrowDownRight,
+  Video, Clock, Radio
 } from 'lucide-react';
 import { useAuth } from '../lib/AuthContext';
 import { supabase } from '../lib/supabase';
@@ -71,11 +72,42 @@ interface TopProductsData {
   dateRange: { start: string; end: string } | null;
 }
 
+interface LivestreamData {
+  id: string;
+  roomId: string;
+  name: string;
+  durationSeconds: number;
+  revenue: number;
+}
+
+interface LivestreamsResponse {
+  hasLivestreams: boolean;
+  summary?: {
+    totalStreams: number;
+    totalRevenue: number;
+    totalDuration: number;
+    avgDuration: number;
+  };
+  dateRange?: { start: string; end: string };
+  livestreams: LivestreamData[];
+}
+
+// Helper to format duration
+const formatDuration = (seconds: number): string => {
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  if (hours > 0) {
+    return `${hours}h ${minutes}m`;
+  }
+  return `${minutes}m`;
+};
+
 const Dashboard = () => {
   const { user, session } = useAuth();
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<MetricsData | null>(null);
   const [topProducts, setTopProducts] = useState<TopProductsData | null>(null);
+  const [livestreams, setLivestreams] = useState<LivestreamsResponse | null>(null);
   const [showConnect, setShowConnect] = useState(false);
   const [handle, setHandle] = useState('');
   const [saving, setSaving] = useState(false);
@@ -96,12 +128,15 @@ const Dashboard = () => {
     }
 
     try {
-      // Fetch metrics and top products in parallel
-      const [metricsResponse, productsResponse] = await Promise.all([
+      // Fetch metrics, top products, and livestreams in parallel
+      const [metricsResponse, productsResponse, livestreamsResponse] = await Promise.all([
         fetch('/api/profile/metrics', {
           headers: { 'Authorization': `Bearer ${session.access_token}` },
         }),
         fetch('/api/profile/top-products', {
+          headers: { 'Authorization': `Bearer ${session.access_token}` },
+        }),
+        fetch('/api/profile/livestreams', {
           headers: { 'Authorization': `Bearer ${session.access_token}` },
         })
       ]);
@@ -114,6 +149,11 @@ const Dashboard = () => {
       if (productsResponse.ok) {
         const productsResult = await productsResponse.json();
         setTopProducts(productsResult);
+      }
+
+      if (livestreamsResponse.ok) {
+        const livestreamsResult = await livestreamsResponse.json();
+        setLivestreams(livestreamsResult);
       }
     } catch (err) {
       console.error('Failed to load metrics:', err);
@@ -544,6 +584,99 @@ const Dashboard = () => {
             </p>
           </div>
         )}
+
+        {/* Top Livestreams Section - Always shows for linked creators */}
+        <div className="bg-titan-surface border border-titan-border rounded-lg overflow-hidden mb-8">
+          <div className="px-6 py-4 border-b border-titan-border">
+            <div className="flex items-center gap-2">
+              <Radio className="w-5 h-5 text-red-500" />
+              <h2 className="font-semibold text-text-primary">Top Livestreams</h2>
+            </div>
+            <p className="text-xs text-text-muted mt-1">
+              Your best performing live sessions
+              {livestreams?.dateRange && (
+                <span> • {new Date(livestreams.dateRange.start).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} – {new Date(livestreams.dateRange.end).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+              )}
+            </p>
+          </div>
+
+          {/* Show content if has livestreams, otherwise show empty state */}
+          {livestreams?.hasLivestreams && livestreams.livestreams.length > 0 ? (
+            <>
+              {/* Livestream Summary Stats */}
+              {livestreams.summary && (
+                <div className="grid grid-cols-3 gap-4 p-4 bg-titan-bg/50 border-b border-titan-border">
+                  <div className="text-center">
+                    <p className="text-lg font-bold text-text-primary">{livestreams.summary.totalStreams}</p>
+                    <p className="text-xs text-text-muted">Total Streams</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-lg font-bold text-red-400">${livestreams.summary.totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
+                    <p className="text-xs text-text-muted">Live Revenue</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-lg font-bold text-text-primary">{formatDuration(livestreams.summary.avgDuration)}</p>
+                    <p className="text-xs text-text-muted">Avg Duration</p>
+                  </div>
+                </div>
+              )}
+
+              <div className="divide-y divide-titan-border">
+                {livestreams.livestreams.map((stream, index) => (
+                  <div 
+                    key={stream.id} 
+                    className="px-6 py-4 flex items-center gap-4 hover:bg-titan-elevated/30 transition-colors"
+                  >
+                    {/* Rank Badge */}
+                    <div className={`
+                      w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm
+                      ${index === 0 ? 'bg-gradient-to-br from-red-400 to-red-600 text-white' : ''}
+                      ${index === 1 ? 'bg-gradient-to-br from-orange-400 to-orange-500 text-white' : ''}
+                      ${index === 2 ? 'bg-gradient-to-br from-yellow-400 to-yellow-500 text-black' : ''}
+                      ${index >= 3 ? 'bg-titan-bg border border-titan-border text-text-muted' : ''}
+                    `}>
+                      {index + 1}
+                    </div>
+                    
+                    {/* Stream Info */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <Video className="w-4 h-4 text-red-400" />
+                        <p className="font-medium text-text-primary truncate">
+                          {stream.name || 'Untitled Stream'}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2 mt-1 text-xs text-text-muted">
+                        <Clock className="w-3 h-3" />
+                        <span>{formatDuration(stream.durationSeconds)}</span>
+                      </div>
+                    </div>
+                    
+                    {/* Revenue */}
+                    <div className="text-right">
+                      <p className="text-red-400 font-semibold">
+                        ${stream.revenue.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                      </p>
+                      <p className="text-xs text-text-muted">Revenue</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
+          ) : (
+            /* Empty state for creators without livestream data */
+            <div className="p-8 text-center">
+              <div className="w-16 h-16 bg-titan-bg rounded-full flex items-center justify-center mx-auto mb-4">
+                <Video className="w-8 h-8 text-text-muted/50" />
+              </div>
+              <h3 className="font-medium text-text-primary mb-2">No Livestream Data Yet</h3>
+              <p className="text-sm text-text-muted max-w-sm mx-auto">
+                Start going live on TikTok to see your top performing streams here! 
+                Your best livestreams will be ranked by revenue.
+              </p>
+            </div>
+          )}
+        </div>
 
         {/* Metrics Details */}
         {data.dailyMetrics.length > 0 && (
