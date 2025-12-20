@@ -472,11 +472,15 @@ const Dashboard = () => {
             📊 Showing your performance for <strong>
               {data.period?.dateStart && data.period?.dateEnd 
                 ? `${new Date(data.period.dateStart).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })} – ${new Date(data.period.dateEnd).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`
-                : 'December 1 – December 18, 2025'}
+                : 'December 1 – December 19, 2025'}
             </strong>
             {data.period?.comparisonStart && data.period?.comparisonEnd && (
               <span className="text-text-muted"> • Compared to {new Date(data.period.comparisonStart).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} – {new Date(data.period.comparisonEnd).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
             )}
+          </p>
+          <p className="text-xs text-text-muted mt-2 flex items-center gap-1">
+            <Info className="w-3 h-3" />
+            Data shown is based on your activity since linking with Titans Agency.
           </p>
         </div>
 
