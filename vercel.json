@@ -4,12 +4,23 @@
   "framework": "vite",
   "rewrites": [
     {
+      "source": "/authorize",
+      "destination": "/api/tiktok/callback"
+    },
+    {
       "source": "/api/:path*",
       "destination": "/api/:path*"
     },
     {
       "source": "/((?!api/).*)",
       "destination": "/index.html"
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/oauth/tiktok",
+      "destination": "/api/tiktok/callback",
+      "permanent": false
     }
   ],
   "headers": [
@@ -21,6 +32,12 @@
         { "key": "X-Frame-Options", "value": "DENY" },
         { "key": "X-XSS-Protection", "value": "1; mode=block" }
       ]
+    }
+  ],
+  "crons": [
+    {
+      "path": "/api/tiktok/refresh",
+      "schedule": "0 */6 * * *"
     }
   ]
 }

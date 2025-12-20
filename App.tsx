@@ -14,6 +14,7 @@ import VideoAudit from './pages/VideoAudit';
 import Privacy from './pages/Privacy';
 import Terms from './pages/Terms';
 import Profile from './pages/Profile';
+import Settings from './pages/Settings';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -268,6 +269,8 @@ const App = () => {
               <Route path="/privacy" element={<Privacy />} />
               <Route path="/terms" element={<Terms />} />
               <Route path="/profile" element={<Profile />} />
+              <Route path="/settings" element={<Settings />} />
+              <Route path="/settings/integrations" element={<Settings />} />
             </Routes>
           </main>
           <Footer />
