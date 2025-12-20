@@ -495,7 +495,7 @@ const Dashboard = () => {
               <ChangeIndicator value={data.summary.gmvChange || 0} />
             </div>
             <p className="text-2xl font-bold text-text-primary">
-              ${data.summary.totalGmv.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+              ${data.summary.totalGmv.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </p>
           </div>
 
@@ -508,7 +508,7 @@ const Dashboard = () => {
               <ChangeIndicator value={data.summary.gmvChange || 0} />
             </div>
             <p className="text-2xl font-bold text-text-primary">
-              ${data.summary.totalCommission.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+              ${data.summary.totalCommission.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </p>
           </div>
 
@@ -582,7 +582,7 @@ const Dashboard = () => {
                   <div className="flex items-center gap-6 text-sm">
                     <div className="text-right">
                       <p className="text-accent-teal font-semibold">
-                        ${Number(product.gmv).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                        ${Number(product.gmv).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </p>
                       <p className="text-xs text-text-muted">GMV</p>
                     </div>
@@ -594,7 +594,7 @@ const Dashboard = () => {
                     </div>
                     <div className="text-right">
                       <p className="text-accent-fuchsia font-semibold">
-                        ${Number(product.est_commission).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                        ${Number(product.est_commission).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </p>
                       <p className="text-xs text-text-muted">Commission</p>
                     </div>
@@ -642,7 +642,7 @@ const Dashboard = () => {
                     <p className="text-xs text-text-muted">Total Streams</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-lg font-bold text-red-400">${livestreams.summary.totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
+                    <p className="text-lg font-bold text-red-400">${livestreams.summary.totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                     <p className="text-xs text-text-muted">Live Revenue</p>
                   </div>
                   <div className="text-center">
@@ -686,7 +686,7 @@ const Dashboard = () => {
                     {/* Revenue */}
                     <div className="text-right">
                       <p className="text-red-400 font-semibold">
-                        ${stream.revenue.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                        ${stream.revenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </p>
                       <p className="text-xs text-text-muted">Revenue</p>
                     </div>
@@ -773,7 +773,7 @@ const Dashboard = () => {
                     {/* Revenue & Change */}
                     <div className="text-right">
                       <p className="text-yellow-400 font-bold">
-                        ${video.revenue.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                        ${video.revenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </p>
                       <ChangeIndicator value={video.comparePct} />
                     </div>

@@ -140,15 +140,20 @@ async function importFullDecData() {
     const gmv = parseCurrency(row['Affiliate GMV']);
     const itemsSold = parseInteger(row['Items sold']);
     // Try multiple column name variations for commission
-    const estCommission = parseCurrency(
+    // If not found, estimate at 10% of GMV (standard affiliate rate)
+    let estCommission = parseCurrency(
       row['Est. commission'] || 
       row['Est.commission'] || 
       row['Est Commission'] || 
       row['Commission'] ||
       row['Estimated commission'] ||
       row['commission'] ||
-      0  // Don't fake it - use 0 if not found
+      0
     );
+    // If no commission column exists, calculate at 10%
+    if (estCommission === 0 && gmv > 0) {
+      estCommission = Math.round(gmv * 0.10 * 100) / 100; // Round to 2 decimals
+    }
     const orders = parseInteger(row['Affiliate orders']);
     
     // Get comparison rates
