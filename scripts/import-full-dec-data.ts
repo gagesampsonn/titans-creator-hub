@@ -119,6 +119,7 @@ async function importFullDecData() {
     gmv: number; 
     items: number;
     orders: number;
+    commission: number;
     prevGmv: number;
     prevItems: number;
     prevOrders: number;
@@ -138,7 +139,16 @@ async function importFullDecData() {
     const shopName = row['Shop name'];
     const gmv = parseCurrency(row['Affiliate GMV']);
     const itemsSold = parseInteger(row['Items sold']);
-    const estCommission = parseCurrency(row['Est. commission'] || gmv * 0.1); // Estimate 10% if not provided
+    // Try multiple column name variations for commission
+    const estCommission = parseCurrency(
+      row['Est. commission'] || 
+      row['Est.commission'] || 
+      row['Est Commission'] || 
+      row['Commission'] ||
+      row['Estimated commission'] ||
+      row['commission'] ||
+      0  // Don't fake it - use 0 if not found
+    );
     const orders = parseInteger(row['Affiliate orders']);
     
     // Get comparison rates
@@ -182,6 +192,7 @@ async function importFullDecData() {
         gmv: 0, 
         items: 0, 
         orders: 0,
+        commission: 0,
         prevGmv: 0,
         prevItems: 0,
         prevOrders: 0
@@ -191,6 +202,7 @@ async function importFullDecData() {
     handleStats[normalizedHandle].gmv += gmv;
     handleStats[normalizedHandle].items += itemsSold;
     handleStats[normalizedHandle].orders += orders;
+    handleStats[normalizedHandle].commission += estCommission;
     handleStats[normalizedHandle].prevGmv += prevGmv;
     handleStats[normalizedHandle].prevItems += prevItems;
     handleStats[normalizedHandle].prevOrders += prevOrders;
@@ -254,7 +266,7 @@ async function importFullDecData() {
         total_gmv: stats.gmv,
         total_items: stats.items,
         total_orders: stats.orders,
-        total_commission: stats.gmv * 0.1, // Estimate 10%
+        total_commission: stats.commission, // Use actual tracked commission from import
         product_count: stats.products,
         comparison_start: COMPARISON_START,
         comparison_end: COMPARISON_END,
