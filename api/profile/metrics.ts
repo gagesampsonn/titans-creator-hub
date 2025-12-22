@@ -94,6 +94,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   let totalGmv = 0, totalCommission = 0, totalItems = 0, totalOrders = 0;
   let gmvChange = 0, itemsChange = 0, ordersChange = 0;
   let dateStart = '', dateEnd = '', comparisonStart = '', comparisonEnd = '';
+  let topNiche = '', topNicheGmv = 0;
   const ctrValues: number[] = [];
 
   if (periodSummary) {
@@ -109,6 +110,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     dateEnd = periodSummary.date_end;
     comparisonStart = periodSummary.comparison_start;
     comparisonEnd = periodSummary.comparison_end;
+    topNiche = periodSummary.top_niche || '';
+    topNicheGmv = Number(periodSummary.top_niche_gmv) || 0;
   } else if (metrics && metrics.length > 0) {
     // Fall back to daily metrics
     for (const m of metrics) {
@@ -138,6 +141,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       gmvChange,
       itemsChange,
       ordersChange,
+      // Top niche
+      topNiche,
+      topNicheGmv,
     },
     period: {
       dateStart,

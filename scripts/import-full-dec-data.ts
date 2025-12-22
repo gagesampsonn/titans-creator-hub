@@ -1,10 +1,11 @@
 /**
- * Full December 1-17 Data Import Script
+ * Full December Data Import Script
  * 
  * This script:
  * 1. Clears existing product metrics for linked creators
- * 2. Imports fresh data from the Dec 1-17 export
+ * 2. Imports fresh data from the Dec 1-21 export
  * 3. Uses a consistent date range for all entries
+ * 4. Tracks product categories for niche analysis
  */
 
 import * as XLSX from 'xlsx';
@@ -16,13 +17,13 @@ import { parse } from 'csv-parse/sync';
 const SUPABASE_URL = 'https://myylgglbtroabqclzvvn.supabase.co';
 const SUPABASE_SERVICE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im15eWxnZ2xidHJvYWJxY2x6dnZuIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NTY1OTkxNCwiZXhwIjoyMDgxMjM1OTE0fQ.cvJQ6xQ_c0sVXwKSfAnLgnCSjh4NnBzfAKjSFwN3Hug';
 
-const EXCEL_FILE = 'C:\\Users\\gages\\Downloads\\CustomReport_Creator_Product_Shop 2025-12-01_2025-12-19.xlsx';
+const EXCEL_FILE = 'C:\\Users\\gages\\Downloads\\CustomReport_Creator_Product_Shop_Product Category 2025-12-01_2025-12-21.xlsx';
 const LINKED_CREATORS_FILE = 'C:\\Users\\gages\\titans-creator-hub\\data\\linked_creators.csv';
 
 // Fixed date range for this import
 const DATE_START = '2025-12-01';
-const DATE_END = '2025-12-19';
-const COMPARISON_START = '2025-11-10';
+const DATE_END = '2025-12-21';
+const COMPARISON_START = '2025-11-09';
 const COMPARISON_END = '2025-11-30';
 
 function normalizeHandle(handle: string | undefined | null): string {
@@ -123,6 +124,7 @@ async function importFullDecData() {
     prevGmv: number;
     prevItems: number;
     prevOrders: number;
+    categoryBreakdown: Record<string, number>; // category -> GMV
   }> = {};
 
   for (const row of rows as Record<string, any>[]) {
@@ -190,6 +192,14 @@ async function importFullDecData() {
       continue;
     }
 
+    // Get category - prefer Level 1 category
+    const level1Category = row['Level 1 category'];
+    const level2Category = row['Level 2 category'];
+    const productCategory = (level1Category && level1Category !== '-') 
+      ? level1Category 
+      : ((level2Category && level2Category !== '-') ? level2Category : 'Uncategorized');
+    const productId = row['Product ID'] && row['Product ID'] !== '-' ? String(row['Product ID']) : null;
+
     // Track stats
     if (!handleStats[normalizedHandle]) {
       handleStats[normalizedHandle] = { 
@@ -200,7 +210,8 @@ async function importFullDecData() {
         commission: 0,
         prevGmv: 0,
         prevItems: 0,
-        prevOrders: 0
+        prevOrders: 0,
+        categoryBreakdown: {}
       };
     }
     handleStats[normalizedHandle].products++;
@@ -211,21 +222,27 @@ async function importFullDecData() {
     handleStats[normalizedHandle].prevGmv += prevGmv;
     handleStats[normalizedHandle].prevItems += prevItems;
     handleStats[normalizedHandle].prevOrders += prevOrders;
+    
+    // Track category GMV for niche analysis
+    if (productCategory && productCategory !== 'Uncategorized') {
+      handleStats[normalizedHandle].categoryBreakdown[productCategory] = 
+        (handleStats[normalizedHandle].categoryBreakdown[productCategory] || 0) + gmv;
+    }
 
     try {
       const { error } = await admin.rpc('upsert_creator_product_metrics', {
         p_tiktok_handle: normalizedHandle,
         p_date_start: DATE_START,
         p_date_end: DATE_END,
-        p_product_id: row['Product ID'] || null,
+        p_product_id: productId,
         p_product_name: productName,
-        p_product_category: 'Uncategorized',
+        p_product_category: productCategory,
         p_shop_name: shopName || null,
         p_gmv: gmv,
         p_items_sold: itemsSold,
         p_est_commission: estCommission,
         p_orders: orders,
-        p_import_source: `${filename} (Dec 1-17 full import)`
+        p_import_source: `${filename} (Dec 1-21 full import)`
       });
 
       if (error) {
@@ -262,6 +279,16 @@ async function importFullDecData() {
       ? ((stats.orders - stats.prevOrders) / stats.prevOrders) * 100 
       : (stats.orders > 0 ? 100 : 0);
     
+    // Determine top niche by GMV
+    const categoryEntries = Object.entries(stats.categoryBreakdown);
+    let topNiche = 'Uncategorized';
+    let topNicheGmv = 0;
+    if (categoryEntries.length > 0) {
+      categoryEntries.sort((a, b) => b[1] - a[1]);
+      topNiche = categoryEntries[0][0];
+      topNicheGmv = categoryEntries[0][1];
+    }
+    
     const { error } = await admin
       .from('creator_period_summary')
       .upsert({
@@ -271,7 +298,7 @@ async function importFullDecData() {
         total_gmv: stats.gmv,
         total_items: stats.items,
         total_orders: stats.orders,
-        total_commission: stats.commission, // Use actual tracked commission from import
+        total_commission: stats.commission,
         product_count: stats.products,
         comparison_start: COMPARISON_START,
         comparison_end: COMPARISON_END,
@@ -281,6 +308,8 @@ async function importFullDecData() {
         gmv_change_pct: gmvChange,
         items_change_pct: itemsChange,
         orders_change_pct: ordersChange,
+        top_niche: topNiche,
+        top_niche_gmv: topNicheGmv,
         import_source: filename
       }, { onConflict: 'tiktok_handle,date_start,date_end' });
     

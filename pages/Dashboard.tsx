@@ -3,7 +3,7 @@ import {
   DollarSign, Package, TrendingUp, RefreshCw, AtSign, 
   AlertCircle, CheckCircle, Loader2, Star, Award, ShoppingBag,
   Send, CheckCircle2, TrendingDown, ArrowUpRight, ArrowDownRight,
-  Video, Clock, Radio, Info, Trophy, PlayCircle
+  Video, Clock, Radio, Info, Trophy, PlayCircle, Copy, Tag, Sparkles
 } from 'lucide-react';
 import { useAuth } from '../lib/AuthContext';
 import { supabase } from '../lib/supabase';
@@ -39,6 +39,9 @@ interface MetricsData {
     gmvChange: number;
     itemsChange: number;
     ordersChange: number;
+    // Top niche
+    topNiche: string;
+    topNicheGmv: number;
   };
   period: {
     dateStart: string;
@@ -57,6 +60,7 @@ interface MetricsData {
 
 interface ProductMetric {
   id: string;
+  product_id: string | null;
   product_name: string;
   product_category: string;
   gmv: number;
@@ -138,6 +142,20 @@ const Dashboard = () => {
   const [linkRequestLoading, setLinkRequestLoading] = useState(false);
   const [linkRequestError, setLinkRequestError] = useState('');
   const [linkRequestNote, setLinkRequestNote] = useState('');
+  
+  // Copy product ID state
+  const [copiedProductId, setCopiedProductId] = useState<string | null>(null);
+  
+  // Copy product ID handler
+  const copyProductId = async (productId: string) => {
+    try {
+      await navigator.clipboard.writeText(productId);
+      setCopiedProductId(productId);
+      setTimeout(() => setCopiedProductId(null), 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
+  };
 
   // Load metrics
   const loadMetrics = async () => {
@@ -472,7 +490,7 @@ const Dashboard = () => {
             📊 Showing your performance for <strong>
               {data.period?.dateStart && data.period?.dateEnd 
                 ? `${new Date(data.period.dateStart).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })} – ${new Date(data.period.dateEnd).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`
-                : 'December 1 – December 19, 2025'}
+                : 'December 1 – December 21, 2025'}
             </strong>
             {data.period?.comparisonStart && data.period?.comparisonEnd && (
               <span className="text-text-muted"> • Compared to {new Date(data.period.comparisonStart).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} – {new Date(data.period.comparisonEnd).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
@@ -539,6 +557,24 @@ const Dashboard = () => {
           </div>
         </div>
 
+        {/* Top Niche Banner */}
+        {data.summary.topNiche && data.summary.topNiche !== 'Uncategorized' && (
+          <div className="mb-6 p-4 bg-gradient-to-r from-accent-fuchsia/10 to-accent-teal/10 border border-accent-fuchsia/20 rounded-lg">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-accent-fuchsia to-accent-teal rounded-full flex items-center justify-center">
+                <Sparkles className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <p className="text-sm text-text-muted">Your Top Performing Niche</p>
+                <p className="text-lg font-bold text-text-primary">{data.summary.topNiche}</p>
+                <p className="text-xs text-text-muted">
+                  ${data.summary.topNicheGmv.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} GMV in this category
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Top 5 Products */}
         {topProducts?.hasProducts && topProducts.products.length > 0 && (
           <div className="bg-titan-surface border border-titan-border rounded-lg overflow-hidden mb-8">
@@ -548,14 +584,14 @@ const Dashboard = () => {
                 <h2 className="font-semibold text-text-primary">Top 5 Products</h2>
               </div>
               <p className="text-xs text-text-muted mt-1">
-                Your best performing products (Last 14 Days)
+                Your best performing products • Click product to copy ID for commission requests
               </p>
             </div>
             <div className="divide-y divide-titan-border">
               {topProducts.products.map((product, index) => (
                 <div 
                   key={product.id} 
-                  className="px-6 py-4 flex items-center gap-4 hover:bg-titan-elevated/30 transition-colors"
+                  className="px-6 py-4 flex items-center gap-4 hover:bg-titan-elevated/30 transition-colors group relative"
                 >
                   {/* Rank Badge */}
                   <div className={`
@@ -573,9 +609,31 @@ const Dashboard = () => {
                     <p className="font-medium text-text-primary truncate">
                       {product.product_name}
                     </p>
-                    <p className="text-xs text-text-muted">
-                      {product.product_category || 'Uncategorized'}
-                    </p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-accent-teal/10 text-accent-teal text-xs rounded-full">
+                        <Tag className="w-3 h-3" />
+                        {product.product_category || 'Uncategorized'}
+                      </span>
+                      {product.product_id && (
+                        <button
+                          onClick={() => copyProductId(product.product_id!)}
+                          className="inline-flex items-center gap-1 px-2 py-0.5 bg-titan-bg hover:bg-titan-elevated text-text-muted hover:text-text-primary text-xs rounded-full transition-colors"
+                          title="Copy Product ID to share with agency for higher commission"
+                        >
+                          {copiedProductId === product.product_id ? (
+                            <>
+                              <CheckCircle className="w-3 h-3 text-green-400" />
+                              <span className="text-green-400">Copied!</span>
+                            </>
+                          ) : (
+                            <>
+                              <Copy className="w-3 h-3" />
+                              <span>Copy ID</span>
+                            </>
+                          )}
+                        </button>
+                      )}
+                    </div>
                   </div>
                   
                   {/* Stats */}
@@ -601,6 +659,14 @@ const Dashboard = () => {
                   </div>
                 </div>
               ))}
+            </div>
+            
+            {/* Help text for copying product IDs */}
+            <div className="px-6 py-3 bg-titan-bg/50 border-t border-titan-border">
+              <p className="text-xs text-text-muted flex items-center gap-2">
+                <Info className="w-3 h-3" />
+                Copy product IDs and share in Discord to request higher commission rates from the agency!
+              </p>
             </div>
           </div>
         )}

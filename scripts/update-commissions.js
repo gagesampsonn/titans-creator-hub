@@ -1,8 +1,5 @@
 /**
  * Update Commission Data from Creator Summary File
- * 
- * This reads the Creator summary Excel (which has Est. commission column)
- * and updates the creator_period_summary table with actual commission values.
  */
 
 const XLSX = require('xlsx');
@@ -17,12 +14,12 @@ const SUPABASE_SERVICE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzd
 const COMMISSION_FILE = 'C:\\Users\\gages\\Downloads\\CustomReport_Creator 2025-12-01_2025-12-19.xlsx';
 const LINKED_CREATORS_FILE = 'C:\\Users\\gages\\titans-creator-hub\\data\\linked_creators.csv';
 
-function normalizeHandle(handle: string | undefined | null): string {
+function normalizeHandle(handle) {
   if (!handle) return '';
   return handle.toLowerCase().trim().replace(/^@/, '');
 }
 
-function parseCurrency(value: any): number {
+function parseCurrency(value) {
   if (typeof value === 'number') return value;
   if (!value) return 0;
   const str = String(value).replace(/[$,\s]/g, '');
@@ -37,7 +34,7 @@ async function main() {
   console.log('📁 Loading linked creators...');
   const csvContent = fs.readFileSync(LINKED_CREATORS_FILE, 'utf-8');
   const csvRecords = parse(csvContent, { columns: true, skip_empty_lines: true });
-  const linkedHandles = new Set<string>();
+  const linkedHandles = new Set();
   for (const record of csvRecords) {
     const handle = normalizeHandle(record.tiktok_handle || record.handle);
     if (handle) linkedHandles.add(handle);
@@ -48,7 +45,7 @@ async function main() {
   console.log(`📁 Reading: ${path.basename(COMMISSION_FILE)}`);
   const workbook = XLSX.readFile(COMMISSION_FILE);
   const sheet = workbook.Sheets[workbook.SheetNames[0]];
-  const rows = XLSX.utils.sheet_to_json(sheet) as any[];
+  const rows = XLSX.utils.sheet_to_json(sheet);
   console.log(`📋 Found ${rows.length} rows\n`);
 
   const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
