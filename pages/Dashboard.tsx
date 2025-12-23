@@ -24,6 +24,31 @@ const ChangeIndicator = ({ value, suffix = '%' }: { value: number; suffix?: stri
   );
 };
 
+// Date formatting helpers to avoid timezone issues
+const formatDateShort = (dateStr: string) => {
+  const [year, month, day] = dateStr.split('-').map(Number);
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  return `${months[month - 1]} ${day}`;
+};
+
+const formatDateLong = (dateStr: string) => {
+  const [year, month, day] = dateStr.split('-').map(Number);
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  return `${months[month - 1]} ${day}, ${year}`;
+};
+
+const formatDateFull = (dateStr: string) => {
+  const [year, month, day] = dateStr.split('-').map(Number);
+  const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  return `${months[month - 1]} ${day}`;
+};
+
+const formatDateFullYear = (dateStr: string) => {
+  const [year, month, day] = dateStr.split('-').map(Number);
+  const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  return `${months[month - 1]} ${day}, ${year}`;
+};
+
 interface MetricsData {
   connected: boolean;
   handle: string | null;
@@ -477,8 +502,8 @@ const Dashboard = () => {
             <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-titan-surface border border-titan-border rounded-full text-xs text-text-muted">
               <span>
                 {data.period?.dateStart && data.period?.dateEnd 
-                  ? `${new Date(data.period.dateStart).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} – ${new Date(data.period.dateEnd).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
-                  : 'Dec 1 – Dec 18, 2025'}
+                  ? `${formatDateShort(data.period.dateStart)} – ${formatDateLong(data.period.dateEnd)}`
+                  : 'Nov 30 – Dec 21, 2025'}
               </span>
             </div>
           </div>
@@ -489,11 +514,11 @@ const Dashboard = () => {
           <p className="text-sm text-accent-teal">
             📊 Showing your performance for <strong>
               {data.period?.dateStart && data.period?.dateEnd 
-                ? `${new Date(data.period.dateStart).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })} – ${new Date(data.period.dateEnd).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`
-                : 'December 1 – December 21, 2025'}
+                ? `${formatDateFull(data.period.dateStart)} – ${formatDateFullYear(data.period.dateEnd)}`
+                : 'November 30 – December 21, 2025'}
             </strong>
             {data.period?.comparisonStart && data.period?.comparisonEnd && (
-              <span className="text-text-muted"> • Compared to {new Date(data.period.comparisonStart).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} – {new Date(data.period.comparisonEnd).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+              <span className="text-text-muted"> • Compared to {formatDateShort(data.period.comparisonStart)} – {formatDateShort(data.period.comparisonEnd)}</span>
             )}
           </p>
           <p className="text-xs text-text-muted mt-2 flex items-center gap-1">
@@ -861,15 +886,15 @@ const Dashboard = () => {
           )}
         </div>
 
-        {/* Metrics Details */}
-        {data.dailyMetrics.length > 0 && (
+        {/* Performance Summary - Shows period totals */}
+        {data.hasData && (
           <div className="bg-titan-surface border border-titan-border rounded-lg overflow-hidden">
             <div className="px-6 py-4 border-b border-titan-border">
               <h2 className="font-semibold text-text-primary">Performance Summary</h2>
               <p className="text-xs text-text-muted mt-1">
                 Aggregated data for {data.period?.dateStart && data.period?.dateEnd 
-                  ? `${new Date(data.period.dateStart).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} – ${new Date(data.period.dateEnd).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
-                  : 'Dec 1 – Dec 18, 2025'}
+                  ? `${formatDateShort(data.period.dateStart)} – ${formatDateLong(data.period.dateEnd)}`
+                  : 'Nov 30 – Dec 21, 2025'}
               </p>
             </div>
             <div className="overflow-x-auto">
@@ -883,22 +908,20 @@ const Dashboard = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-titan-border">
-                  {data.dailyMetrics.map((m, i) => (
-                    <tr key={i} className="hover:bg-titan-elevated/30">
-                      <td className="px-6 py-4 text-right text-accent-teal font-medium">
-                        ${m.affiliate_gmv.toFixed(2)}
-                      </td>
-                      <td className="px-6 py-4 text-right text-accent-fuchsia font-medium">
-                        ${m.est_commission.toFixed(2)}
-                      </td>
-                      <td className="px-6 py-4 text-right text-text-primary">
-                        {m.items_sold}
-                      </td>
-                      <td className="px-6 py-4 text-right text-text-muted">
-                        {m.video_ctr.toFixed(2)}%
-                      </td>
-                    </tr>
-                  ))}
+                  <tr className="hover:bg-titan-elevated/30">
+                    <td className="px-6 py-4 text-right text-accent-teal font-medium">
+                      ${data.summary.totalGmv.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </td>
+                    <td className="px-6 py-4 text-right text-accent-fuchsia font-medium">
+                      ${data.summary.totalCommission.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </td>
+                    <td className="px-6 py-4 text-right text-text-primary">
+                      {data.summary.totalItems}
+                    </td>
+                    <td className="px-6 py-4 text-right text-text-muted">
+                      {data.summary.avgCtr.toFixed(2)}%
+                    </td>
+                  </tr>
                 </tbody>
               </table>
             </div>
