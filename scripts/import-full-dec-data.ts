@@ -21,10 +21,10 @@ const EXCEL_FILE = 'C:\\Users\\gages\\Downloads\\CustomReport_Creator_Product_Sh
 const LINKED_CREATORS_FILE = 'C:\\Users\\gages\\titans-creator-hub\\data\\linked_creators.csv';
 
 // Fixed date range for this import
-const DATE_START = '2025-12-01';
+const DATE_START = '2025-11-30';
 const DATE_END = '2025-12-21';
-const COMPARISON_START = '2025-11-09';
-const COMPARISON_END = '2025-11-30';
+const COMPARISON_START = '2025-11-08';
+const COMPARISON_END = '2025-11-29';
 
 function normalizeHandle(handle: string | undefined | null): string {
   if (!handle) return '';
