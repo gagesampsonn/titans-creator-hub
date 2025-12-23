@@ -17,13 +17,13 @@ import { parse } from 'csv-parse/sync';
 const SUPABASE_URL = 'https://myylgglbtroabqclzvvn.supabase.co';
 const SUPABASE_SERVICE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im15eWxnZ2xidHJvYWJxY2x6dnZuIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NTY1OTkxNCwiZXhwIjoyMDgxMjM1OTE0fQ.cvJQ6xQ_c0sVXwKSfAnLgnCSjh4NnBzfAKjSFwN3Hug';
 
-const EXCEL_FILE = 'C:\\Users\\gages\\Downloads\\CustomReport_Creator_Product_Shop_Product Category 2025-12-01_2025-12-21.xlsx';
+const EXCEL_FILE = 'C:\\Users\\gages\\Downloads\\CustomReport_Creator_Product_Shop 2025-11-30_2025-12-22.xlsx';
 const LINKED_CREATORS_FILE = 'C:\\Users\\gages\\titans-creator-hub\\data\\linked_creators.csv';
 
 // Fixed date range for this import
 const DATE_START = '2025-11-30';
-const DATE_END = '2025-12-21';
-const COMPARISON_START = '2025-11-08';
+const DATE_END = '2025-12-22';
+const COMPARISON_START = '2025-11-07';
 const COMPARISON_END = '2025-11-29';
 
 function normalizeHandle(handle: string | undefined | null): string {
