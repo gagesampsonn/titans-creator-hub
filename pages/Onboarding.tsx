@@ -1,5 +1,5 @@
 import React from 'react';
-import { ChevronRight, Users, Zap, DollarSign, Video } from 'lucide-react';
+import { ChevronRight, Users, Zap, DollarSign, Video, CheckCircle, ExternalLink } from 'lucide-react';
 
 const Onboarding = () => {
   const whopUrl = 'https://whop.com/joined/tiktokshopaffiliate/';
@@ -13,12 +13,16 @@ const Onboarding = () => {
       <div className="relative z-10 max-w-5xl mx-auto px-6 py-16 md:py-24">
         {/* Header */}
         <div className="text-center mb-12">
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-500/10 border border-green-500/30 rounded-full text-green-400 text-sm font-medium mb-6">
+            <CheckCircle className="w-4 h-4" />
+            You're in! Welcome to the family
+          </div>
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4">
             <span className="text-white">Welcome to </span>
             <span className="bg-gradient-to-r from-orange-400 via-rose-400 to-orange-500 bg-clip-text text-transparent">TikTok Titans</span>
           </h1>
           <p className="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto">
-            Your journey to TikTok Shop success starts here
+            Your journey to TikTok Shop success starts here. Watch the video below to get set up.
           </p>
         </div>
 
@@ -40,9 +44,10 @@ const Onboarding = () => {
                 href={whopUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="px-3 py-1.5 bg-orange-500 hover:bg-orange-600 text-white text-xs font-semibold rounded-lg transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-orange-500 hover:bg-orange-600 text-white text-xs font-semibold rounded-lg transition-colors"
               >
-                Join Discord
+                Open Discord
+                <ExternalLink className="w-3 h-3" />
               </a>
             </div>
             
@@ -60,7 +65,7 @@ const Onboarding = () => {
 
         {/* CTA Text */}
         <p className="text-center text-gray-400 mb-6">
-          Watch the video above to get started with your onboarding process
+          Watch the video above, then join the Discord to get started
         </p>
 
         {/* Main CTA Button */}
@@ -71,18 +76,54 @@ const Onboarding = () => {
             rel="noopener noreferrer"
             className="group flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-orange-500 to-rose-500 hover:from-orange-600 hover:to-rose-600 text-white font-semibold text-lg rounded-xl shadow-lg shadow-orange-500/25 hover:shadow-orange-500/40 transition-all duration-300 hover:scale-105"
           >
-            Join Discord
+            Open Discord
             <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
           </a>
+        </div>
+
+        {/* Quick Start Steps */}
+        <div className="border-t border-gray-800 pt-16 mb-16">
+          <h2 className="text-2xl md:text-3xl font-bold text-center text-white mb-4">
+            Quick Start Guide
+          </h2>
+          <p className="text-center text-gray-400 mb-12 max-w-xl mx-auto">
+            Follow these steps to get the most out of your Titans membership
+          </p>
+          
+          <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+            <div className="bg-gradient-to-b from-gray-800/50 to-gray-900/50 border border-gray-700/50 rounded-xl p-6 text-center">
+              <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-rose-500 rounded-full flex items-center justify-center mx-auto mb-4 text-white font-bold text-xl">
+                1
+              </div>
+              <h3 className="text-lg font-semibold text-white mb-2">Watch the Video</h3>
+              <p className="text-sm text-gray-400">Learn how the Discord is organized and where to find everything</p>
+            </div>
+
+            <div className="bg-gradient-to-b from-gray-800/50 to-gray-900/50 border border-gray-700/50 rounded-xl p-6 text-center">
+              <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-rose-500 rounded-full flex items-center justify-center mx-auto mb-4 text-white font-bold text-xl">
+                2
+              </div>
+              <h3 className="text-lg font-semibold text-white mb-2">Join Discord</h3>
+              <p className="text-sm text-gray-400">Click the button above to access your Discord channels via Whop</p>
+            </div>
+
+            <div className="bg-gradient-to-b from-gray-800/50 to-gray-900/50 border border-gray-700/50 rounded-xl p-6 text-center">
+              <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-rose-500 rounded-full flex items-center justify-center mx-auto mb-4 text-white font-bold text-xl">
+                3
+              </div>
+              <h3 className="text-lg font-semibold text-white mb-2">Start Creating</h3>
+              <p className="text-sm text-gray-400">Check out #daily-assignments and start posting content</p>
+            </div>
+          </div>
         </div>
 
         {/* Benefits Section */}
         <div className="border-t border-gray-800 pt-16">
           <h2 className="text-2xl md:text-3xl font-bold text-center text-white mb-4">
-            What You'll Get as a Titan
+            What's Included in Your Membership
           </h2>
           <p className="text-center text-gray-400 mb-12 max-w-xl mx-auto">
-            Join our thriving community of creators making real money on TikTok Shop
+            Here's everything you now have access to as a Titan
           </p>
           
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -91,7 +132,7 @@ const Onboarding = () => {
                 <Users className="w-6 h-6 text-white" />
               </div>
               <h3 className="text-lg font-semibold text-white mb-2">Community Access</h3>
-              <p className="text-sm text-gray-400">Join 3,600+ creators in our private Discord community</p>
+              <p className="text-sm text-gray-400">Connect with 3,600+ creators in our private Discord</p>
             </div>
 
             <div className="bg-gradient-to-b from-gray-800/50 to-gray-900/50 border border-gray-700/50 rounded-xl p-6 hover:border-orange-500/30 transition-colors">
@@ -120,36 +161,32 @@ const Onboarding = () => {
           </div>
         </div>
 
-        {/* Apply Section */}
+        {/* Agency Application CTA */}
         <div className="mt-20 text-center">
           <div className="bg-gradient-to-r from-gray-800/80 to-gray-900/80 border border-gray-700/50 rounded-2xl p-8 md:p-12 max-w-2xl mx-auto">
             <h3 className="text-2xl md:text-3xl font-bold text-white mb-4">
-              Ready to Level Up?
+              Want Full Dashboard Access?
             </h3>
             <p className="text-gray-400 mb-8 max-w-md mx-auto">
-              Apply to join TikTok Titans and get access to our full suite of tools, community, and exclusive opportunities.
+              Apply to become a linked Titans Agency creator and get access to your personalized dashboard with sales metrics, top products, and more.
             </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <a
-                href={whopUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-orange-500 to-rose-500 hover:from-orange-600 hover:to-rose-600 text-white font-semibold rounded-xl shadow-lg shadow-orange-500/25 hover:shadow-orange-500/40 transition-all duration-300"
-              >
-                Apply Now
-                <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-              </a>
-              <span className="text-sm text-gray-500">Starting at $15/week</span>
-            </div>
+            <a
+              href="#/signup"
+              className="group inline-flex items-center gap-2 px-8 py-4 bg-white hover:bg-gray-100 text-gray-900 font-semibold rounded-xl shadow-lg transition-all duration-300"
+            >
+              Create Account & Apply
+              <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+            </a>
           </div>
         </div>
 
         {/* Footer note */}
         <p className="text-center text-gray-500 text-sm mt-12">
-          Questions? Reach out to us on{' '}
+          Questions? Ask in the{' '}
           <a href={whopUrl} target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:text-orange-300 underline">
-            Discord
+            Discord community
           </a>
+          {' '}or DM an admin
         </p>
       </div>
     </div>
@@ -157,4 +194,3 @@ const Onboarding = () => {
 };
 
 export default Onboarding;
-
