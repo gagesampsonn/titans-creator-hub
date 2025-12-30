@@ -74,9 +74,11 @@ const BrandPortal = () => {
             </span>
           </h1>
           
-          <p className="text-lg text-gray-400 mb-8 max-w-2xl mx-auto">
-            Partner with 3,600+ verified affiliates who drive millions in sales. 
-            Watch the video below to see how the Titans model works.
+          <p className="text-xl text-gray-300 mb-2 max-w-2xl mx-auto font-medium">
+            How Titans Structures Creator Campaigns for Predictable TikTok Shop Growth
+          </p>
+          <p className="text-base text-gray-500 mb-8 max-w-2xl mx-auto">
+            And why some of TikTok's biggest brands trust our model
           </p>
         </div>
       </div>
