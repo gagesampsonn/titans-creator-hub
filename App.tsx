@@ -15,6 +15,7 @@ import Privacy from './pages/Privacy';
 import Terms from './pages/Terms';
 import Profile from './pages/Profile';
 import Settings from './pages/Settings';
+import Onboarding from './pages/Onboarding';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -278,6 +279,7 @@ const App = () => {
               <Route path="/profile" element={<Profile />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/settings/integrations" element={<Settings />} />
+              <Route path="/onboarding" element={<Onboarding />} />
             </Routes>
           </main>
           <Footer />
