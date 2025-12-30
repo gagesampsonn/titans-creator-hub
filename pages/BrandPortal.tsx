@@ -47,10 +47,11 @@ const BrandPortal = () => {
   const brandLogos = [
     { name: 'Selerb', category: 'Health & Wellness' },
     { name: 'Goli', category: 'Health & Wellness' },
-    { name: 'Cirkul', category: 'Beverages' },
-    { name: 'Our Place', category: 'Home & Kitchen' },
-    { name: 'Wyze', category: 'Smart Home' },
-    { name: 'Anker', category: 'Electronics' },
+    { name: 'Nello', category: 'Wellness' },
+    { name: 'Supercalm', category: 'Wellness' },
+    { name: 'Natural Stacks', category: 'Supplements' },
+    { name: 'WhyNot Natural', category: 'Natural Products' },
+    { name: 'Dude Wipes', category: 'Personal Care' },
   ];
 
   return (
