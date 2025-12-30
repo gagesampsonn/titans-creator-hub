@@ -41,7 +41,12 @@ const Navbar = () => {
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2.5 group">
             <img src="/titans-logo.png" alt="Titans" className="w-8 h-8 object-contain" />
-            <span className="text-base font-semibold text-text-primary tracking-tight">TITANS</span>
+            <div className="flex items-center gap-2">
+              <span className="text-base font-semibold text-text-primary tracking-tight">TITANS</span>
+              <span className="hidden sm:inline-flex px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider bg-gradient-to-r from-orange-500/20 to-rose-500/20 text-orange-400 rounded-full border border-orange-500/30">
+                For Creators
+              </span>
+            </div>
           </Link>
 
           {/* Desktop Nav */}
