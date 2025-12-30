@@ -10,7 +10,13 @@ import {
   DollarSign,
   Video,
   Target,
-  Mail
+  Mail,
+  Calendar,
+  CheckCircle,
+  CreditCard,
+  Clock,
+  FileText,
+  ShoppingBag
 } from 'lucide-react';
 
 const BrandPortal = () => {
@@ -52,6 +58,18 @@ const BrandPortal = () => {
     { name: 'Natural Stacks', category: 'Supplements' },
     { name: 'WhyNot Natural', category: 'Natural Products' },
     { name: 'Dude Wipes', category: 'Personal Care' },
+  ];
+
+  const campaignDetails = [
+    { icon: Calendar, label: '44-Day Campaign', description: '14 days onboarding + 30 days of posting' },
+    { icon: Video, label: '225+ Guaranteed Videos', description: 'Plus extras if you send more samples' },
+    { icon: Users, label: '225+ Creators', description: 'Matched to your niche and products' },
+  ];
+
+  const whatWeNeed = [
+    { icon: CreditCard, text: 'Payment via card, PayPal, or split payments' },
+    { icon: ShoppingBag, text: 'Your TikTok Shop code' },
+    { icon: Package, text: 'Sample budget (min 10 samples, most brands send 35-75)' },
   ];
 
   return (
@@ -143,6 +161,91 @@ const BrandPortal = () => {
         </div>
       </div>
 
+      {/* Campaign Package Section */}
+      <div className="relative z-10 max-w-6xl mx-auto px-6 py-16">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl font-bold text-white mb-3">
+            The Titans Campaign Package
+          </h2>
+          <p className="text-gray-400 max-w-2xl mx-auto">
+            A structured 44-day campaign designed for predictable growth
+          </p>
+        </div>
+
+        <div className="grid lg:grid-cols-2 gap-8">
+          {/* Campaign Details Card */}
+          <div className="bg-gradient-to-br from-gray-900/80 to-gray-900/40 border border-gray-800 rounded-2xl p-8">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-12 h-12 bg-gradient-to-br from-fuchsia-500 to-cyan-500 rounded-xl flex items-center justify-center">
+                <Calendar size={24} className="text-white" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-white">What's Included</h3>
+                <p className="text-gray-400 text-sm">Full-service creator campaign</p>
+              </div>
+            </div>
+            
+            <div className="space-y-4 mb-8">
+              {campaignDetails.map((item) => (
+                <div key={item.label} className="flex items-start gap-4 p-4 bg-black/30 rounded-xl border border-gray-800">
+                  <div className="w-10 h-10 bg-fuchsia-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <item.icon size={20} className="text-fuchsia-400" />
+                  </div>
+                  <div>
+                    <div className="font-semibold text-white">{item.label}</div>
+                    <div className="text-sm text-gray-400">{item.description}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="border-t border-gray-800 pt-6">
+              <div className="flex items-center justify-between mb-4">
+                <span className="text-gray-400">Campaign Investment</span>
+                <span className="text-3xl font-bold text-white">$10,500</span>
+              </div>
+              <p className="text-sm text-gray-500">One-time payment • Flexible payment options available</p>
+            </div>
+          </div>
+
+          {/* What We Need Card */}
+          <div className="bg-gradient-to-br from-gray-900/80 to-gray-900/40 border border-gray-800 rounded-2xl p-8">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-12 h-12 bg-gradient-to-br from-cyan-500 to-fuchsia-500 rounded-xl flex items-center justify-center">
+                <FileText size={24} className="text-white" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-white">What We Need From You</h3>
+                <p className="text-gray-400 text-sm">Simple setup, we handle the rest</p>
+              </div>
+            </div>
+            
+            <div className="space-y-4 mb-8">
+              {whatWeNeed.map((item, index) => (
+                <div key={index} className="flex items-center gap-4 p-4 bg-black/30 rounded-xl border border-gray-800">
+                  <div className="w-10 h-10 bg-cyan-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <item.icon size={20} className="text-cyan-400" />
+                  </div>
+                  <span className="text-white">{item.text}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* Payment Options */}
+            <div className="border-t border-gray-800 pt-6">
+              <div className="text-sm text-gray-400 mb-3">Flexible Payment Options</div>
+              <div className="flex flex-wrap gap-2">
+                {['Credit Card', 'PayPal', 'Bank Transfer', 'Split Payments', 'Crypto'].map((method) => (
+                  <span key={method} className="px-3 py-1.5 bg-gray-800 text-gray-300 text-xs rounded-full border border-gray-700">
+                    {method}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Why Titans Section */}
       <div className="relative z-10 max-w-6xl mx-auto px-6 py-16">
         <div className="text-center mb-12">
@@ -186,40 +289,52 @@ const BrandPortal = () => {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-4 gap-6">
             <div className="text-center group">
-              <div className="w-16 h-16 bg-gradient-to-br from-fuchsia-500 to-fuchsia-600 text-white rounded-2xl flex items-center justify-center mx-auto mb-4 text-2xl font-bold group-hover:scale-110 transition-transform shadow-lg shadow-fuchsia-500/30">
+              <div className="w-14 h-14 bg-gradient-to-br from-fuchsia-500 to-fuchsia-600 text-white rounded-2xl flex items-center justify-center mx-auto mb-4 text-xl font-bold group-hover:scale-110 transition-transform shadow-lg shadow-fuchsia-500/30">
                 1
               </div>
-              <h3 className="text-lg font-semibold text-white mb-2">
-                Contact Our Team
+              <h3 className="text-base font-semibold text-white mb-2">
+                Purchase Campaign
               </h3>
               <p className="text-gray-400 text-sm">
-                Reach out and tell us about your brand and products
+                Pay via card, PayPal, or split payments
               </p>
             </div>
 
             <div className="text-center group">
-              <div className="w-16 h-16 bg-gradient-to-br from-cyan-500 to-cyan-600 text-white rounded-2xl flex items-center justify-center mx-auto mb-4 text-2xl font-bold group-hover:scale-110 transition-transform shadow-lg shadow-cyan-500/30">
+              <div className="w-14 h-14 bg-gradient-to-br from-cyan-500 to-cyan-600 text-white rounded-2xl flex items-center justify-center mx-auto mb-4 text-xl font-bold group-hover:scale-110 transition-transform shadow-lg shadow-cyan-500/30">
                 2
               </div>
-              <h3 className="text-lg font-semibold text-white mb-2">
-                We Match Creators
+              <h3 className="text-base font-semibold text-white mb-2">
+                Share Shop Code
               </h3>
               <p className="text-gray-400 text-sm">
-                Our team matches your products with the best-fit creators in your niche
+                We set up your campaign
               </p>
             </div>
 
             <div className="text-center group">
-              <div className="w-16 h-16 bg-gradient-to-br from-fuchsia-500 to-cyan-500 text-white rounded-2xl flex items-center justify-center mx-auto mb-4 text-2xl font-bold group-hover:scale-110 transition-transform shadow-lg shadow-fuchsia-500/30">
+              <div className="w-14 h-14 bg-gradient-to-br from-fuchsia-500 to-cyan-500 text-white rounded-2xl flex items-center justify-center mx-auto mb-4 text-xl font-bold group-hover:scale-110 transition-transform shadow-lg shadow-fuchsia-500/30">
                 3
               </div>
-              <h3 className="text-lg font-semibold text-white mb-2">
+              <h3 className="text-base font-semibold text-white mb-2">
+                Approve Samples
+              </h3>
+              <p className="text-gray-400 text-sm">
+                Set your sample budget (35-75 typical)
+              </p>
+            </div>
+
+            <div className="text-center group">
+              <div className="w-14 h-14 bg-gradient-to-br from-green-500 to-green-600 text-white rounded-2xl flex items-center justify-center mx-auto mb-4 text-xl font-bold group-hover:scale-110 transition-transform shadow-lg shadow-green-500/30">
+                4
+              </div>
+              <h3 className="text-base font-semibold text-white mb-2">
                 Watch Sales Grow
               </h3>
               <p className="text-gray-400 text-sm">
-                Creators post authentic content and drive real sales to your shop
+                225+ videos drive real sales
               </p>
             </div>
           </div>
@@ -237,14 +352,14 @@ const BrandPortal = () => {
           </p>
         </div>
         
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
           {brandLogos.map((brand) => (
             <div 
               key={brand.name}
-              className="p-4 bg-gray-900/50 border border-gray-800 rounded-xl text-center hover:border-fuchsia-500/30 transition-colors"
+              className="p-3 bg-gray-900/50 border border-gray-800 rounded-xl text-center hover:border-fuchsia-500/30 transition-colors"
             >
-              <div className="text-lg font-semibold text-white mb-1">{brand.name}</div>
-              <div className="text-xs text-gray-500">{brand.category}</div>
+              <div className="text-sm font-semibold text-white mb-0.5">{brand.name}</div>
+              <div className="text-[10px] text-gray-500">{brand.category}</div>
             </div>
           ))}
         </div>
@@ -259,18 +374,33 @@ const BrandPortal = () => {
               Ready to Scale Your TikTok Shop Sales?
             </h2>
             <p className="text-gray-400 mb-8 max-w-xl mx-auto">
-              Let's discuss how our creator network can help grow your business. 
-              Reach out to our team to get started.
+              Book a call to discuss your brand, or skip ahead and purchase your campaign directly.
             </p>
             
-            <a
-              href="mailto:brands@titansagency.co"
-              className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white text-gray-900 rounded-xl font-semibold hover:bg-gray-100 transition-colors"
-            >
-              <Mail size={20} />
-              Contact Our Team
-              <ArrowRight size={18} />
-            </a>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <a
+                href="mailto:brands@titansagency.co"
+                className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white/10 border border-white/20 text-white rounded-xl font-semibold hover:bg-white/20 transition-colors"
+              >
+                <Mail size={20} />
+                Contact Our Team
+              </a>
+              
+              <a
+                href="https://whop.com/checkout/plan_rBAHh3s9NPXZR"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-gradient-to-r from-fuchsia-500 to-cyan-500 text-white rounded-xl font-semibold hover:opacity-90 transition-opacity"
+              >
+                <Zap size={20} />
+                Skip the Call — Purchase Now
+                <ArrowRight size={18} />
+              </a>
+            </div>
+            
+            <p className="text-xs text-gray-500 mt-4">
+              Secure checkout via Whop • Pay with Card, PayPal, Bank Transfer, Split Payments, or Crypto
+            </p>
           </div>
         </div>
       </div>
