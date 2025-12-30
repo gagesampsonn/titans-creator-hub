@@ -1,68 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { 
   Building2, 
-  ShoppingBag, 
   Users, 
-  TrendingUp, 
-  CheckCircle, 
   ExternalLink,
   Package,
   BarChart3,
   Zap,
   ArrowRight,
-  XCircle,
-  RefreshCw,
-  AlertCircle,
-  Play,
   DollarSign,
   Video,
-  Target
+  Target,
+  Mail
 } from 'lucide-react';
-import { useAuth } from '../lib/AuthContext';
-import { Link, useNavigate } from 'react-router-dom';
-import { connectTikTokSeller } from '../lib/tiktokService';
 
 const BrandPortal = () => {
-  const { user, loading: authLoading } = useAuth();
-  const navigate = useNavigate();
-  const [isConnecting, setIsConnecting] = useState(false);
-  const [connectionStatus, setConnectionStatus] = useState<'none' | 'connected' | 'error'>('none');
-  const [error, setError] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
-
-  // Check for success/error messages in URL (from OAuth callback)
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.hash.split('?')[1] || '');
-    if (params.get('tiktok_connected') === 'true') {
-      setSuccessMessage(params.get('message') || 'TikTok Shop connected successfully!');
-      setConnectionStatus('connected');
-      window.history.replaceState({}, '', window.location.pathname + window.location.hash.split('?')[0]);
-    } else if (params.get('tiktok_error') === 'true') {
-      setError(params.get('message') || 'Failed to connect TikTok Shop');
-      setConnectionStatus('error');
-      window.history.replaceState({}, '', window.location.pathname + window.location.hash.split('?')[0]);
-    }
-  }, []);
-
-  const handleConnectShop = async () => {
-    if (!user) {
-      navigate('/login?redirect=/brands');
-      return;
-    }
-
-    setIsConnecting(true);
-    setError(null);
-
-    try {
-      // Use the seller OAuth flow for brands
-      await connectTikTokSeller(user.id);
-      // User will be redirected to TikTok
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to start connection');
-      setIsConnecting(false);
-    }
-  };
-
   const benefits = [
     {
       icon: Users,
@@ -95,7 +46,7 @@ const BrandPortal = () => {
 
   const brandLogos = [
     { name: 'Selerb', category: 'Health & Wellness' },
-    { name: 'BellaVita', category: 'Fragrances' },
+    { name: 'Goli', category: 'Health & Wellness' },
     { name: 'Cirkul', category: 'Beverages' },
     { name: 'Our Place', category: 'Home & Kitchen' },
     { name: 'Wyze', category: 'Smart Home' },
@@ -189,36 +140,6 @@ const BrandPortal = () => {
         </div>
       </div>
 
-      {/* Success/Error Messages */}
-      {(successMessage || error) && (
-        <div className="relative z-10 max-w-2xl mx-auto px-6 py-4">
-          {successMessage && (
-            <div className="p-4 bg-green-500/10 border border-green-500/30 rounded-lg flex items-center justify-center gap-3">
-              <CheckCircle size={20} className="text-green-500" />
-              <span className="text-green-400">{successMessage}</span>
-              <button 
-                onClick={() => setSuccessMessage(null)}
-                className="ml-2 text-green-500 hover:text-green-400"
-              >
-                ×
-              </button>
-            </div>
-          )}
-          {error && (
-            <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-lg flex items-center justify-center gap-3">
-              <AlertCircle size={20} className="text-red-500" />
-              <span className="text-red-400">{error}</span>
-              <button 
-                onClick={() => setError(null)}
-                className="ml-2 text-red-500 hover:text-red-400"
-              >
-                ×
-              </button>
-            </div>
-          )}
-        </div>
-      )}
-
       {/* Why Titans Section */}
       <div className="relative z-10 max-w-6xl mx-auto px-6 py-16">
         <div className="text-center mb-12">
@@ -268,10 +189,10 @@ const BrandPortal = () => {
                 1
               </div>
               <h3 className="text-lg font-semibold text-white mb-2">
-                Connect Your Shop
+                Contact Our Team
               </h3>
               <p className="text-gray-400 text-sm">
-                Link your TikTok Shop account to import your product catalog automatically
+                Reach out and tell us about your brand and products
               </p>
             </div>
 
@@ -336,55 +257,17 @@ const BrandPortal = () => {
             </h2>
             <p className="text-gray-400 mb-8 max-w-xl mx-auto">
               Let's discuss how our creator network can help grow your business. 
-              Book a call or connect your shop to get started.
+              Reach out to our team to get started.
             </p>
             
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <a
-                href="mailto:brands@titansagency.co"
-                className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white text-gray-900 rounded-xl font-semibold hover:bg-gray-100 transition-colors"
-              >
-                <Target size={20} />
-                Contact Our Team
-              </a>
-              
-              {connectionStatus === 'connected' ? (
-                <div className="flex items-center justify-center gap-3 px-8 py-4 bg-green-500/20 border border-green-500/30 rounded-xl">
-                  <CheckCircle size={20} className="text-green-500" />
-                  <span className="text-green-400 font-medium">Shop Connected!</span>
-                </div>
-              ) : (
-                <button
-                  onClick={handleConnectShop}
-                  disabled={isConnecting}
-                  className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-gradient-to-r from-fuchsia-500 to-cyan-500 text-white rounded-xl font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
-                >
-                  {isConnecting ? (
-                    <>
-                      <RefreshCw size={20} className="animate-spin" />
-                      Connecting...
-                    </>
-                  ) : (
-                    <>
-                      <svg viewBox="0 0 24 24" className="w-5 h-5" fill="currentColor">
-                        <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/>
-                      </svg>
-                      Connect Your Shop
-                      <ArrowRight size={18} />
-                    </>
-                  )}
-                </button>
-              )}
-            </div>
-            
-            {!user && (
-              <p className="text-sm text-gray-500 mt-4">
-                Already have an account?{' '}
-                <Link to="/login" className="text-cyan-400 hover:underline">
-                  Log in
-                </Link>
-              </p>
-            )}
+            <a
+              href="mailto:brands@titansagency.co"
+              className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white text-gray-900 rounded-xl font-semibold hover:bg-gray-100 transition-colors"
+            >
+              <Mail size={20} />
+              Contact Our Team
+              <ArrowRight size={18} />
+            </a>
           </div>
         </div>
       </div>
