@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   Building2, 
   Users, 
@@ -16,11 +16,104 @@ import {
   CreditCard,
   Clock,
   FileText,
-  ShoppingBag
+  ShoppingBag,
+  X,
+  Copy,
+  Check,
+  MessageCircle,
+  Phone
 } from 'lucide-react';
 import TopVideos2025 from '../components/TopVideos2025';
 
+const ContactModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
+  const [copied, setCopied] = useState(false);
+  const email = 'tiktoktitansmanagement@gmail.com';
+  const whatsapp = '7403570482';
+
+  const copyEmail = () => {
+    navigator.clipboard.writeText(email);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      {/* Backdrop */}
+      <div 
+        className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+        onClick={onClose}
+      />
+      
+      {/* Modal */}
+      <div className="relative bg-gradient-to-br from-gray-900 to-gray-950 border border-gray-800 rounded-2xl p-6 md:p-8 max-w-md w-full shadow-2xl">
+        {/* Close button */}
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
+        >
+          <X size={20} />
+        </button>
+
+        {/* Header */}
+        <div className="text-center mb-6">
+          <div className="w-14 h-14 bg-gradient-to-br from-fuchsia-500 to-cyan-500 rounded-xl flex items-center justify-center mx-auto mb-4">
+            <MessageCircle size={28} className="text-white" />
+          </div>
+          <h3 className="text-xl font-bold text-white mb-2">Contact Titans</h3>
+          <p className="text-gray-400 text-sm">Reach out to discuss your brand campaign</p>
+        </div>
+
+        {/* Contact Options */}
+        <div className="space-y-4">
+          {/* Email */}
+          <div className="bg-black/30 border border-gray-800 rounded-xl p-4">
+            <div className="flex items-center gap-3 mb-3">
+              <Mail size={18} className="text-fuchsia-400" />
+              <span className="text-sm text-gray-400">Email</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-white text-sm flex-1 truncate">{email}</span>
+              <button
+                onClick={copyEmail}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-fuchsia-500/20 text-fuchsia-400 text-xs font-medium rounded-lg hover:bg-fuchsia-500/30 transition-colors"
+              >
+                {copied ? <Check size={14} /> : <Copy size={14} />}
+                {copied ? 'Copied!' : 'Copy'}
+              </button>
+            </div>
+          </div>
+
+          {/* WhatsApp */}
+          <a
+            href={`https://wa.me/1${whatsapp}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block bg-black/30 border border-gray-800 rounded-xl p-4 hover:border-green-500/50 transition-colors group"
+          >
+            <div className="flex items-center gap-3 mb-3">
+              <Phone size={18} className="text-green-400" />
+              <span className="text-sm text-gray-400">WhatsApp</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-white text-sm">(740) 357-0482</span>
+              <span className="text-xs text-green-400 group-hover:underline">Open Chat →</span>
+            </div>
+          </a>
+        </div>
+
+        {/* Footer */}
+        <p className="text-center text-xs text-gray-500 mt-6">
+          We typically respond within 24 hours
+        </p>
+      </div>
+    </div>
+  );
+};
+
 const BrandPortal = () => {
+  const [showContactModal, setShowContactModal] = useState(false);
   const benefits = [
     {
       icon: Users,
@@ -117,13 +210,13 @@ const BrandPortal = () => {
             <span className="text-sm text-gray-400 font-medium">
               The Titans Model: How We Drive GMV for Brands
             </span>
-            <a
-              href="mailto:tiktoktitansmanagement@gmail.com"
+            <button
+              onClick={() => setShowContactModal(true)}
               className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-fuchsia-500 to-cyan-500 text-white text-xs font-medium rounded-full hover:opacity-90 transition-opacity"
             >
               Contact Sales
               <ExternalLink size={12} />
-            </a>
+            </button>
           </div>
           
           {/* Video embed */}
@@ -377,13 +470,13 @@ const BrandPortal = () => {
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <a
-                href="mailto:tiktoktitansmanagement@gmail.com"
+              <button
+                onClick={() => setShowContactModal(true)}
                 className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white/10 border border-white/20 text-white rounded-xl font-semibold hover:bg-white/20 transition-colors"
               >
                 <Mail size={20} />
                 Contact Our Team
-              </a>
+              </button>
               
               <a
                 href="https://whop.com/checkout/plan_rBAHh3s9NPXZR"
@@ -403,6 +496,9 @@ const BrandPortal = () => {
           </div>
         </div>
       </div>
+
+      {/* Contact Modal */}
+      <ContactModal isOpen={showContactModal} onClose={() => setShowContactModal(false)} />
     </div>
   );
 };
