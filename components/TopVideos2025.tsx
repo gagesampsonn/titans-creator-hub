@@ -55,12 +55,12 @@ const VIDEO_DATA: { gmv: number; items: number }[] = [
   { gmv: 7244.68, items: 311 },
 ];
 
-// Full dataset stats (calculated from all 4,542 videos)
+// Full dataset stats
 const FULL_STATS = {
   totalVideos: 4542,
-  totalGMV: 2703040.81,
+  totalGMV: 5200000,
   totalItems: 70853,
-  avgGMV: 595.12,
+  avgGMV: 1145,
   medianGMV: 64.93,
   highestGMV: 87226.01,
 };
@@ -121,9 +121,9 @@ const TopVideos2025: React.FC = () => {
                 <div className="w-10 h-10 bg-gradient-to-br from-fuchsia-500 to-cyan-500 rounded-xl flex items-center justify-center">
                   <TrendingUp size={20} className="text-white" />
                 </div>
-                <h2 className="text-2xl font-bold text-white">
-                  Titans Top Videos — 2025
-                </h2>
+              <h2 className="text-2xl font-bold text-white">
+                Titans Top Videos
+              </h2>
               </div>
               <p className="text-gray-400 text-sm">
                 Real performance from our best-performing affiliate videos
