@@ -118,7 +118,7 @@ const BrandPortal = () => {
               The Titans Model: How We Drive GMV for Brands
             </span>
             <a
-              href="mailto:brands@titansagency.co"
+              href="mailto:tiktoktitansmanagement@gmail.com"
               className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-fuchsia-500 to-cyan-500 text-white text-xs font-medium rounded-full hover:opacity-90 transition-opacity"
             >
               Contact Sales
@@ -378,7 +378,7 @@ const BrandPortal = () => {
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <a
-                href="mailto:brands@titansagency.co"
+                href="mailto:tiktoktitansmanagement@gmail.com"
                 className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white/10 border border-white/20 text-white rounded-xl font-semibold hover:bg-white/20 transition-colors"
               >
                 <Mail size={20} />
