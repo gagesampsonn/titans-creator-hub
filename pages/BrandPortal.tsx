@@ -205,13 +205,6 @@ const BrandPortal = () => {
               ))}
             </div>
 
-            <div className="border-t border-gray-800 pt-6">
-              <div className="flex items-center justify-between mb-4">
-                <span className="text-gray-400">Campaign Investment</span>
-                <span className="text-3xl font-bold text-white">$10,500</span>
-              </div>
-              <p className="text-sm text-gray-500">One-time payment • Flexible payment options available</p>
-            </div>
           </div>
 
           {/* What We Need Card */}
