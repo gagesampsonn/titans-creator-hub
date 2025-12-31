@@ -18,6 +18,7 @@ import {
   FileText,
   ShoppingBag
 } from 'lucide-react';
+import TopVideos2025 from '../components/TopVideos2025';
 
 const BrandPortal = () => {
   const benefits = [
@@ -159,6 +160,11 @@ const BrandPortal = () => {
             ))}
           </div>
         </div>
+      </div>
+
+      {/* Top Videos Section */}
+      <div className="relative z-10 max-w-5xl mx-auto px-6 py-16">
+        <TopVideos2025 />
       </div>
 
       {/* Campaign Package Section */}
