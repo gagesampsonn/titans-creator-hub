@@ -503,7 +503,7 @@ const Dashboard = () => {
               <span>
                 {data.period?.dateStart && data.period?.dateEnd 
                   ? `${formatDateShort(data.period.dateStart)} – ${formatDateLong(data.period.dateEnd)}`
-                  : 'Nov 30 – Dec 21, 2025'}
+                  : 'Dec 1, 2025 – Jan 4, 2026'}
               </span>
             </div>
           </div>
@@ -515,7 +515,7 @@ const Dashboard = () => {
             📊 Showing your performance for <strong>
               {data.period?.dateStart && data.period?.dateEnd 
                 ? `${formatDateFull(data.period.dateStart)} – ${formatDateFullYear(data.period.dateEnd)}`
-                : 'November 30 – December 21, 2025'}
+                : 'December 1, 2025 – January 4, 2026'}
             </strong>
             {data.period?.comparisonStart && data.period?.comparisonEnd && (
               <span className="text-text-muted"> • Compared to {formatDateShort(data.period.comparisonStart)} – {formatDateShort(data.period.comparisonEnd)}</span>
@@ -894,7 +894,7 @@ const Dashboard = () => {
               <p className="text-xs text-text-muted mt-1">
                 Aggregated data for {data.period?.dateStart && data.period?.dateEnd 
                   ? `${formatDateShort(data.period.dateStart)} – ${formatDateLong(data.period.dateEnd)}`
-                  : 'Nov 30 – Dec 21, 2025'}
+                  : 'Dec 1, 2025 – Jan 4, 2026'}
               </p>
             </div>
             <div className="overflow-x-auto">
