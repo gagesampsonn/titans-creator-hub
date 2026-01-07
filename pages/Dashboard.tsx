@@ -3,7 +3,8 @@ import {
   DollarSign, Package, TrendingUp, RefreshCw, AtSign, 
   AlertCircle, CheckCircle, Loader2, Star, Award, ShoppingBag,
   Send, CheckCircle2, TrendingDown, ArrowUpRight, ArrowDownRight,
-  Video, Clock, Radio, Info, Trophy, PlayCircle, Copy, Tag, Sparkles
+  Video, Clock, Radio, Info, Trophy, PlayCircle, Copy, Tag, Sparkles,
+  Download
 } from 'lucide-react';
 import { useAuth } from '../lib/AuthContext';
 import { supabase } from '../lib/supabase';
@@ -129,6 +130,60 @@ const formatDuration = (seconds: number): string => {
     return `${hours}h ${minutes}m`;
   }
   return `${minutes}m`;
+};
+
+// Export data to CSV
+const exportToCSV = (
+  handle: string,
+  summary: MetricsData['summary'],
+  period: MetricsData['period'],
+  products: ProductMetric[]
+) => {
+  const dateRange = period?.dateStart && period?.dateEnd 
+    ? `${period.dateStart}_to_${period.dateEnd}`
+    : 'performance_data';
+  
+  // Build CSV content
+  let csv = '';
+  
+  // Header info
+  csv += `Titans Agency Performance Report\n`;
+  csv += `Creator: @${handle}\n`;
+  csv += `Period: ${period?.dateStart || 'N/A'} to ${period?.dateEnd || 'N/A'}\n`;
+  csv += `Exported: ${new Date().toLocaleDateString()}\n\n`;
+  
+  // Summary section
+  csv += `PERFORMANCE SUMMARY\n`;
+  csv += `Metric,Value\n`;
+  csv += `Total GMV,$${summary.totalGmv.toFixed(2)}\n`;
+  csv += `Estimated Commission,$${summary.totalCommission.toFixed(2)}\n`;
+  csv += `Items Sold,${summary.totalItems}\n`;
+  csv += `Orders,${summary.totalOrders}\n`;
+  csv += `Top Niche,${summary.topNiche || 'N/A'}\n`;
+  csv += `GMV Change %,${summary.gmvChange?.toFixed(1) || 0}%\n`;
+  csv += `Items Change %,${summary.itemsChange?.toFixed(1) || 0}%\n\n`;
+  
+  // Products section
+  if (products && products.length > 0) {
+    csv += `PRODUCT BREAKDOWN\n`;
+    csv += `Product Name,Category,GMV,Items Sold,Commission\n`;
+    products.forEach(p => {
+      // Escape product names that might contain commas
+      const safeName = `"${p.product_name.replace(/"/g, '""')}"`;
+      csv += `${safeName},${p.product_category || 'Uncategorized'},$${p.gmv.toFixed(2)},${p.items_sold},$${p.est_commission.toFixed(2)}\n`;
+    });
+  }
+  
+  // Create and download the file
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `titans_${handle}_${dateRange}.csv`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
 };
 
 interface TopVideoData {
@@ -498,12 +553,25 @@ const Dashboard = () => {
             <h1 className="text-2xl font-bold text-text-primary">Your Dashboard</h1>
             <p className="text-sm text-text-muted">@{data.handle}</p>
           </div>
-          <div className="text-right">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => exportToCSV(
+                data.handle || 'creator',
+                data.summary,
+                data.period,
+                topProducts?.products || []
+              )}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-accent-teal to-accent-fuchsia text-white text-sm font-medium rounded-lg hover:opacity-90 transition-opacity"
+              title="Download your performance data to share with brands"
+            >
+              <Download className="w-4 h-4" />
+              <span className="hidden sm:inline">Export Data</span>
+            </button>
             <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-titan-surface border border-titan-border rounded-full text-xs text-text-muted">
               <span>
                 {data.period?.dateStart && data.period?.dateEnd 
                   ? `${formatDateShort(data.period.dateStart)} – ${formatDateLong(data.period.dateEnd)}`
-                  : 'Dec 1, 2025 – Jan 4, 2026'}
+                  : 'Dec 1, 2025 – Jan 6, 2026'}
               </span>
             </div>
           </div>
@@ -515,7 +583,7 @@ const Dashboard = () => {
             📊 Showing your performance for <strong>
               {data.period?.dateStart && data.period?.dateEnd 
                 ? `${formatDateFull(data.period.dateStart)} – ${formatDateFullYear(data.period.dateEnd)}`
-                : 'December 1, 2025 – January 4, 2026'}
+                : 'December 1, 2025 – January 6, 2026'}
             </strong>
             {data.period?.comparisonStart && data.period?.comparisonEnd && (
               <span className="text-text-muted"> • Compared to {formatDateShort(data.period.comparisonStart)} – {formatDateShort(data.period.comparisonEnd)}</span>
@@ -894,7 +962,7 @@ const Dashboard = () => {
               <p className="text-xs text-text-muted mt-1">
                 Aggregated data for {data.period?.dateStart && data.period?.dateEnd 
                   ? `${formatDateShort(data.period.dateStart)} – ${formatDateLong(data.period.dateEnd)}`
-                  : 'Dec 1, 2025 – Jan 4, 2026'}
+                  : 'Dec 1, 2025 – Jan 6, 2026'}
               </p>
             </div>
             <div className="overflow-x-auto">
