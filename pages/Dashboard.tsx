@@ -4,10 +4,11 @@ import {
   AlertCircle, CheckCircle, Loader2, Star, Award, ShoppingBag,
   Send, CheckCircle2, TrendingDown, ArrowUpRight, ArrowDownRight,
   Video, Clock, Radio, Info, Trophy, PlayCircle, Copy, Tag, Sparkles,
-  Download
+  Download, Film
 } from 'lucide-react';
 import { useAuth } from '../lib/AuthContext';
 import { supabase } from '../lib/supabase';
+import videoCounts from '../data/video-counts.json';
 
 // Change indicator component
 const ChangeIndicator = ({ value, suffix = '%' }: { value: number; suffix?: string }) => {
@@ -156,7 +157,6 @@ const exportToCSV = (
   csv += `PERFORMANCE SUMMARY\n`;
   csv += `Metric,Value\n`;
   csv += `Total GMV,$${summary.totalGmv.toFixed(2)}\n`;
-  csv += `Estimated Commission,$${summary.totalCommission.toFixed(2)}\n`;
   csv += `Items Sold,${summary.totalItems}\n`;
   csv += `Orders,${summary.totalOrders}\n`;
   csv += `Top Niche,${summary.topNiche || 'N/A'}\n`;
@@ -166,11 +166,12 @@ const exportToCSV = (
   // Products section
   if (products && products.length > 0) {
     csv += `PRODUCT BREAKDOWN\n`;
-    csv += `Product Name,Category,GMV,Items Sold,Commission\n`;
+    csv += `Product Name,Category,GMV,Items Sold,Videos Posted\n`;
     products.forEach(p => {
       // Escape product names that might contain commas
       const safeName = `"${p.product_name.replace(/"/g, '""')}"`;
-      csv += `${safeName},${p.product_category || 'Uncategorized'},$${p.gmv.toFixed(2)},${p.items_sold},$${p.est_commission.toFixed(2)}\n`;
+      const videoCount = (videoCounts as Record<string, number>)[`${handle}:::${p.product_name}`] || 0;
+      csv += `${safeName},${p.product_category || 'Uncategorized'},$${p.gmv.toFixed(2)},${p.items_sold},${videoCount}\n`;
     });
   }
   
@@ -614,12 +615,14 @@ const Dashboard = () => {
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
                 <Star className="w-5 h-5 text-accent-fuchsia" />
-                <span className="text-xs text-text-muted">Est. Commission</span>
+                <span className="text-xs text-text-muted">Top Niche</span>
               </div>
-              <ChangeIndicator value={data.summary.gmvChange || 0} />
             </div>
-            <p className="text-2xl font-bold text-text-primary">
-              ${data.summary.totalCommission.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            <p className="text-lg font-bold text-text-primary truncate" title={data.summary.topNiche || 'N/A'}>
+              {data.summary.topNiche || 'N/A'}
+            </p>
+            <p className="text-xs text-text-muted mt-1">
+              ${(data.summary.topNicheGmv || 0).toLocaleString(undefined, { maximumFractionDigits: 0 })} GMV
             </p>
           </div>
 
@@ -744,10 +747,11 @@ const Dashboard = () => {
                       <p className="text-xs text-text-muted">Items</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-accent-fuchsia font-semibold">
-                        ${Number(product.est_commission).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      <p className="text-accent-fuchsia font-semibold flex items-center gap-1 justify-end">
+                        <Film className="w-3.5 h-3.5" />
+                        {(videoCounts as Record<string, number>)[`${data.handle}:::${product.product_name}`] || 0}
                       </p>
-                      <p className="text-xs text-text-muted">Commission</p>
+                      <p className="text-xs text-text-muted">Videos</p>
                     </div>
                   </div>
                 </div>
@@ -970,8 +974,8 @@ const Dashboard = () => {
                 <thead className="bg-titan-bg/50 text-xs text-text-muted uppercase">
                   <tr>
                     <th className="px-6 py-3 text-right">GMV</th>
-                    <th className="px-6 py-3 text-right">Commission</th>
                     <th className="px-6 py-3 text-right">Items</th>
+                    <th className="px-6 py-3 text-right">Orders</th>
                     <th className="px-6 py-3 text-right">CTR</th>
                   </tr>
                 </thead>
@@ -980,11 +984,11 @@ const Dashboard = () => {
                     <td className="px-6 py-4 text-right text-accent-teal font-medium">
                       ${data.summary.totalGmv.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </td>
-                    <td className="px-6 py-4 text-right text-accent-fuchsia font-medium">
-                      ${data.summary.totalCommission.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                    </td>
                     <td className="px-6 py-4 text-right text-text-primary">
                       {data.summary.totalItems}
+                    </td>
+                    <td className="px-6 py-4 text-right text-accent-fuchsia font-medium">
+                      {(data.summary.totalOrders || 0).toLocaleString()}
                     </td>
                     <td className="px-6 py-4 text-right text-text-muted">
                       {data.summary.avgCtr.toFixed(2)}%
