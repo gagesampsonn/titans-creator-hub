@@ -48,18 +48,6 @@ const CAMPAIGN_CONFIGS: Record<number, CampaignConfig> = {
 
 const CAMPAIGN_DURATION = 44;
 
-const PRODUCT_CATEGORIES = [
-  'Health & Wellness',
-  'Beauty & Skincare',
-  'Fashion & Apparel',
-  'Home & Kitchen',
-  'Tech & Gadgets',
-  'Food & Beverages',
-  'Fitness & Sports',
-  'Pet Products',
-  'Baby & Kids',
-  'Other',
-];
 
 export const CampaignOverviewModal: React.FC<CampaignOverviewModalProps> = ({
   isOpen,
@@ -67,8 +55,9 @@ export const CampaignOverviewModal: React.FC<CampaignOverviewModalProps> = ({
 }) => {
   const [brandName, setBrandName] = useState('');
   const [creatorCount, setCreatorCount] = useState<5 | 10 | 15>(10);
-  const [category, setCategory] = useState('');
-  const [contactEmail, setContactEmail] = useState('');
+  const [totalSales, setTotalSales] = useState('');
+  const [website, setWebsite] = useState('');
+  const [contact, setContact] = useState('');
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
@@ -359,8 +348,9 @@ export const CampaignOverviewModal: React.FC<CampaignOverviewModalProps> = ({
         // Reset form
         setBrandName('');
         setCreatorCount(10);
-        setCategory('');
-        setContactEmail('');
+        setTotalSales('');
+        setWebsite('');
+        setContact('');
       }, 2000);
 
     } catch (err: any) {
@@ -452,44 +442,52 @@ export const CampaignOverviewModal: React.FC<CampaignOverviewModalProps> = ({
                     onChange={(e) => setCreatorCount(Number(e.target.value) as 5 | 10 | 15)}
                     className="w-full px-4 py-3 bg-black/30 border border-gray-700 rounded-xl text-white appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-fuchsia-500/50 focus:border-fuchsia-500 transition-all"
                   >
-                    <option value={5}>5 Creators — $5,500 — 120 Videos</option>
-                    <option value={10}>10 Creators — $10,500 — 225 Videos</option>
-                    <option value={15}>15 Creators — $13,500 — 325 Videos</option>
+                    <option value={5}>5 Creators</option>
+                    <option value={10}>10 Creators</option>
+                    <option value={15}>15 Creators</option>
                   </select>
                   <ChevronDown size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
                 </div>
               </div>
 
-              {/* Product Category */}
+              {/* Total Sales on TikTok Shop */}
               <div className="mb-4">
                 <label className="block text-sm font-medium text-white mb-2">
-                  Product Category <span className="text-gray-500">(optional)</span>
-                </label>
-                <div className="relative">
-                  <select
-                    value={category}
-                    onChange={(e) => setCategory(e.target.value)}
-                    className="w-full px-4 py-3 bg-black/30 border border-gray-700 rounded-xl text-white appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-fuchsia-500/50 focus:border-fuchsia-500 transition-all"
-                  >
-                    <option value="">Select a category...</option>
-                    {PRODUCT_CATEGORIES.map((cat) => (
-                      <option key={cat} value={cat}>{cat}</option>
-                    ))}
-                  </select>
-                  <ChevronDown size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-                </div>
-              </div>
-
-              {/* Contact Email */}
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-white mb-2">
-                  Contact Email <span className="text-gray-500">(optional)</span>
+                  Total Sales on TikTok Shop <span className="text-gray-500">(optional)</span>
                 </label>
                 <input
-                  type="email"
-                  value={contactEmail}
-                  onChange={(e) => setContactEmail(e.target.value)}
-                  placeholder="your@email.com"
+                  type="text"
+                  value={totalSales}
+                  onChange={(e) => setTotalSales(e.target.value)}
+                  placeholder="e.g. $50,000"
+                  className="w-full px-4 py-3 bg-black/30 border border-gray-700 rounded-xl text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-fuchsia-500/50 focus:border-fuchsia-500 transition-all"
+                />
+              </div>
+
+              {/* Company Website */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-white mb-2">
+                  Company Website <span className="text-gray-500">(optional)</span>
+                </label>
+                <input
+                  type="text"
+                  value={website}
+                  onChange={(e) => setWebsite(e.target.value)}
+                  placeholder="https://yourbrand.com"
+                  className="w-full px-4 py-3 bg-black/30 border border-gray-700 rounded-xl text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-fuchsia-500/50 focus:border-fuchsia-500 transition-all"
+                />
+              </div>
+
+              {/* Contact Email or WhatsApp */}
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-white mb-2">
+                  Contact Email or WhatsApp <span className="text-gray-500">(optional)</span>
+                </label>
+                <input
+                  type="text"
+                  value={contact}
+                  onChange={(e) => setContact(e.target.value)}
+                  placeholder="email@example.com or +1 234 567 8900"
                   className="w-full px-4 py-3 bg-black/30 border border-gray-700 rounded-xl text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-fuchsia-500/50 focus:border-fuchsia-500 transition-all"
                 />
               </div>
