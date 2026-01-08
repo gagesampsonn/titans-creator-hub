@@ -21,9 +21,11 @@ import {
   Copy,
   Check,
   MessageCircle,
-  Phone
+  Phone,
+  Sparkles
 } from 'lucide-react';
 import TopVideos2025 from '../components/TopVideos2025';
+import CampaignOverviewModal from '../components/CampaignOverviewModal';
 
 const ContactModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
   const [copied, setCopied] = useState(false);
@@ -114,6 +116,7 @@ const ContactModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => voi
 
 const BrandPortal = () => {
   const [showContactModal, setShowContactModal] = useState(false);
+  const [showCampaignModal, setShowCampaignModal] = useState(false);
   const benefits = [
     {
       icon: Users,
@@ -207,16 +210,25 @@ const BrandPortal = () => {
               <div className="w-3 h-3 rounded-full bg-yellow-500" />
               <div className="w-3 h-3 rounded-full bg-green-500" />
             </div>
-            <span className="text-sm text-gray-400 font-medium">
+            <span className="text-sm text-gray-400 font-medium hidden md:block">
               The Titans Model: How We Drive GMV for Brands
             </span>
-            <button
-              onClick={() => setShowContactModal(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-fuchsia-500 to-cyan-500 text-white text-xs font-medium rounded-full hover:opacity-90 transition-opacity"
-            >
-              Contact Sales
-              <ExternalLink size={12} />
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setShowCampaignModal(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-white/10 border border-white/20 text-white text-xs font-medium rounded-full hover:bg-white/20 transition-all"
+              >
+                <Sparkles size={12} />
+                Generate Overview
+              </button>
+              <button
+                onClick={() => setShowContactModal(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-fuchsia-500 to-cyan-500 text-white text-xs font-medium rounded-full hover:opacity-90 transition-opacity"
+              >
+                Contact Sales
+                <ExternalLink size={12} />
+              </button>
+            </div>
           </div>
           
           {/* Video embed */}
@@ -499,6 +511,9 @@ const BrandPortal = () => {
 
       {/* Contact Modal */}
       <ContactModal isOpen={showContactModal} onClose={() => setShowContactModal(false)} />
+      
+      {/* Campaign Overview Modal */}
+      <CampaignOverviewModal isOpen={showCampaignModal} onClose={() => setShowCampaignModal(false)} />
     </div>
   );
 };
