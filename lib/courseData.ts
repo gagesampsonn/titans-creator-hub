@@ -71,20 +71,48 @@ export const courseModules: CourseModule[] = [
     color: 'from-green-500 to-emerald-500',
     order: 2,
     videos: [
-      // Add videos here as you create them
-      // Example:
-      // {
-      //   id: 'gs-1',
-      //   title: 'Welcome to Titans',
-      //   description: 'An introduction to the Titans platform...',
-      //   duration: '5:23',
-      //   loomEmbedUrl: 'https://www.loom.com/embed/VIDEO_ID',
-      //   order: 1,
-      //   topics: [...],
-      //   keyTakeaways: [...],
-      //   difficulty: 'beginner',
-      //   tags: [...],
-      // },
+      {
+        id: 'gs-1',
+        title: 'Free Sample Video',
+        description: 'Learn how to get free product samples from brands to create content. This video covers the process of requesting samples, what to say, and how to build relationships with brands.',
+        duration: '5:00',
+        loomEmbedUrl: 'https://www.loom.com/embed/79b12989f7e243c0a255ba6239c16d11',
+        order: 1,
+        topics: [
+          { label: 'How to Request Samples' },
+          { label: 'What Brands Look For' },
+          { label: 'Building Brand Relationships' },
+          { label: 'Sample Request Templates' },
+        ],
+        keyTakeaways: [
+          'Get free products to create content',
+          'Write effective sample requests',
+          'Build long-term brand partnerships',
+        ],
+        difficulty: 'beginner',
+        tags: ['samples', 'free products', 'brands', 'outreach', 'getting started', 'beginner'],
+      },
+      {
+        id: 'gs-2',
+        title: 'TTS Settings',
+        description: 'Configure your TikTok Shop settings for maximum success. This walkthrough covers all the essential settings you need to optimize before you start posting content.',
+        duration: '8:00',
+        loomEmbedUrl: 'https://www.loom.com/embed/22796b78605d41259fa9a318d4af8fb3',
+        order: 2,
+        topics: [
+          { label: 'Account Settings Overview' },
+          { label: 'Profile Optimization' },
+          { label: 'Shop Configuration' },
+          { label: 'Commission Settings' },
+        ],
+        keyTakeaways: [
+          'Properly configure your TikTok Shop account',
+          'Optimize your profile for conversions',
+          'Set up your shop for success',
+        ],
+        difficulty: 'beginner',
+        tags: ['settings', 'tiktok shop', 'setup', 'configuration', 'account', 'beginner'],
+      },
     ],
   },
   {
