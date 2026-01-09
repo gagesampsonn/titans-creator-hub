@@ -1,12 +1,23 @@
 // Course module and video structure for the Titans Training
+// Designed for future AI-powered video search
+
+export interface VideoTopic {
+  label: string;
+  timestamp?: string; // e.g., "2:34" - jump to this part
+}
 
 export interface CourseVideo {
   id: string;
   title: string;
-  description: string;
+  description: string; // What the video covers
   duration: string; // e.g., "12:34"
-  loomEmbedUrl: string; // Loom share/embed URL
+  loomEmbedUrl: string;
   order: number;
+  // Rich metadata for AI search & preview
+  topics: VideoTopic[]; // Key topics covered with optional timestamps
+  keyTakeaways: string[]; // What you'll learn
+  difficulty: 'beginner' | 'intermediate' | 'advanced';
+  tags: string[]; // For AI search matching
 }
 
 export interface CourseModule {
@@ -14,166 +25,116 @@ export interface CourseModule {
   title: string;
   description: string;
   icon: string; // Lucide icon name
+  color: string; // Gradient color theme
   videos: CourseVideo[];
   order: number;
 }
 
-// Placeholder course data - Update with actual Loom video URLs
+// Course modules - Add videos as you create them
 export const courseModules: CourseModule[] = [
+  {
+    id: 'core-skills',
+    title: 'Core Skills',
+    description: 'Essential techniques every TikTok Shop creator needs to master',
+    icon: 'Zap',
+    color: 'from-yellow-500 to-orange-500',
+    order: 1,
+    videos: [
+      {
+        id: 'cs-1',
+        title: 'Mastering Sales Techniques for TikTok Shop Success',
+        description: 'Learn the fundamental sales techniques that drive conversions on TikTok Shop. This video covers persuasion psychology, building trust with your audience, and closing techniques adapted for short-form video.',
+        duration: '0:08', // Update with actual duration
+        loomEmbedUrl: 'https://www.loom.com/embed/0999654cd5584c2cb39be26c41bfe031',
+        order: 1,
+        topics: [
+          { label: 'Sales Psychology Basics' },
+          { label: 'Building Trust Quickly' },
+          { label: 'Call-to-Action Techniques' },
+          { label: 'Handling Objections in Comments' },
+        ],
+        keyTakeaways: [
+          'Understand what makes people buy on TikTok',
+          'Create urgency without being pushy',
+          'Structure your videos for maximum conversions',
+        ],
+        difficulty: 'beginner',
+        tags: ['sales', 'conversion', 'psychology', 'trust', 'cta', 'beginner', 'fundamentals'],
+      },
+    ],
+  },
   {
     id: 'getting-started',
     title: 'Getting Started',
     description: 'Everything you need to know to start your TikTok Shop creator journey',
     icon: 'Rocket',
-    order: 1,
+    color: 'from-green-500 to-emerald-500',
+    order: 2,
     videos: [
-      {
-        id: 'gs-1',
-        title: 'Welcome to Titans',
-        description: 'An introduction to the Titans platform and what you\'ll learn',
-        duration: '5:23',
-        loomEmbedUrl: 'https://www.loom.com/embed/PLACEHOLDER_VIDEO_ID',
-        order: 1,
-      },
-      {
-        id: 'gs-2',
-        title: 'Setting Up Your TikTok Shop Account',
-        description: 'Step-by-step guide to creating and optimizing your TikTok Shop creator account',
-        duration: '12:45',
-        loomEmbedUrl: 'https://www.loom.com/embed/PLACEHOLDER_VIDEO_ID',
-        order: 2,
-      },
-      {
-        id: 'gs-3',
-        title: 'Understanding the Dashboard',
-        description: 'Navigate the Titans dashboard and track your performance',
-        duration: '8:17',
-        loomEmbedUrl: 'https://www.loom.com/embed/PLACEHOLDER_VIDEO_ID',
-        order: 3,
-      },
+      // Add videos here as you create them
+      // Example:
+      // {
+      //   id: 'gs-1',
+      //   title: 'Welcome to Titans',
+      //   description: 'An introduction to the Titans platform...',
+      //   duration: '5:23',
+      //   loomEmbedUrl: 'https://www.loom.com/embed/VIDEO_ID',
+      //   order: 1,
+      //   topics: [...],
+      //   keyTakeaways: [...],
+      //   difficulty: 'beginner',
+      //   tags: [...],
+      // },
     ],
   },
   {
     id: 'product-selection',
-    title: 'Product Selection Mastery',
+    title: 'Product Selection',
     description: 'Learn how to find and select winning products that convert',
     icon: 'Target',
-    order: 2,
-    videos: [
-      {
-        id: 'ps-1',
-        title: 'Finding Trending Products',
-        description: 'How to identify trending products before they blow up',
-        duration: '15:32',
-        loomEmbedUrl: 'https://www.loom.com/embed/PLACEHOLDER_VIDEO_ID',
-        order: 1,
-      },
-      {
-        id: 'ps-2',
-        title: 'Analyzing Product Potential',
-        description: 'Key metrics to evaluate before promoting a product',
-        duration: '11:48',
-        loomEmbedUrl: 'https://www.loom.com/embed/PLACEHOLDER_VIDEO_ID',
-        order: 2,
-      },
-      {
-        id: 'ps-3',
-        title: 'Commission Structures Explained',
-        description: 'Understanding how commissions work and maximizing your earnings',
-        duration: '9:22',
-        loomEmbedUrl: 'https://www.loom.com/embed/PLACEHOLDER_VIDEO_ID',
-        order: 3,
-      },
-    ],
+    color: 'from-blue-500 to-cyan-500',
+    order: 3,
+    videos: [],
   },
   {
     id: 'content-creation',
-    title: 'Content Creation Strategies',
+    title: 'Content Creation',
     description: 'Create engaging content that drives sales and builds your audience',
     icon: 'Video',
-    order: 3,
-    videos: [
-      {
-        id: 'cc-1',
-        title: 'The Perfect TikTok Shop Video',
-        description: 'Anatomy of a high-converting product video',
-        duration: '18:45',
-        loomEmbedUrl: 'https://www.loom.com/embed/PLACEHOLDER_VIDEO_ID',
-        order: 1,
-      },
-      {
-        id: 'cc-2',
-        title: 'Hook Writing Masterclass',
-        description: 'Craft hooks that stop the scroll and drive engagement',
-        duration: '14:33',
-        loomEmbedUrl: 'https://www.loom.com/embed/PLACEHOLDER_VIDEO_ID',
-        order: 2,
-      },
-      {
-        id: 'cc-3',
-        title: 'Batch Content Creation',
-        description: 'How to create a week\'s worth of content in one day',
-        duration: '16:21',
-        loomEmbedUrl: 'https://www.loom.com/embed/PLACEHOLDER_VIDEO_ID',
-        order: 3,
-      },
-      {
-        id: 'cc-4',
-        title: 'Editing Tips & Tools',
-        description: 'Quick editing techniques that boost video performance',
-        duration: '12:09',
-        loomEmbedUrl: 'https://www.loom.com/embed/PLACEHOLDER_VIDEO_ID',
-        order: 4,
-      },
-    ],
+    color: 'from-purple-500 to-pink-500',
+    order: 4,
+    videos: [],
   },
   {
     id: 'scaling',
-    title: 'Scaling Your Business',
+    title: 'Scaling & Growth',
     description: 'Take your TikTok Shop business to the next level',
     icon: 'TrendingUp',
-    order: 4,
-    videos: [
-      {
-        id: 'sc-1',
-        title: 'Building Your Brand',
-        description: 'Develop a recognizable brand that attracts loyal followers',
-        duration: '13:56',
-        loomEmbedUrl: 'https://www.loom.com/embed/PLACEHOLDER_VIDEO_ID',
-        order: 1,
-      },
-      {
-        id: 'sc-2',
-        title: 'Working with Brands',
-        description: 'How to land brand deals and negotiate partnerships',
-        duration: '17:28',
-        loomEmbedUrl: 'https://www.loom.com/embed/PLACEHOLDER_VIDEO_ID',
-        order: 2,
-      },
-      {
-        id: 'sc-3',
-        title: 'Advanced Analytics',
-        description: 'Deep dive into metrics that matter for growth',
-        duration: '14:44',
-        loomEmbedUrl: 'https://www.loom.com/embed/PLACEHOLDER_VIDEO_ID',
-        order: 3,
-      },
-    ],
+    color: 'from-orange-500 to-red-500',
+    order: 5,
+    videos: [],
   },
 ];
 
 // Helper function to get total course duration
 export function getTotalDuration(): string {
-  let totalMinutes = 0;
+  let totalSeconds = 0;
   courseModules.forEach((module) => {
     module.videos.forEach((video) => {
-      const [mins, secs] = video.duration.split(':').map(Number);
-      totalMinutes += mins + secs / 60;
+      const parts = video.duration.split(':');
+      if (parts.length === 2) {
+        totalSeconds += parseInt(parts[0]) * 60 + parseInt(parts[1]);
+      } else if (parts.length === 3) {
+        totalSeconds += parseInt(parts[0]) * 3600 + parseInt(parts[1]) * 60 + parseInt(parts[2]);
+      }
     });
   });
-  const hours = Math.floor(totalMinutes / 60);
-  const mins = Math.round(totalMinutes % 60);
-  return `${hours}h ${mins}m`;
+  const hours = Math.floor(totalSeconds / 3600);
+  const mins = Math.floor((totalSeconds % 3600) / 60);
+  if (hours > 0) {
+    return `${hours}h ${mins}m`;
+  }
+  return `${mins}m`;
 }
 
 // Helper function to get total video count
@@ -192,3 +153,55 @@ export function findVideoById(videoId: string): { module: CourseModule; video: C
   return null;
 }
 
+// Helper function to search videos by query (for future AI integration)
+export function searchVideos(query: string): { module: CourseModule; video: CourseVideo; score: number }[] {
+  const queryLower = query.toLowerCase();
+  const results: { module: CourseModule; video: CourseVideo; score: number }[] = [];
+
+  for (const module of courseModules) {
+    for (const video of module.videos) {
+      let score = 0;
+
+      // Check title match
+      if (video.title.toLowerCase().includes(queryLower)) score += 10;
+
+      // Check description match
+      if (video.description.toLowerCase().includes(queryLower)) score += 5;
+
+      // Check tags match
+      video.tags.forEach((tag) => {
+        if (tag.toLowerCase().includes(queryLower) || queryLower.includes(tag.toLowerCase())) {
+          score += 3;
+        }
+      });
+
+      // Check topics match
+      video.topics.forEach((topic) => {
+        if (topic.label.toLowerCase().includes(queryLower)) score += 4;
+      });
+
+      // Check key takeaways match
+      video.keyTakeaways.forEach((takeaway) => {
+        if (takeaway.toLowerCase().includes(queryLower)) score += 2;
+      });
+
+      if (score > 0) {
+        results.push({ module, video, score });
+      }
+    }
+  }
+
+  // Sort by score descending
+  return results.sort((a, b) => b.score - a.score);
+}
+
+// Get all videos flat (for AI to index)
+export function getAllVideos(): { module: CourseModule; video: CourseVideo }[] {
+  const all: { module: CourseModule; video: CourseVideo }[] = [];
+  for (const module of courseModules) {
+    for (const video of module.videos) {
+      all.push({ module, video });
+    }
+  }
+  return all;
+}

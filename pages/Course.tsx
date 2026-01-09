@@ -13,7 +13,11 @@ import {
   Target,
   Video,
   TrendingUp,
-  ExternalLink
+  ExternalLink,
+  Zap,
+  Lightbulb,
+  Tag,
+  GraduationCap
 } from 'lucide-react';
 import { useAuth } from '../lib/AuthContext';
 import { courseModules, getTotalDuration, getTotalVideoCount, findVideoById, CourseModule, CourseVideo } from '../lib/courseData';
@@ -25,6 +29,7 @@ const iconMap: Record<string, React.ElementType> = {
   Target,
   Video,
   TrendingUp,
+  Zap,
 };
 
 const Course: React.FC = () => {
@@ -37,7 +42,7 @@ const Course: React.FC = () => {
   const [accessError, setAccessError] = useState<string | null>(null);
   const [selectedVideo, setSelectedVideo] = useState<CourseVideo | null>(null);
   const [selectedModule, setSelectedModule] = useState<CourseModule | null>(null);
-  const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set(['getting-started']));
+  const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set(['core-skills']));
 
   // Check Whop membership on mount
   useEffect(() => {
@@ -239,22 +244,72 @@ const Course: React.FC = () => {
                 
                 {/* Video info */}
                 <div className="p-6">
-                  <div className="flex items-center gap-2 text-text-muted text-sm mb-2">
-                    <span className="px-2 py-0.5 bg-accent-fuchsia/10 text-accent-fuchsia rounded text-xs font-medium">
+                  <div className="flex items-center gap-2 text-text-muted text-sm mb-3">
+                    <span className={`px-2 py-0.5 bg-gradient-to-r ${selectedModule.color} bg-opacity-10 text-white rounded text-xs font-medium`}>
                       {selectedModule.title}
                     </span>
-                    <span>•</span>
                     <span className="flex items-center gap-1">
                       <Clock className="w-3.5 h-3.5" />
                       {selectedVideo.duration}
                     </span>
+                    <span className={`px-2 py-0.5 rounded text-xs font-medium ${
+                      selectedVideo.difficulty === 'beginner' 
+                        ? 'bg-green-500/10 text-green-400' 
+                        : selectedVideo.difficulty === 'intermediate'
+                        ? 'bg-yellow-500/10 text-yellow-400'
+                        : 'bg-red-500/10 text-red-400'
+                    }`}>
+                      {selectedVideo.difficulty}
+                    </span>
                   </div>
-                  <h2 className="text-xl font-semibold text-text-primary mb-2">
+                  <h2 className="text-xl font-semibold text-text-primary mb-3">
                     {selectedVideo.title}
                   </h2>
-                  <p className="text-text-secondary">
+                  <p className="text-text-secondary mb-6">
                     {selectedVideo.description}
                   </p>
+                  
+                  {/* Topics & Takeaways Grid */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Topics Covered */}
+                    {selectedVideo.topics && selectedVideo.topics.length > 0 && (
+                      <div className="bg-titan-bg/50 rounded-xl p-4">
+                        <div className="flex items-center gap-2 mb-3">
+                          <Tag className="w-4 h-4 text-accent-teal" />
+                          <h3 className="text-sm font-medium text-text-primary">Topics Covered</h3>
+                        </div>
+                        <ul className="space-y-2">
+                          {selectedVideo.topics.map((topic, idx) => (
+                            <li key={idx} className="flex items-start gap-2 text-sm text-text-secondary">
+                              <ChevronRight className="w-3.5 h-3.5 mt-0.5 text-accent-teal shrink-0" />
+                              <span>{topic.label}</span>
+                              {topic.timestamp && (
+                                <span className="text-text-muted text-xs">({topic.timestamp})</span>
+                              )}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    
+                    {/* Key Takeaways */}
+                    {selectedVideo.keyTakeaways && selectedVideo.keyTakeaways.length > 0 && (
+                      <div className="bg-titan-bg/50 rounded-xl p-4">
+                        <div className="flex items-center gap-2 mb-3">
+                          <Lightbulb className="w-4 h-4 text-yellow-400" />
+                          <h3 className="text-sm font-medium text-text-primary">Key Takeaways</h3>
+                        </div>
+                        <ul className="space-y-2">
+                          {selectedVideo.keyTakeaways.map((takeaway, idx) => (
+                            <li key={idx} className="flex items-start gap-2 text-sm text-text-secondary">
+                              <CheckCircle2 className="w-3.5 h-3.5 mt-0.5 text-green-400 shrink-0" />
+                              <span>{takeaway}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             ) : (
@@ -284,8 +339,8 @@ const Course: React.FC = () => {
                         onClick={() => toggleModule(module.id)}
                         className="w-full flex items-center gap-3 p-4 hover:bg-titan-elevated transition-colors text-left"
                       >
-                        <div className="w-8 h-8 bg-gradient-to-br from-accent-fuchsia/10 to-accent-teal/10 rounded-lg flex items-center justify-center shrink-0">
-                          <IconComponent className="w-4 h-4 text-accent-fuchsia" />
+                        <div className={`w-8 h-8 bg-gradient-to-br ${module.color} rounded-lg flex items-center justify-center shrink-0 opacity-80`}>
+                          <IconComponent className="w-4 h-4 text-white" />
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="font-medium text-text-primary text-sm truncate">
