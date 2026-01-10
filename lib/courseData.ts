@@ -6,6 +6,12 @@ export interface VideoTopic {
   timestamp?: string; // e.g., "2:34" - jump to this part
 }
 
+export interface VideoResource {
+  label: string;
+  url: string;
+  note?: string; // e.g., "Must open on phone"
+}
+
 export interface CourseVideo {
   id: string;
   title: string;
@@ -19,6 +25,7 @@ export interface CourseVideo {
   keyTakeaways: string[]; // What you'll learn
   difficulty: 'beginner' | 'intermediate' | 'advanced';
   tags: string[]; // For AI search matching
+  resources?: VideoResource[]; // Optional links/resources for this video
 }
 
 export interface CourseModule {
@@ -182,6 +189,58 @@ export const courseModules: CourseModule[] = [
         ],
         difficulty: 'beginner',
         tags: ['settings', 'tiktok shop', 'setup', 'configuration', 'account', 'beginner'],
+      },
+      {
+        id: 'gs-5',
+        title: 'How to Get Your First Brand Deal',
+        description: 'Learn how to land your first brand deal in Titans. This video includes direct links to request free samples from brands. You must open these links on your phone and have a TikTok Shop account.',
+        duration: '12:00',
+        embedUrl: 'https://www.loom.com/embed/aa1efa8737214ed59972233a5813c275',
+        videoType: 'loom',
+        order: 5,
+        topics: [
+          { label: 'Finding Brands with Samples' },
+          { label: 'How to Request Samples' },
+          { label: 'What Brands Look For' },
+          { label: 'Low GMV Strategies' },
+        ],
+        keyTakeaways: [
+          'Get free samples from real brands',
+          'Land your first brand partnership',
+          'Start even with low GMV',
+        ],
+        difficulty: 'beginner',
+        tags: ['brand deal', 'samples', 'free products', 'retainer', 'first deal', 'beginner', 'brands'],
+        resources: [
+          { label: 'Oxyenergy', url: 'https://affiliate-us.tiktok.com/api/v1/share/AJ8u5QfzcHhE', note: 'Open on phone' },
+          { label: 'HerAure', url: 'https://affiliate-us.tiktok.com/api/v1/share/AJA0SoEss2vI', note: 'Open on phone' },
+          { label: 'Zooone', url: 'https://affiliate-us.tiktok.com/api/v1/share/AJ97E8tMFfqM', note: 'Open on phone' },
+          { label: 'WhyNot Natural', url: 'https://affiliate-us.tiktok.com/api/v1/share/AJ6SvfsQrxmQ', note: 'Open on phone' },
+          { label: 'Selerb', url: 'https://affiliate-us.tiktok.com/api/v1/share/AJAXuMmscNYh', note: 'Open on phone' },
+          { label: 'Zena Nutrition', url: 'https://affiliate-us.tiktok.com/api/v1/share/AJAqjmupI5RQ', note: 'Open on phone' },
+        ],
+      },
+      {
+        id: 'gs-6',
+        title: 'Working with Brands - Retainers Explained',
+        description: 'Understand how brand retainers work in Titans. Learn what to expect, how payments work, and how to maximize your brand partnerships.',
+        duration: '10:00',
+        embedUrl: 'https://www.loom.com/embed/4b1ad894c2c94525893a19fcdf65e51e',
+        videoType: 'loom',
+        order: 6,
+        topics: [
+          { label: 'What is a Retainer?' },
+          { label: 'Payment Structure' },
+          { label: 'Brand Expectations' },
+          { label: 'Maximizing Partnerships' },
+        ],
+        keyTakeaways: [
+          'Understand how retainers work',
+          'Know what brands expect from you',
+          'Build long-term brand relationships',
+        ],
+        difficulty: 'beginner',
+        tags: ['retainer', 'brands', 'partnership', 'payment', 'brand deal', 'beginner'],
       },
     ],
   },

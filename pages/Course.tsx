@@ -320,6 +320,33 @@ const Course: React.FC = () => {
                       </div>
                     )}
                   </div>
+                  
+                  {/* Resources / Links */}
+                  {selectedVideo.resources && selectedVideo.resources.length > 0 && (
+                    <div className="mt-4 bg-gradient-to-r from-accent-fuchsia/10 to-accent-teal/10 rounded-xl p-4 border border-accent-fuchsia/20">
+                      <div className="flex items-center gap-2 mb-3">
+                        <ExternalLink className="w-4 h-4 text-accent-fuchsia" />
+                        <h3 className="text-sm font-medium text-text-primary">Resources & Links</h3>
+                        <span className="text-xs text-text-muted">(Open on phone with TikTok Shop account)</span>
+                      </div>
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                        {selectedVideo.resources.map((resource, idx) => (
+                          <a
+                            key={idx}
+                            href={resource.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-2 px-3 py-2 bg-titan-surface rounded-lg hover:bg-titan-elevated transition-colors group"
+                          >
+                            <span className="text-sm text-text-primary group-hover:text-accent-fuchsia transition-colors">
+                              {resource.label}
+                            </span>
+                            <ExternalLink className="w-3 h-3 text-text-muted group-hover:text-accent-fuchsia transition-colors" />
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             ) : (
