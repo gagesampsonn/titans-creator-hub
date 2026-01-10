@@ -45,8 +45,18 @@ const Course: React.FC = () => {
   const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set(['core-skills']));
 
   // Check Whop membership on mount
+  // Set to true for local testing without Whop API
+  const DEV_BYPASS = false; // Production mode - Whop verification enabled
+  
   useEffect(() => {
     const checkMembership = async () => {
+      // DEV BYPASS - Remove this block when ready for production
+      if (DEV_BYPASS) {
+        setHasAccess(true);
+        setCheckingAccess(false);
+        return;
+      }
+      
       if (!user?.email) {
         setCheckingAccess(false);
         setHasAccess(false);
