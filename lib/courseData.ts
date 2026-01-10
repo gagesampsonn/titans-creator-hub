@@ -11,7 +11,8 @@ export interface CourseVideo {
   title: string;
   description: string; // What the video covers
   duration: string; // e.g., "12:34"
-  loomEmbedUrl: string;
+  embedUrl: string; // Loom or YouTube embed URL
+  videoType: 'loom' | 'youtube'; // Type of video player to use
   order: number;
   // Rich metadata for AI search & preview
   topics: VideoTopic[]; // Key topics covered with optional timestamps
@@ -44,8 +45,9 @@ export const courseModules: CourseModule[] = [
         id: 'cs-1',
         title: 'Mastering Sales Techniques for TikTok Shop Success',
         description: 'Learn the fundamental sales techniques that drive conversions on TikTok Shop. This video covers persuasion psychology, building trust with your audience, and closing techniques adapted for short-form video.',
-        duration: '0:08', // Update with actual duration
-        loomEmbedUrl: 'https://www.loom.com/embed/0999654cd5584c2cb39be26c41bfe031',
+        duration: '4:44',
+        embedUrl: 'https://www.loom.com/embed/0999654cd5584c2cb39be26c41bfe031',
+        videoType: 'loom',
         order: 1,
         topics: [
           { label: 'Sales Psychology Basics' },
@@ -61,6 +63,28 @@ export const courseModules: CourseModule[] = [
         difficulty: 'beginner',
         tags: ['sales', 'conversion', 'psychology', 'trust', 'cta', 'beginner', 'fundamentals'],
       },
+      {
+        id: 'cs-2',
+        title: 'Mindset for Success',
+        description: 'Develop the right mindset for building a successful TikTok Shop business. Learn how to stay motivated, handle setbacks, and maintain consistency.',
+        duration: '10:00',
+        embedUrl: 'https://www.loom.com/embed/f48661e808244650bb4ad12c33a01da3',
+        videoType: 'loom',
+        order: 2,
+        topics: [
+          { label: 'Growth Mindset' },
+          { label: 'Handling Rejection' },
+          { label: 'Staying Consistent' },
+          { label: 'Long-term Thinking' },
+        ],
+        keyTakeaways: [
+          'Build mental resilience for the journey',
+          'Turn failures into learning opportunities',
+          'Stay motivated when results are slow',
+        ],
+        difficulty: 'beginner',
+        tags: ['mindset', 'motivation', 'success', 'consistency', 'mental', 'beginner'],
+      },
     ],
   },
   {
@@ -73,11 +97,56 @@ export const courseModules: CourseModule[] = [
     videos: [
       {
         id: 'gs-1',
+        title: 'How to Get a TikTok Shop Account',
+        description: 'Step-by-step guide to setting up your TikTok Shop creator account. Everything you need to know to get started and approved.',
+        duration: '8:00',
+        embedUrl: 'https://www.youtube.com/embed/TS_NZCFFqog',
+        videoType: 'youtube',
+        order: 1,
+        topics: [
+          { label: 'Account Requirements' },
+          { label: 'Application Process' },
+          { label: 'Approval Tips' },
+          { label: 'Initial Setup' },
+        ],
+        keyTakeaways: [
+          'Meet the requirements for TikTok Shop',
+          'Complete the application successfully',
+          'Get approved faster with these tips',
+        ],
+        difficulty: 'beginner',
+        tags: ['account', 'setup', 'getting started', 'tiktok shop', 'application', 'beginner'],
+      },
+      {
+        id: 'gs-2',
+        title: 'Explaining TikTok Shop',
+        description: 'Understand how TikTok Shop works, how creators make money, and the overall ecosystem. Perfect foundation for new creators.',
+        duration: '10:00',
+        embedUrl: 'https://www.loom.com/embed/5a935e6b89404078906bde4ec923660e',
+        videoType: 'loom',
+        order: 2,
+        topics: [
+          { label: 'How TikTok Shop Works' },
+          { label: 'Commission Structure' },
+          { label: 'Creator vs Seller' },
+          { label: 'Revenue Opportunities' },
+        ],
+        keyTakeaways: [
+          'Understand the TikTok Shop ecosystem',
+          'Know how you get paid as a creator',
+          'Identify the best opportunities',
+        ],
+        difficulty: 'beginner',
+        tags: ['tiktok shop', 'explained', 'how it works', 'commission', 'beginner', 'introduction'],
+      },
+      {
+        id: 'gs-3',
         title: 'Free Sample Video',
         description: 'Learn how to get free product samples from brands to create content. This video covers the process of requesting samples, what to say, and how to build relationships with brands.',
         duration: '5:00',
-        loomEmbedUrl: 'https://www.loom.com/embed/79b12989f7e243c0a255ba6239c16d11',
-        order: 1,
+        embedUrl: 'https://www.loom.com/embed/79b12989f7e243c0a255ba6239c16d11',
+        videoType: 'loom',
+        order: 3,
         topics: [
           { label: 'How to Request Samples' },
           { label: 'What Brands Look For' },
@@ -93,12 +162,13 @@ export const courseModules: CourseModule[] = [
         tags: ['samples', 'free products', 'brands', 'outreach', 'getting started', 'beginner'],
       },
       {
-        id: 'gs-2',
+        id: 'gs-4',
         title: 'TTS Settings',
         description: 'Configure your TikTok Shop settings for maximum success. This walkthrough covers all the essential settings you need to optimize before you start posting content.',
         duration: '8:00',
-        loomEmbedUrl: 'https://www.loom.com/embed/22796b78605d41259fa9a318d4af8fb3',
-        order: 2,
+        embedUrl: 'https://www.loom.com/embed/22796b78605d41259fa9a318d4af8fb3',
+        videoType: 'loom',
+        order: 4,
         topics: [
           { label: 'Account Settings Overview' },
           { label: 'Profile Optimization' },
@@ -131,7 +201,52 @@ export const courseModules: CourseModule[] = [
     icon: 'Video',
     color: 'from-purple-500 to-pink-500',
     order: 4,
-    videos: [],
+    videos: [
+      {
+        id: 'cc-1',
+        title: 'How to Add a Product to Video',
+        description: 'Learn how to properly tag and add products to your TikTok videos. This is essential for earning commissions on every sale.',
+        duration: '5:00',
+        embedUrl: 'https://www.loom.com/embed/5c3d48050914441282d4ca37db58e900',
+        videoType: 'loom',
+        order: 1,
+        topics: [
+          { label: 'Finding Products to Tag' },
+          { label: 'Adding Product Links' },
+          { label: 'Best Practices for Tagging' },
+          { label: 'Troubleshooting Common Issues' },
+        ],
+        keyTakeaways: [
+          'Tag products correctly in every video',
+          'Maximize your commission potential',
+          'Avoid common tagging mistakes',
+        ],
+        difficulty: 'beginner',
+        tags: ['product', 'tagging', 'video', 'commission', 'how to', 'beginner'],
+      },
+      {
+        id: 'cc-2',
+        title: 'How to Edit/Cut a Video on TikTok App',
+        description: 'Master the TikTok app editing tools. Learn how to cut, trim, and edit your videos directly in the app for quick content creation.',
+        duration: '7:00',
+        embedUrl: 'https://www.loom.com/embed/3329a2ee7e9a410a8f2621a6b121da21',
+        videoType: 'loom',
+        order: 2,
+        topics: [
+          { label: 'Basic Editing Tools' },
+          { label: 'Cutting and Trimming' },
+          { label: 'Adding Text and Effects' },
+          { label: 'Quick Editing Workflow' },
+        ],
+        keyTakeaways: [
+          'Edit videos efficiently in the TikTok app',
+          'Cut out mistakes and dead air',
+          'Create polished content quickly',
+        ],
+        difficulty: 'beginner',
+        tags: ['editing', 'video', 'tiktok app', 'cut', 'trim', 'beginner', 'content'],
+      },
+    ],
   },
   {
     id: 'scaling',

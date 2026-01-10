@@ -242,7 +242,7 @@ const Course: React.FC = () => {
                 {/* Video container with watermark */}
                 <div className="relative aspect-video bg-black">
                   <iframe
-                    src={selectedVideo.loomEmbedUrl}
+                    src={selectedVideo.embedUrl}
                     className="absolute inset-0 w-full h-full"
                     frameBorder="0"
                     allowFullScreen
