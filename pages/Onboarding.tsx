@@ -195,8 +195,10 @@ const Onboarding = () => {
               {/* Loom Video Embed */}
               <div className="relative rounded-lg overflow-hidden bg-black" style={{ paddingBottom: '56.25%' }}>
                 <iframe 
-                  src="https://www.loom.com/embed/0bdf8aa83f574ed99077cb0a31711f89?hide_owner=true&hide_share=true&hide_title=true&hideEmbedTopBar=true" 
+                  src="https://www.loom.com/embed/0bdf8aa83f574ed99077cb0a31711f89" 
                   frameBorder="0" 
+                  webkitallowfullscreen="true"
+                  mozallowfullscreen="true"
                   allowFullScreen
                   className="absolute top-0 left-0 w-full h-full"
                 />
