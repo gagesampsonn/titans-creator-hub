@@ -232,7 +232,7 @@ const Onboarding = () => {
 
         {/* Footer note */}
         <p className="text-center text-gray-500 text-sm mt-10">
-          Having trouble? DM @gagesampson on Discord or email support@titansagency.co
+          Having trouble? DM @gagesampson on Whop or email tiktoktitansmanagement@gmail.com
         </p>
       </div>
     </div>
