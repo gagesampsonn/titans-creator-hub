@@ -46,7 +46,7 @@ const Course: React.FC = () => {
 
   // Check Whop membership on mount
   // Set to true for local testing without Whop API
-  const DEV_BYPASS = false; // Production mode - Whop verification enabled
+  const DEV_BYPASS = true; // Local testing mode - set false for production
   
   useEffect(() => {
     const checkMembership = async () => {
