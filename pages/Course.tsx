@@ -145,21 +145,86 @@ const Course: React.FC = () => {
   if (!user) {
     return (
       <div className="min-h-screen bg-titan-bg">
-        <div className="max-w-2xl mx-auto px-6 py-20">
-          <div className="bg-titan-surface border border-titan-border rounded-2xl p-8 text-center">
-            <div className="w-16 h-16 bg-gradient-to-br from-accent-fuchsia/20 to-accent-teal/20 rounded-2xl flex items-center justify-center mx-auto mb-6">
-              <Lock className="w-8 h-8 text-accent-fuchsia" />
+        <div className="max-w-3xl mx-auto px-6 py-16">
+          {/* Hero Section */}
+          <div className="text-center mb-10">
+            <div className="w-20 h-20 bg-gradient-to-br from-accent-fuchsia to-accent-teal rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-accent-fuchsia/20">
+              <GraduationCap className="w-10 h-10 text-white" />
             </div>
-            <h1 className="text-2xl font-bold text-text-primary mb-3">Titans Training</h1>
-            <p className="text-text-secondary mb-6">
-              Please log in to access the course content.
+            <h1 className="text-4xl font-bold text-text-primary mb-4">Titans Training</h1>
+            <p className="text-lg text-text-secondary max-w-xl mx-auto">
+              Master TikTok Shop affiliate marketing with our comprehensive video course. 
+              Learn the exact strategies top creators use to generate 6-figure revenue.
+            </p>
+          </div>
+
+          {/* Important Notice Card */}
+          <div className="bg-gradient-to-br from-orange-500/10 to-amber-500/10 border border-orange-500/30 rounded-2xl p-6 mb-8">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 bg-orange-500/20 rounded-xl flex items-center justify-center shrink-0">
+                <AlertCircle className="w-6 h-6 text-orange-400" />
+              </div>
+              <div>
+                <h2 className="text-lg font-semibold text-orange-400 mb-2">⚠️ Important: Use Your WHOP Email</h2>
+                <p className="text-text-secondary mb-3">
+                  To access the course, you <strong className="text-text-primary">must log in with the same email address</strong> you used to purchase your Titans membership on WHOP.
+                </p>
+                <p className="text-text-muted text-sm">
+                  If you use a different email, the system won't be able to verify your membership and you won't be able to view any course content.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Login Card */}
+          <div className="bg-titan-surface border border-titan-border rounded-2xl p-8 text-center">
+            <div className="w-14 h-14 bg-gradient-to-br from-accent-fuchsia/20 to-accent-teal/20 rounded-xl flex items-center justify-center mx-auto mb-5">
+              <Lock className="w-7 h-7 text-accent-fuchsia" />
+            </div>
+            <h2 className="text-xl font-semibold text-text-primary mb-3">Ready to Start Learning?</h2>
+            <p className="text-text-secondary mb-6 max-w-md mx-auto">
+              Log in with your WHOP email to unlock all course modules, video lessons, and exclusive resources.
             </p>
             <button
               onClick={() => navigate('/login')}
-              className="px-6 py-3 bg-gradient-to-r from-accent-fuchsia to-accent-teal text-white font-medium rounded-xl hover:opacity-90 transition-opacity"
+              className="px-8 py-3 bg-gradient-to-r from-accent-fuchsia to-accent-teal text-white font-semibold rounded-xl hover:opacity-90 transition-opacity shadow-lg shadow-accent-fuchsia/20"
             >
-              Log In to Continue
+              Log In to Access Course
             </button>
+            <p className="text-text-muted text-sm mt-4">
+              Don't have a membership yet?{' '}
+              <a 
+                href="https://whop.com/tiktokshopaffiliate/" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-accent-teal hover:underline"
+              >
+                Join Titans on WHOP →
+              </a>
+            </p>
+          </div>
+
+          {/* Course Preview */}
+          <div className="mt-12">
+            <h3 className="text-lg font-semibold text-text-primary mb-6 text-center">What You'll Learn</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {[
+                { icon: Rocket, title: 'Getting Started', desc: 'Set up your TikTok Shop account the right way' },
+                { icon: Target, title: 'Finding Products', desc: 'Discover high-converting products to promote' },
+                { icon: Video, title: 'Content Creation', desc: 'Create videos that drive sales and go viral' },
+                { icon: TrendingUp, title: 'Scaling Up', desc: 'Advanced strategies to multiply your income' },
+              ].map((item, idx) => (
+                <div key={idx} className="bg-titan-surface/50 border border-titan-border rounded-xl p-4 flex items-start gap-4">
+                  <div className="w-10 h-10 bg-gradient-to-br from-accent-fuchsia/10 to-accent-teal/10 rounded-lg flex items-center justify-center shrink-0">
+                    <item.icon className="w-5 h-5 text-accent-teal" />
+                  </div>
+                  <div>
+                    <h4 className="font-medium text-text-primary mb-1">{item.title}</h4>
+                    <p className="text-sm text-text-muted">{item.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>

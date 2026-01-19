@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { HashRouter, Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X, User, ChevronRight, Settings as SettingsIcon } from 'lucide-react';
+import { Menu, X, User, ChevronRight, Settings as SettingsIcon, GraduationCap } from 'lucide-react';
 import { Analytics } from '@vercel/analytics/react';
 import { AuthProvider, useAuth } from './lib/AuthContext';
 import Home from './pages/Home';
@@ -55,6 +55,10 @@ const Navbar = () => {
             <Link to="/products" className={isActive('/products')}>Products</Link>
             <Link to="/trends" className={isActive('/trends')}>Trends</Link>
             <Link to="/audit" className={isActive('/audit')}>Video Audit</Link>
+            <Link to="/course" className={`${isActive('/course')} flex items-center gap-1.5`}>
+              <GraduationCap size={14} />
+              Course
+            </Link>
             <Link to="/brands" className={isActive('/brands')}>For Brands</Link>
           </div>
 
@@ -145,6 +149,17 @@ const Navbar = () => {
               className="flex items-center justify-between px-3 py-2.5 text-sm text-text-secondary hover:text-text-primary hover:bg-titan-elevated rounded transition-colors"
             >
               Video Audit
+              <ChevronRight size={14} />
+            </Link>
+            <Link 
+              to="/course" 
+              onClick={() => setIsOpen(false)} 
+              className="flex items-center justify-between px-3 py-2.5 text-sm text-text-secondary hover:text-text-primary hover:bg-titan-elevated rounded transition-colors"
+            >
+              <span className="flex items-center gap-2">
+                <GraduationCap size={14} />
+                Course
+              </span>
               <ChevronRight size={14} />
             </Link>
             <Link 
