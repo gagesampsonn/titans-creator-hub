@@ -12,6 +12,11 @@ const COURSE_ACCESS_PRODUCTS = [
   'prod_zfzOjL0XxtTgH', // Titans Inner Circle ($2,000)
 ];
 
+// Admin emails that always have access (bypasses WHOP check)
+const ADMIN_EMAILS = [
+  'gagesampson2016@gmail.com',
+];
+
 interface WhopMembership {
   id: string;
   product: {
@@ -44,6 +49,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   if (!email) {
     return res.status(400).json({ error: 'Email is required' });
+  }
+
+  // Admin bypass - always grant access to admin emails
+  const normalizedEmail = email.toLowerCase().trim();
+  if (ADMIN_EMAILS.map(e => e.toLowerCase()).includes(normalizedEmail)) {
+    console.log('[Whop] Admin bypass for:', email);
+    return res.status(200).json({
+      hasAccess: true,
+      activeProducts: [{ id: 'admin', name: 'Admin Access' }],
+      membershipCount: 1,
+      isAdmin: true,
+    });
   }
 
   if (!WHOP_API_KEY) {
