@@ -32,6 +32,9 @@ const iconMap: Record<string, React.ElementType> = {
   Zap,
 };
 
+// Secret access key for temporary guest access (share this URL: /course?access=titans2026)
+const GUEST_ACCESS_KEY = 'titans2026';
+
 const Course: React.FC = () => {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
@@ -43,12 +46,25 @@ const Course: React.FC = () => {
   const [selectedVideo, setSelectedVideo] = useState<CourseVideo | null>(null);
   const [selectedModule, setSelectedModule] = useState<CourseModule | null>(null);
   const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set(['core-skills']));
+  const [isGuestAccess, setIsGuestAccess] = useState(false);
+
+  // Check for guest access key in URL
+  const accessKey = searchParams.get('access');
+  const hasGuestKey = accessKey === GUEST_ACCESS_KEY;
 
   // Check Whop membership on mount
   const DEV_BYPASS = false; // PRODUCTION MODE - verifies WHOP membership
   
   useEffect(() => {
     const checkMembership = async () => {
+      // Guest access via secret URL key
+      if (hasGuestKey) {
+        setIsGuestAccess(true);
+        setHasAccess(true);
+        setCheckingAccess(false);
+        return;
+      }
+      
       // DEV BYPASS - Remove this block when ready for production
       if (DEV_BYPASS) {
         setHasAccess(true);
@@ -87,7 +103,7 @@ const Course: React.FC = () => {
     if (!authLoading) {
       checkMembership();
     }
-  }, [user, authLoading]);
+  }, [user, authLoading, hasGuestKey]);
 
   // Handle video selection from URL params
   useEffect(() => {
@@ -185,7 +201,7 @@ const Course: React.FC = () => {
               Log in with your WHOP email to unlock all course modules, video lessons, and exclusive resources.
             </p>
             <button
-              onClick={() => navigate('/course-login')}
+              onClick={() => navigate('/login')}
               className="px-8 py-3 bg-gradient-to-r from-accent-fuchsia to-accent-teal text-white font-semibold rounded-xl hover:opacity-90 transition-opacity shadow-lg shadow-accent-fuchsia/20"
             >
               Log In to Access Course
@@ -313,7 +329,7 @@ const Course: React.FC = () => {
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   />
                   {/* Email watermark overlay */}
-                  <EmailWatermark email={user.email || ''} />
+                  <EmailWatermark email={isGuestAccess ? 'Guest Preview' : (user?.email || '')} />
                 </div>
                 
                 {/* Video info */}
