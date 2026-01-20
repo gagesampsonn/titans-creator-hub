@@ -144,8 +144,8 @@ const Course: React.FC = () => {
     });
   };
 
-  // Loading state
-  if (authLoading || checkingAccess) {
+  // Loading state (skip if guest access key is present)
+  if ((authLoading || checkingAccess) && !hasGuestKey) {
     return (
       <div className="min-h-screen bg-titan-bg flex items-center justify-center">
         <div className="text-center">
@@ -156,8 +156,8 @@ const Course: React.FC = () => {
     );
   }
 
-  // Not logged in
-  if (!user) {
+  // Not logged in (but allow guest access with key)
+  if (!user && !hasGuestKey) {
     return (
       <div className="min-h-screen bg-titan-bg">
         <div className="max-w-3xl mx-auto px-6 py-16">
@@ -246,8 +246,8 @@ const Course: React.FC = () => {
     );
   }
 
-  // No access
-  if (!hasAccess) {
+  // No access (but allow guest access with key)
+  if (!hasAccess && !hasGuestKey) {
     return (
       <div className="min-h-screen bg-titan-bg">
         <div className="max-w-2xl mx-auto px-6 py-20">
