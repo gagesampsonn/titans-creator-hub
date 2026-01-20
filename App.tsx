@@ -17,6 +17,7 @@ import Profile from './pages/Profile';
 import Settings from './pages/Settings';
 import Onboarding from './pages/Onboarding';
 import Course from './pages/Course';
+import CourseLogin from './pages/CourseLogin';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -302,6 +303,7 @@ const App = () => {
               <Route path="/settings/integrations" element={<Settings />} />
               <Route path="/onboarding" element={<Onboarding />} />
               <Route path="/course" element={<Course />} />
+              <Route path="/course-login" element={<CourseLogin />} />
             </Routes>
           </main>
           <Footer />

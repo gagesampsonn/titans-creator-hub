@@ -185,7 +185,7 @@ const Course: React.FC = () => {
               Log in with your WHOP email to unlock all course modules, video lessons, and exclusive resources.
             </p>
             <button
-              onClick={() => navigate('/login')}
+              onClick={() => navigate('/course-login')}
               className="px-8 py-3 bg-gradient-to-r from-accent-fuchsia to-accent-teal text-white font-semibold rounded-xl hover:opacity-90 transition-opacity shadow-lg shadow-accent-fuchsia/20"
             >
               Log In to Access Course
