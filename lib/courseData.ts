@@ -327,6 +327,28 @@ export const courseModules: CourseModule[] = [
         difficulty: 'beginner',
         tags: ['editing', 'video', 'tiktok app', 'cut', 'trim', 'beginner', 'content'],
       },
+      {
+        id: 'cc-3',
+        title: 'Using Opus Clips for Fast Video Editing',
+        description: 'Learn how to use Opus Clips to turn long-form content into short TikTok clips. This tool can generate 10-50 clips from a single video, dramatically speeding up your content creation workflow.',
+        duration: '3:00',
+        embedUrl: 'https://www.loom.com/embed/22e6504176714ac3918fffbc1ba7589f',
+        videoType: 'loom',
+        order: 3,
+        topics: [
+          { label: 'What is Opus Clips' },
+          { label: 'Turning Long Videos into Shorts' },
+          { label: 'Adjusting Aspect Ratios' },
+          { label: 'Maximizing Clip Output' },
+        ],
+        keyTakeaways: [
+          'Speed up your editing workflow with AI',
+          'Turn any long video into 10-50 TikTok clips',
+          'Repurpose content from podcasts and interviews',
+        ],
+        difficulty: 'beginner',
+        tags: ['opus clips', 'editing', 'ai', 'automation', 'clips', 'repurpose', 'workflow', 'beginner'],
+      },
     ],
   },
   {
