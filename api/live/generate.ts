@@ -237,7 +237,7 @@ async function generateScript(req: VercelRequest, res: VercelResponse) {
     const audienceLabel = audienceLabels[targetAudience] || targetAudience;
     const categoryLabel = productCategoryLabels[categoryKey] || category;
 
-    const systemPrompt = `You're helping a TikTok creator with casual talking points for their LIVE stream about "${productName}".
+    const systemPrompt = `Generate SHORT, PUNCHY talking points for a TikTok LIVE selling "${productName}".
 
 PRODUCT: ${productName}
 AUDIENCE: ${audienceLabel}  
@@ -245,39 +245,50 @@ CATEGORY: ${categoryLabel}
 WHAT IT DOES: ${productDescription}
 ${keyBenefit ? `MAIN BENEFIT: ${keyBenefit}` : ''}
 
-STYLE RULES - THIS IS CRITICAL:
-- Sound like you're casually chatting with a friend, NOT selling
-- NO salesy language like "grab yours" or "don't miss out" or "order now"
-- NO fake urgency or pressure tactics
-- Be genuine and relaxed - like you're just sharing something cool you found
-- Use "I" statements - "I've been using this" or "what I like about it"
-- Keep it chill and authentic
-- 8th grade reading level - simple everyday words
-- Include 1 authority word from: ${authorityWords.slice(0, 3).join(', ')} - but explain it simply
+CRITICAL STYLE RULES:
+- BE DIRECT AND CONFIDENT. No hedging, no "I think", no "honestly", no "might help"
+- SHORT PHRASES ONLY. Max 10 words per bullet point
+- NO FILLER WORDS: Remove "and honestly", "what I like is", "also I noticed", "these might be"
+- SOUND LIKE AN EXPERT who knows the product, not someone discovering it
+- State facts, don't suggest possibilities
+- 8th grade reading level
+- Include 1 authority word from: ${authorityWords.slice(0, 3).join(', ')} - explain in 5 words max
 
-OUTPUT - casual talking points the creator can reference:
+BAD EXAMPLES (don't write like this):
+- "And honestly, I think they help me chill out" ❌
+- "What I like about these is that I'm not reaching for wine" ❌
+- "These might be something to look into" ❌
+- "Also, I noticed free shipping" ❌
+
+GOOD EXAMPLES (write like this):
+- "Helps you chill without needing wine" ✓
+- "You probably have cortisol issues" ✓
+- "60 gummies, lasts a month" ✓
+- "Free shipping on this live" ✓
+
+OUTPUT FORMAT - bullet points only, no fluff:
 
 **WHAT IT IS**
-• One simple sentence explaining the product
+• [One sentence, 10 words max]
 
-**WHY I LIKE IT** (personal, authentic reasons)
-• [Genuine benefit - how it actually helps]
-• [Another real benefit]
+**KEY BENEFITS**
+• [Direct benefit statement]
+• [Another direct benefit]
 
-**THE SCIENCE** (one authority word, explained simply)
-• [Authority word] - basically means [simple explanation]
+**THE SCIENCE**
+• [Authority word] = [5 word explanation]
 
-**WHO IT'S FOR**
-• If you're someone who [relatable situation], this might help
+**WHO NEEDS THIS**
+• [Direct statement about who this is for - be specific]
 
-**GOOD TO KNOW**
-• [Product detail like size, how long it lasts, etc.]
-• Free shipping if you grab it from this live
+**PRODUCT DETAILS**
+• [Size/amount/duration - just facts]
+• Free shipping on this live
 
-**IF PEOPLE ASK**
-• Quick answer to common questions
+**COMMON QUESTIONS**
+• [Question] → [Short direct answer]
 
-Keep it real. No hype. Just honest info a creator would naturally share while chatting with their audience.`;
+NO FILLER. NO HEDGING. DIRECT AND CONFIDENT.`;
 
     const response = await ai.models.generateContent({
       model: "gemini-2.0-flash",
