@@ -55,7 +55,7 @@ const Navbar = () => {
           <div className="hidden md:flex items-center gap-8 text-sm">
             <Link to="/products" className={isActive('/products')}>Products</Link>
             <Link to="/trends" className={isActive('/trends')}>Trends</Link>
-            <Link to="/audit" className={isActive('/audit')}>Video Audit</Link>
+            <Link to="/audit" className={isActive('/audit')}>Creator Tools</Link>
             <Link to="/course" className={`${isActive('/course')} flex items-center gap-1.5`}>
               <GraduationCap size={14} />
               Course
@@ -149,7 +149,7 @@ const Navbar = () => {
               onClick={() => setIsOpen(false)} 
               className="flex items-center justify-between px-3 py-2.5 text-sm text-text-secondary hover:text-text-primary hover:bg-titan-elevated rounded transition-colors"
             >
-              Video Audit
+              Creator Tools
               <ChevronRight size={14} />
             </Link>
             <Link 
@@ -242,7 +242,7 @@ const Footer = () => (
           <ul className="space-y-2.5 text-sm text-text-muted">
             <li><Link to="/products" className="hover:text-text-secondary transition-colors">Products</Link></li>
             <li><Link to="/trends" className="hover:text-text-secondary transition-colors">Trend Pulse</Link></li>
-            <li><Link to="/audit" className="hover:text-text-secondary transition-colors">Video Audit</Link></li>
+            <li><Link to="/audit" className="hover:text-text-secondary transition-colors">Creator Tools</Link></li>
           </ul>
         </div>
 
