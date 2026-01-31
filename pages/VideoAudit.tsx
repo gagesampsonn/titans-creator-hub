@@ -385,23 +385,18 @@ ${videoStyle === 'lifestyle' ? 'For Lifestyle: Check how naturally the product f
   // LIVE SCRIPT GENERATOR HANDLERS
   // ═══════════════════════════════════════════════════════════════════════
   const productInfoComplete = liveProductName.trim() && liveCategory && liveAudience && liveDescription.trim();
-  const canGenerateScript = productInfoComplete && (user || liveEmail.trim());
+  const [pendingScript, setPendingScript] = useState<string | null>(null); // Script waiting for email unlock
+  const [scriptUnlocked, setScriptUnlocked] = useState(false); // Whether email was submitted
 
-  const handleGenerateClick = () => {
-    // If product info is complete but user not logged in and no email yet, show email capture
-    if (productInfoComplete && !user && !liveEmail.trim()) {
-      setShowEmailCapture(true);
-      return;
-    }
-    // Otherwise proceed to generate
-    handleGenerateScript();
-  };
-
+  // First click: Generate script (will be gated if not logged in)
   const handleGenerateScript = async () => {
-    if (!canGenerateScript) return;
+    if (!productInfoComplete) return;
     
     setIsGeneratingScript(true);
     setGeneratedScript(null);
+    setPendingScript(null);
+    setScriptUnlocked(false);
+    setShowEmailCapture(false);
     setInfographicData(null);
     setInfographicSuggestion(null);
 
@@ -415,6 +410,8 @@ ${videoStyle === 'lifestyle' ? 'For Lifestyle: Check how naturally the product f
         accessToken = data.session?.access_token;
       }
 
+      // For non-logged-in users, we generate without email first (just to get the script)
+      // We'll send email later when they unlock
       const response = await fetch('/api/live/generate', {
         method: 'POST',
         headers: {
@@ -428,8 +425,9 @@ ${videoStyle === 'lifestyle' ? 'For Lifestyle: Check how naturally the product f
           targetAudience: liveAudience,
           productDescription: liveDescription.trim(),
           keyBenefit: liveKeyBenefit.trim() || undefined,
-          email: !user ? liveEmail.trim() : undefined,
-          phone: !user ? livePhone.trim() || undefined : undefined,
+          // Only include email if user is logged in (logged in users don't need gate)
+          email: user ? undefined : 'pending@unlock.temp', // Placeholder to pass validation
+          phone: undefined,
         }),
       });
 
@@ -441,7 +439,15 @@ ${videoStyle === 'lifestyle' ? 'For Lifestyle: Check how naturally the product f
         return;
       }
 
-      setGeneratedScript(data.script);
+      // If user is logged in, show script directly
+      if (user) {
+        setGeneratedScript(data.script);
+        setScriptUnlocked(true);
+      } else {
+        // If not logged in, store script but show email gate
+        setPendingScript(data.script);
+        setShowEmailCapture(true);
+      }
 
       // Generate infographic in background
       generateInfographic();
@@ -452,6 +458,36 @@ ${videoStyle === 'lifestyle' ? 'For Lifestyle: Check how naturally the product f
     } finally {
       setIsGeneratingScript(false);
     }
+  };
+
+  // Second step: Unlock script with email
+  const handleUnlockScript = async () => {
+    if (!liveEmail.trim() || !pendingScript) return;
+
+    // Save lead and send email via API
+    try {
+      await fetch('/api/live/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'save-lead',
+          email: liveEmail.trim(),
+          phone: livePhone.trim() || undefined,
+          productName: liveProductName.trim(),
+          category: liveCategory,
+          targetAudience: liveAudience,
+          script: pendingScript,
+        }),
+      });
+    } catch (error) {
+      console.error('[LiveScript] Lead save error:', error);
+    }
+
+    // Reveal the script
+    setGeneratedScript(pendingScript);
+    setPendingScript(null);
+    setScriptUnlocked(true);
+    setShowEmailCapture(false);
   };
 
   const generateInfographic = async () => {
@@ -964,11 +1000,38 @@ ${videoStyle === 'lifestyle' ? 'For Lifestyle: Check how naturally the product f
                   />
                 </div>
 
-                {/* Email/Phone Capture - Shows AFTER clicking generate if not logged in */}
-                {!user && showEmailCapture && (
-                  <div className="mb-5 p-4 bg-accent-fuchsia/5 border border-accent-fuchsia/20 rounded animate-in fade-in slide-in-from-top-2 duration-300">
-                    <p className="text-xs text-accent-fuchsia font-medium mb-3">
-                      Almost there! Enter your email to get your script:
+                {/* Generate Button - Only shows if script not yet generated */}
+                {!pendingScript && !generatedScript && (
+                  <button 
+                    onClick={handleGenerateScript}
+                    disabled={isGeneratingScript || !productInfoComplete}
+                    className="w-full bg-accent-fuchsia hover:bg-accent-fuchsia/90 text-white font-medium py-2.5 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+                  >
+                    {isGeneratingScript ? (
+                      <>
+                        <Loader2 className="animate-spin" size={14} />
+                        Generating...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles size={14} />
+                        Generate LIVE Script
+                      </>
+                    )}
+                  </button>
+                )}
+
+                {/* Email Gate - Shows AFTER script is generated for non-logged-in users */}
+                {!user && pendingScript && showEmailCapture && (
+                  <div className="p-4 bg-accent-fuchsia/5 border border-accent-fuchsia/20 rounded animate-in fade-in slide-in-from-top-2 duration-300">
+                    <div className="flex items-center gap-2 mb-3">
+                      <CheckCircle size={14} className="text-accent-teal" />
+                      <p className="text-xs text-accent-teal font-medium">
+                        Your script is ready!
+                      </p>
+                    </div>
+                    <p className="text-xs text-text-muted mb-3">
+                      Enter your email to unlock it. We'll also send you a copy:
                     </p>
                     <div className="space-y-3">
                       <div className="relative">
@@ -988,47 +1051,44 @@ ${videoStyle === 'lifestyle' ? 'For Lifestyle: Check how naturally the product f
                           type="tel" 
                           value={livePhone}
                           onChange={(e) => setLivePhone(e.target.value)}
-                          placeholder="Phone (optional)" 
+                          placeholder="Phone (optional - for SMS reminder)" 
                           className="w-full pl-9 pr-3 py-2.5 rounded bg-titan-bg border border-titan-border text-text-primary text-sm focus:border-accent-fuchsia focus:outline-none transition-colors placeholder-text-muted"
                         />
                       </div>
+                      <button 
+                        onClick={handleUnlockScript}
+                        disabled={!liveEmail.trim()}
+                        className="w-full bg-accent-teal hover:bg-accent-teal/90 text-titan-bg font-medium py-2.5 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+                      >
+                        <Send size={14} />
+                        Unlock My Script
+                      </button>
                     </div>
                   </div>
                 )}
 
-                <button 
-                  onClick={handleGenerateClick}
-                  disabled={isGeneratingScript || (showEmailCapture && !liveEmail.trim()) || !productInfoComplete}
-                  className="w-full bg-accent-fuchsia hover:bg-accent-fuchsia/90 text-white font-medium py-2.5 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
-                >
-                  {isGeneratingScript ? (
-                    <>
-                      <Loader2 className="animate-spin" size={14} />
-                      Generating...
-                    </>
-                  ) : showEmailCapture && !liveEmail.trim() ? (
-                    <>
-                      <Mail size={14} />
-                      Enter Email to Continue
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles size={14} />
-                      Generate LIVE Script
-                    </>
-                  )}
-                </button>
+                {/* Generate Another Button - Shows after script is unlocked */}
+                {(generatedScript && scriptUnlocked) && (
+                  <button 
+                    onClick={() => {
+                      setGeneratedScript(null);
+                      setPendingScript(null);
+                      setScriptUnlocked(false);
+                      setShowEmailCapture(false);
+                      setInfographicData(null);
+                      setInfographicSuggestion(null);
+                    }}
+                    className="w-full bg-titan-bg hover:bg-titan-elevated border border-titan-border text-text-primary font-medium py-2.5 rounded text-sm transition-colors flex items-center justify-center gap-2"
+                  >
+                    <Sparkles size={14} />
+                    Generate Another Script
+                  </button>
+                )}
 
-                {!user && !showEmailCapture && (
+                {!user && !showEmailCapture && !generatedScript && (
                   <p className="text-[10px] text-text-muted text-center mt-3">
                     Already have an account?{' '}
                     <a href="#/login" className="text-accent-fuchsia hover:underline">Log in</a>
-                  </p>
-                )}
-                
-                {showEmailCapture && (
-                  <p className="text-[10px] text-text-muted text-center mt-3">
-                    We'll send your script to this email
                   </p>
                 )}
 

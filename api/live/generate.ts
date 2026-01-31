@@ -226,9 +226,7 @@ async function generateScript(req: VercelRequest, res: VercelResponse) {
     userId = user?.id || null;
   }
 
-  if (!userId && !email?.trim()) {
-    return res.status(400).json({ error: 'Email is required to receive your script' });
-  }
+  // Email not required upfront - will be captured after script generation
 
   if (!GEMINI_API_KEY) return res.status(500).json({ error: 'AI service not configured' });
 
@@ -288,24 +286,7 @@ Keep it real. No hype. Just honest info a creator would naturally share while ch
 
     const script = response.text || "Failed to generate script. Please try again.";
 
-    // Save lead if not logged in
-    if (!userId && email) {
-      const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
-      
-      await admin.from('marketing_leads').upsert({
-        email: email.trim().toLowerCase(),
-        phone: phone?.trim() || null,
-        source: 'live_script_generator',
-        metadata: {
-          productName,
-          category,
-          targetAudience,
-          generatedAt: new Date().toISOString(),
-        }
-      }, { onConflict: 'email', ignoreDuplicates: false });
-
-      await sendBrevoEmail(email.trim(), productName, script);
-    }
+    // Lead saving now happens separately via save-lead action
 
     return res.status(200).json({
       success: true,
@@ -513,6 +494,44 @@ STYLE REQUIREMENTS:
   }
 }
 
+/**
+ * Save lead and send email (called after user unlocks script)
+ */
+async function saveLead(req: VercelRequest, res: VercelResponse) {
+  const { email, phone, productName, category, targetAudience, script } = req.body;
+
+  if (!email?.trim()) {
+    return res.status(400).json({ error: 'Email is required' });
+  }
+
+  try {
+    const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+    
+    // Save lead to database
+    await admin.from('marketing_leads').upsert({
+      email: email.trim().toLowerCase(),
+      phone: phone?.trim() || null,
+      source: 'live_script_generator',
+      metadata: {
+        productName,
+        category,
+        targetAudience,
+        generatedAt: new Date().toISOString(),
+      }
+    }, { onConflict: 'email', ignoreDuplicates: false });
+
+    // Send email with script
+    if (script && productName) {
+      await sendBrevoEmail(email.trim(), productName, script);
+    }
+
+    return res.status(200).json({ success: true, message: 'Lead saved and email sent' });
+  } catch (error: any) {
+    console.error('[Save Lead Error]:', error);
+    return res.status(500).json({ success: false, error: 'Failed to save lead' });
+  }
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -527,8 +546,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return generateScript(req, res);
   } else if (action === 'infographic') {
     return generateInfographic(req, res);
+  } else if (action === 'save-lead') {
+    return saveLead(req, res);
   } else {
-    return res.status(400).json({ error: 'Invalid action. Use "script" or "infographic"' });
+    return res.status(400).json({ error: 'Invalid action. Use "script", "infographic", or "save-lead"' });
   }
 }
 
