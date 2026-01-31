@@ -73,7 +73,7 @@ async function authFetch<T = any>(endpoint: string, options: RequestInit = {}): 
  * Check if user has a connected TikTok account
  */
 export async function getTikTokStatus(): Promise<TikTokStatus> {
-  return authFetch<TikTokStatus>('/status');
+  return authFetch<TikTokStatus>('?action=status');
 }
 
 export type TikTokOAuthType = 'creator' | 'seller';
@@ -104,7 +104,7 @@ export async function getTikTokAuthUrl(
     timestamp: Date.now()
   }));
   
-  const response = await fetch(`${API_BASE}/auth-url?state=${encodeURIComponent(state)}&type=${type}`);
+  const response = await fetch(`${API_BASE}?action=auth-url&state=${encodeURIComponent(state)}&type=${type}`);
   
   if (!response.ok) {
     throw new Error('Failed to get auth URL');

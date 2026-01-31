@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { GoogleGenAI } from "@google/genai";
 import ReactMarkdown from 'react-markdown';
-import { Upload, Video, Link as LinkIcon, Play, CheckCircle, AlertTriangle, Loader2, Sparkles, History, AlertCircle } from 'lucide-react';
+import { Upload, Video, Link as LinkIcon, Play, CheckCircle, AlertTriangle, Loader2, Sparkles, History, AlertCircle, Radio, Copy, Download, Mail, Phone, Send } from 'lucide-react';
 import { useAuth } from '../lib/AuthContext';
 import { supabase } from '../lib/supabase';
 
@@ -34,8 +34,14 @@ function isValidTikTokUrl(url: string): boolean {
   }
 }
 
+// Tab type
+type TabType = 'audit' | 'live';
+
 const VideoAudit = () => {
   const { user, session, loading: authLoading } = useAuth();
+  
+  // Tab state
+  const [activeTab, setActiveTab] = useState<TabType>('audit');
   
   // Debug log auth state
   React.useEffect(() => {
@@ -47,7 +53,9 @@ const VideoAudit = () => {
     });
   }, [user, session, authLoading]);
   
-  // Controlled state for TikTok URL input
+  // ═══════════════════════════════════════════════════════════════════════
+  // VIDEO AUDIT STATE
+  // ═══════════════════════════════════════════════════════════════════════
   const [tiktokUrl, setTiktokUrl] = useState('');
   const [urlError, setUrlError] = useState<string | null>(null);
   const [urlTouched, setUrlTouched] = useState(false);
@@ -72,6 +80,24 @@ const VideoAudit = () => {
   
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // ═══════════════════════════════════════════════════════════════════════
+  // LIVE SCRIPT GENERATOR STATE
+  // ═══════════════════════════════════════════════════════════════════════
+  const [liveProductName, setLiveProductName] = useState('');
+  const [liveCategory, setLiveCategory] = useState('');
+  const [liveAudience, setLiveAudience] = useState('');
+  const [liveDescription, setLiveDescription] = useState('');
+  const [liveKeyBenefit, setLiveKeyBenefit] = useState('');
+  const [liveEmail, setLiveEmail] = useState('');
+  const [livePhone, setLivePhone] = useState('');
+  const [showEmailCapture, setShowEmailCapture] = useState(false); // Show email form after clicking generate
+  const [isGeneratingScript, setIsGeneratingScript] = useState(false);
+  const [generatedScript, setGeneratedScript] = useState<string | null>(null);
+  const [infographicData, setInfographicData] = useState<{ data: string; mimeType: string } | null>(null);
+  const [infographicSuggestion, setInfographicSuggestion] = useState<{ title: string; steps: string[]; colors: string } | null>(null);
+  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
+  const [scriptCopied, setScriptCopied] = useState(false);
+
   // Video style options
   const videoStyleOptions = [
     { value: '', label: 'Select video style...' },
@@ -87,29 +113,45 @@ const VideoAudit = () => {
     { value: 'lifestyle', label: 'Lifestyle Integration' },
   ];
 
-  // Product category options
+  // Product category options (shared)
   const productCategoryOptions = [
     { value: '', label: 'Select category...' },
-    { value: 'beauty', label: 'Beauty & Skincare' },
     { value: 'supplements', label: 'Supplements & Wellness' },
-    { value: 'fitness', label: 'Fitness & Health' },
-    { value: 'fashion', label: 'Fashion & Apparel' },
-    { value: 'home', label: 'Home & Kitchen' },
+    { value: 'beauty', label: 'Beauty & Skincare' },
+    { value: 'cologne', label: 'Cologne & Fragrance' },
     { value: 'tech', label: 'Tech & Gadgets' },
-    { value: 'pets', label: 'Pets' },
+    { value: 'fitness', label: 'Fitness & Health' },
+    { value: 'home', label: 'Home & Kitchen' },
+    { value: 'fashion', label: 'Fashion & Apparel' },
     { value: 'food', label: 'Food & Beverage' },
+    { value: 'pets', label: 'Pets' },
     { value: 'baby', label: 'Baby & Kids' },
     { value: 'other', label: 'Other' },
   ];
 
-  /**
-   * Handle TikTok URL input change with validation
-   */
+  // Target audience options for LIVE script
+  const audienceOptions = [
+    { value: '', label: 'Select target audience...' },
+    { value: 'men_18_24', label: 'Men 18-24' },
+    { value: 'men_25_34', label: 'Men 25-34' },
+    { value: 'men_35_44', label: 'Men 35-44' },
+    { value: 'men_45_54', label: 'Men 45-54' },
+    { value: 'men_55_plus', label: 'Men 55+' },
+    { value: 'women_18_24', label: 'Women 18-24' },
+    { value: 'women_25_34', label: 'Women 25-34' },
+    { value: 'women_35_44', label: 'Women 35-44' },
+    { value: 'women_45_54', label: 'Women 45-54' },
+    { value: 'women_55_plus', label: 'Women 55+' },
+    { value: 'all', label: 'All Audiences' },
+  ];
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // VIDEO AUDIT HANDLERS
+  // ═══════════════════════════════════════════════════════════════════════
   const handleUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setTiktokUrl(value);
     
-    // Validate on change if field was touched
     if (urlTouched && value.trim()) {
       if (!isValidTikTokUrl(value)) {
         setUrlError('Please enter a valid TikTok URL (tiktok.com or vm.tiktok.com)');
@@ -121,9 +163,6 @@ const VideoAudit = () => {
     }
   };
 
-  /**
-   * Handle URL input blur - validate and show error
-   */
   const handleUrlBlur = () => {
     setUrlTouched(true);
     if (tiktokUrl.trim() && !isValidTikTokUrl(tiktokUrl)) {
@@ -133,9 +172,6 @@ const VideoAudit = () => {
     }
   };
 
-  /**
-   * Check if we can analyze (file only for now - URL coming soon)
-   */
   const canAnalyze = !!file;
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -144,7 +180,6 @@ const VideoAudit = () => {
       setFile(selectedFile);
       setPreviewUrl(URL.createObjectURL(selectedFile));
       setResult(null);
-      // Clear URL when file is selected
       setTiktokUrl('');
       setUrlError(null);
     }
@@ -161,43 +196,29 @@ const VideoAudit = () => {
     };
   };
 
-  /**
-   * Handle video audit submission
-   * - If file is provided: use client-side Gemini (existing flow)
-   * - If only tiktokUrl: call server-side /api/audit/url endpoint
-   */
   const handleAudit = async () => {
     if (!canAnalyze) return;
     
     setIsAnalyzing(true);
     setResult(null);
 
-    // ═══════════════════════════════════════════════════════════════════════
-    // FLOW 1: TikTok URL Analysis (server-side)
-    // This takes priority over file upload
-    // ═══════════════════════════════════════════════════════════════════════
     if (!file && tiktokUrl.trim() && isValidTikTokUrl(tiktokUrl)) {
       try {
         console.log('[VideoAudit] Using server-side URL analysis for:', tiktokUrl);
-        console.log('[VideoAudit] Session from context:', session ? 'exists' : 'none');
         
-        // Use session from context, fallback to getSession() if needed
         let accessToken = session?.access_token;
         
         if (!accessToken) {
-          console.log('[VideoAudit] No session in context, trying getSession()...');
           const { data } = await supabase.auth.getSession();
           accessToken = data.session?.access_token;
         }
         
         if (!accessToken) {
-          console.log('[VideoAudit] No access token available');
           setResult("## Please Log In\n\nTo analyze TikTok URLs, please log in to your account first.\n\n[Log In](#/login)");
           setIsAnalyzing(false);
           return;
         }
 
-        console.log('[VideoAudit] Calling /api/audit/url with token...');
         const response = await fetch('/api/audit/url', {
           method: 'POST',
           headers: {
@@ -215,19 +236,16 @@ const VideoAudit = () => {
           }),
         });
 
-        console.log('[VideoAudit] Response status:', response.status);
         const data = await response.json();
-        console.log('[VideoAudit] Response data:', data);
 
         if (!response.ok || !data.success) {
-          setResult(`## Analysis Failed\n\n${data.error || "Failed to analyze video. Please try again."}\n\n**Tip:** Make sure you're using a valid TikTok video URL.`);
+          setResult(`## Analysis Failed\n\n${data.error || "Failed to analyze video. Please try again."}`);
           setIsAnalyzing(false);
           return;
         }
 
         setResult(data.feedback);
 
-        // Extract score and add to history
         const extractedScore = data.score !== null ? data.score.toString() : 'N/A';
         const newRecord: AuditRecord = {
           id: data.auditId || Date.now().toString(),
@@ -238,27 +256,21 @@ const VideoAudit = () => {
         setAuditHistory([newRecord, ...auditHistory]);
       } catch (error) {
         console.error('[VideoAudit] URL analysis error:', error);
-        setResult(`## Error\n\nFailed to analyze TikTok URL. Please try again.\n\n**Error:** ${error instanceof Error ? error.message : 'Unknown error'}`);
+        setResult(`## Error\n\nFailed to analyze TikTok URL. Please try again.`);
       } finally {
         setIsAnalyzing(false);
       }
       return;
     }
 
-    // ═══════════════════════════════════════════════════════════════════════
-    // FLOW 2: File Upload Analysis (client-side Gemini)
-    // ═══════════════════════════════════════════════════════════════════════
     if (file) {
       try {
-        console.log('[VideoAudit] Using client-side file analysis');
-        
         if (!process.env.API_KEY) {
           throw new Error("API Key not found. Please configure VITE_GEMINI_API_KEY.");
         }
         
         const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
         
-        // Build context string from user inputs
         const contextParts: string[] = [];
         if (productName) contextParts.push(`Product: ${productName}`);
         if (productCategory) contextParts.push(`Category: ${productCategoryOptions.find(o => o.value === productCategory)?.label || productCategory}`);
@@ -362,13 +374,137 @@ ${videoStyle === 'lifestyle' ? 'For Lifestyle: Check how naturally the product f
         setAuditHistory([newRecord, ...auditHistory]);
       } catch (error) {
         console.error('[VideoAudit] File analysis error:', error);
-        setResult(`## Error\n\nFailed to analyze video file. Please ensure the file is valid and try again.\n\n**Error:** ${error instanceof Error ? error.message : 'Unknown error'}`);
+        setResult(`## Error\n\nFailed to analyze video file. Please ensure the file is valid and try again.`);
       } finally {
         setIsAnalyzing(false);
       }
     }
   };
 
+  // ═══════════════════════════════════════════════════════════════════════
+  // LIVE SCRIPT GENERATOR HANDLERS
+  // ═══════════════════════════════════════════════════════════════════════
+  const productInfoComplete = liveProductName.trim() && liveCategory && liveAudience && liveDescription.trim();
+  const canGenerateScript = productInfoComplete && (user || liveEmail.trim());
+
+  const handleGenerateClick = () => {
+    // If product info is complete but user not logged in and no email yet, show email capture
+    if (productInfoComplete && !user && !liveEmail.trim()) {
+      setShowEmailCapture(true);
+      return;
+    }
+    // Otherwise proceed to generate
+    handleGenerateScript();
+  };
+
+  const handleGenerateScript = async () => {
+    if (!canGenerateScript) return;
+    
+    setIsGeneratingScript(true);
+    setGeneratedScript(null);
+    setInfographicData(null);
+    setInfographicSuggestion(null);
+
+    try {
+      // Get access token if logged in
+      let accessToken: string | undefined;
+      if (session?.access_token) {
+        accessToken = session.access_token;
+      } else {
+        const { data } = await supabase.auth.getSession();
+        accessToken = data.session?.access_token;
+      }
+
+      const response = await fetch('/api/live/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(accessToken ? { 'Authorization': `Bearer ${accessToken}` } : {}),
+        },
+        body: JSON.stringify({
+          action: 'script',
+          productName: liveProductName.trim(),
+          category: liveCategory,
+          targetAudience: liveAudience,
+          productDescription: liveDescription.trim(),
+          keyBenefit: liveKeyBenefit.trim() || undefined,
+          email: !user ? liveEmail.trim() : undefined,
+          phone: !user ? livePhone.trim() || undefined : undefined,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        setGeneratedScript(`## Error\n\n${data.error || "Failed to generate script. Please try again."}`);
+        setIsGeneratingScript(false);
+        return;
+      }
+
+      setGeneratedScript(data.script);
+
+      // Generate infographic in background
+      generateInfographic();
+
+    } catch (error) {
+      console.error('[LiveScript] Generation error:', error);
+      setGeneratedScript(`## Error\n\nFailed to generate script. Please try again.`);
+    } finally {
+      setIsGeneratingScript(false);
+    }
+  };
+
+  const generateInfographic = async () => {
+    setIsGeneratingImage(true);
+    
+    try {
+      const response = await fetch('/api/live/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'infographic',
+          productName: liveProductName.trim(),
+          category: liveCategory,
+          keyBenefit: liveKeyBenefit.trim() || undefined,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        if (data.hasImage && data.image) {
+          setInfographicData(data.image);
+        } else if (data.suggestion) {
+          setInfographicSuggestion(data.suggestion);
+        }
+      }
+    } catch (error) {
+      console.error('[Infographic] Generation error:', error);
+    } finally {
+      setIsGeneratingImage(false);
+    }
+  };
+
+  const handleCopyScript = () => {
+    if (generatedScript) {
+      navigator.clipboard.writeText(generatedScript);
+      setScriptCopied(true);
+      setTimeout(() => setScriptCopied(false), 2000);
+    }
+  };
+
+  const handleDownloadInfographic = () => {
+    if (infographicData) {
+      const link = document.createElement('a');
+      link.href = `data:${infographicData.mimeType};base64,${infographicData.data}`;
+      link.download = `live-background-${liveProductName.replace(/[^a-z0-9]/gi, '-').toLowerCase()}.png`;
+      link.click();
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // RENDER
+  // ═══════════════════════════════════════════════════════════════════════
   return (
     <div className="min-h-screen bg-titan-bg py-8 px-6 lg:px-8">
       <div className="max-w-6xl mx-auto">
@@ -379,324 +515,702 @@ ${videoStyle === 'lifestyle' ? 'For Lifestyle: Check how naturally the product f
             <Sparkles size={10} />
             AI Powered
           </div>
-          <h1 className="text-xl font-semibold text-text-primary tracking-tight">Video Audit</h1>
-          <p className="text-sm text-text-muted">Analyze your content for viral potential</p>
+          <h1 className="text-xl font-semibold text-text-primary tracking-tight">Creator Tools</h1>
+          <p className="text-sm text-text-muted">AI-powered tools to maximize your TikTok Shop success</p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-          
-          {/* Left Column: Input */}
-          <div className="lg:col-span-1 space-y-4">
-            <div className="bg-titan-surface rounded border border-titan-border p-5">
-              
-              {/* File Upload */}
-              <div className="mb-5">
-                <label className="block text-xs font-medium text-text-secondary mb-2">
-                  Upload Video
-                </label>
-                <div 
-                  onClick={() => fileInputRef.current?.click()}
-                  className={`border border-dashed rounded p-6 flex flex-col items-center justify-center text-center cursor-pointer transition-all ${
-                    file 
-                      ? 'border-accent-teal/50 bg-accent-teal/5' 
-                      : 'border-titan-border hover:border-titan-border-light bg-titan-bg'
-                  }`}
-                >
-                  <input 
-                    type="file" 
-                    ref={fileInputRef}
-                    onChange={handleFileChange}
-                    accept="video/*" 
-                    className="hidden" 
-                  />
-                  
-                  {file ? (
-                    <div className="relative w-full aspect-[9/16] bg-titan-bg rounded overflow-hidden">
-                      <video src={previewUrl!} className="w-full h-full object-contain" controls />
-                      <button 
-                        onClick={(e) => { e.stopPropagation(); setFile(null); setPreviewUrl(null); }}
-                        className="absolute top-2 right-2 p-1.5 bg-titan-bg/80 hover:bg-accent-fuchsia rounded text-text-primary text-xs transition-colors"
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  ) : (
-                    <>
-                      <div className="w-10 h-10 rounded bg-titan-elevated flex items-center justify-center text-text-muted mb-3">
-                        <Video size={18} />
-                      </div>
-                      <p className="text-xs text-text-secondary mb-0.5">Click to upload</p>
-                      <p className="text-[10px] text-text-muted">MP4, MOV up to 50MB</p>
-                    </>
-                  )}
-                </div>
-              </div>
+        {/* Tab Navigation */}
+        <div className="flex gap-1 mb-6 bg-titan-surface rounded-lg p-1 border border-titan-border w-fit">
+          <button
+            onClick={() => setActiveTab('audit')}
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-all flex items-center gap-2 ${
+              activeTab === 'audit'
+                ? 'bg-text-primary text-titan-bg'
+                : 'text-text-muted hover:text-text-primary'
+            }`}
+          >
+            <Video size={14} />
+            Video Audit
+          </button>
+          <button
+            onClick={() => setActiveTab('live')}
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-all flex items-center gap-2 ${
+              activeTab === 'live'
+                ? 'bg-accent-fuchsia text-white'
+                : 'text-text-muted hover:text-text-primary'
+            }`}
+          >
+            <Radio size={14} />
+            LIVE Script Generator
+          </button>
+        </div>
 
-              {/* TikTok URL Input - Coming Soon */}
-              <div className="mb-5 relative">
-                <div className="flex items-center justify-between mb-2">
-                  <label className="block text-xs font-medium text-text-secondary">
-                    Or paste TikTok link
-                  </label>
-                  <span className="px-2 py-0.5 bg-accent-fuchsia/10 text-accent-fuchsia text-[10px] font-semibold rounded-full">
-                    Coming Soon
-                  </span>
-                </div>
-                <div className="relative opacity-50 pointer-events-none">
-                  <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" size={14} />
-                  <input 
-                    type="url" 
-                    disabled
-                    placeholder="https://tiktok.com/@... or vm.tiktok.com/..." 
-                    className="w-full pl-9 pr-3 py-2.5 rounded bg-titan-bg border border-titan-border text-text-muted text-sm cursor-not-allowed placeholder-text-muted"
-                  />
-                </div>
-                <p className="text-[10px] text-text-muted mt-1.5 flex items-center gap-1">
-                  <Sparkles size={10} className="text-accent-fuchsia" />
-                  URL analysis feature launching soon!
-                </p>
-              </div>
-
-              {/* Video Context Section */}
-              <div className="mb-5">
-                <button
-                  type="button"
-                  onClick={() => setShowContext(!showContext)}
-                  className="w-full flex items-center justify-between p-3 bg-titan-bg rounded border border-titan-border hover:border-titan-border-light transition-colors"
-                >
-                  <div className="flex items-center gap-2">
-                    <Sparkles size={12} className="text-accent-teal" />
-                    <span className="text-xs font-medium text-text-primary">Add Video Context</span>
-                    <span className="text-[10px] text-accent-teal">(Better AI Analysis)</span>
-                  </div>
-                  <svg
-                    className={`w-4 h-4 text-text-muted transition-transform ${showContext ? 'rotate-180' : ''}`}
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </button>
+        {/* ═══════════════════════════════════════════════════════════════════════ */}
+        {/* VIDEO AUDIT TAB */}
+        {/* ═══════════════════════════════════════════════════════════════════════ */}
+        {activeTab === 'audit' && (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+            
+            {/* Left Column: Input */}
+            <div className="lg:col-span-1 space-y-4">
+              <div className="bg-titan-surface rounded border border-titan-border p-5">
                 
-                {showContext && (
-                  <div className="mt-2 p-4 bg-titan-bg rounded border border-titan-border space-y-4">
-                    {/* Product Info */}
-                    <div>
-                      <label className="block text-[10px] text-text-muted uppercase tracking-wider font-medium mb-2">
-                        Product Information
-                      </label>
-                      <div className="space-y-2">
-                        <input 
-                          type="text" 
-                          value={productName}
-                          onChange={(e) => setProductName(e.target.value)}
-                          placeholder="Product name (e.g., LED Face Mask Pro)" 
-                          className="w-full px-3 py-2 rounded bg-titan-surface border border-titan-border text-text-primary text-xs focus:border-accent-teal focus:outline-none transition-colors placeholder-text-muted"
-                        />
+                {/* File Upload */}
+                <div className="mb-5">
+                  <label className="block text-xs font-medium text-text-secondary mb-2">
+                    Upload Video
+                  </label>
+                  <div 
+                    onClick={() => fileInputRef.current?.click()}
+                    className={`border border-dashed rounded p-6 flex flex-col items-center justify-center text-center cursor-pointer transition-all ${
+                      file 
+                        ? 'border-accent-teal/50 bg-accent-teal/5' 
+                        : 'border-titan-border hover:border-titan-border-light bg-titan-bg'
+                    }`}
+                  >
+                    <input 
+                      type="file" 
+                      ref={fileInputRef}
+                      onChange={handleFileChange}
+                      accept="video/*" 
+                      className="hidden" 
+                    />
+                    
+                    {file ? (
+                      <div className="relative w-full aspect-[9/16] bg-titan-bg rounded overflow-hidden">
+                        <video src={previewUrl!} className="w-full h-full object-contain" controls />
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); setFile(null); setPreviewUrl(null); }}
+                          className="absolute top-2 right-2 p-1.5 bg-titan-bg/80 hover:bg-accent-fuchsia rounded text-text-primary text-xs transition-colors"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="w-10 h-10 rounded bg-titan-elevated flex items-center justify-center text-text-muted mb-3">
+                          <Video size={18} />
+                        </div>
+                        <p className="text-xs text-text-secondary mb-0.5">Click to upload</p>
+                        <p className="text-[10px] text-text-muted">MP4, MOV up to 50MB</p>
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                {/* TikTok URL Input - Coming Soon */}
+                <div className="mb-5 relative">
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-xs font-medium text-text-secondary">
+                      Or paste TikTok link
+                    </label>
+                    <span className="px-2 py-0.5 bg-accent-fuchsia/10 text-accent-fuchsia text-[10px] font-semibold rounded-full">
+                      Coming Soon
+                    </span>
+                  </div>
+                  <div className="relative opacity-50 pointer-events-none">
+                    <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" size={14} />
+                    <input 
+                      type="url" 
+                      disabled
+                      placeholder="https://tiktok.com/@... or vm.tiktok.com/..." 
+                      className="w-full pl-9 pr-3 py-2.5 rounded bg-titan-bg border border-titan-border text-text-muted text-sm cursor-not-allowed placeholder-text-muted"
+                    />
+                  </div>
+                  <p className="text-[10px] text-text-muted mt-1.5 flex items-center gap-1">
+                    <Sparkles size={10} className="text-accent-fuchsia" />
+                    URL analysis feature launching soon!
+                  </p>
+                </div>
+
+                {/* Video Context Section */}
+                <div className="mb-5">
+                  <button
+                    type="button"
+                    onClick={() => setShowContext(!showContext)}
+                    className="w-full flex items-center justify-between p-3 bg-titan-bg rounded border border-titan-border hover:border-titan-border-light transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Sparkles size={12} className="text-accent-teal" />
+                      <span className="text-xs font-medium text-text-primary">Add Video Context</span>
+                      <span className="text-[10px] text-accent-teal">(Better AI Analysis)</span>
+                    </div>
+                    <svg
+                      className={`w-4 h-4 text-text-muted transition-transform ${showContext ? 'rotate-180' : ''}`}
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                  
+                  {showContext && (
+                    <div className="mt-2 p-4 bg-titan-bg rounded border border-titan-border space-y-4">
+                      {/* Product Info */}
+                      <div>
+                        <label className="block text-[10px] text-text-muted uppercase tracking-wider font-medium mb-2">
+                          Product Information
+                        </label>
+                        <div className="space-y-2">
+                          <input 
+                            type="text" 
+                            value={productName}
+                            onChange={(e) => setProductName(e.target.value)}
+                            placeholder="Product name (e.g., LED Face Mask Pro)" 
+                            className="w-full px-3 py-2 rounded bg-titan-surface border border-titan-border text-text-primary text-xs focus:border-accent-teal focus:outline-none transition-colors placeholder-text-muted"
+                          />
+                          <select
+                            value={productCategory}
+                            onChange={(e) => setProductCategory(e.target.value)}
+                            className="w-full px-3 py-2 rounded bg-titan-surface border border-titan-border text-text-primary text-xs focus:border-accent-teal focus:outline-none transition-colors"
+                          >
+                            {productCategoryOptions.map(opt => (
+                              <option key={opt.value} value={opt.value} className="bg-titan-surface">
+                                {opt.label}
+                              </option>
+                            ))}
+                          </select>
+                          <input 
+                            type="text" 
+                            value={keyBenefit}
+                            onChange={(e) => setKeyBenefit(e.target.value)}
+                            placeholder="Key benefit (e.g., Clears acne in 2 weeks)" 
+                            className="w-full px-3 py-2 rounded bg-titan-surface border border-titan-border text-text-primary text-xs focus:border-accent-teal focus:outline-none transition-colors placeholder-text-muted"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Video Style */}
+                      <div>
+                        <label className="block text-[10px] text-text-muted uppercase tracking-wider font-medium mb-2">
+                          Video Style
+                        </label>
                         <select
-                          value={productCategory}
-                          onChange={(e) => setProductCategory(e.target.value)}
+                          value={videoStyle}
+                          onChange={(e) => setVideoStyle(e.target.value)}
                           className="w-full px-3 py-2 rounded bg-titan-surface border border-titan-border text-text-primary text-xs focus:border-accent-teal focus:outline-none transition-colors"
                         >
-                          {productCategoryOptions.map(opt => (
+                          {videoStyleOptions.map(opt => (
                             <option key={opt.value} value={opt.value} className="bg-titan-surface">
                               {opt.label}
                             </option>
                           ))}
                         </select>
-                        <input 
-                          type="text" 
-                          value={keyBenefit}
-                          onChange={(e) => setKeyBenefit(e.target.value)}
-                          placeholder="Key benefit (e.g., Clears acne in 2 weeks)" 
-                          className="w-full px-3 py-2 rounded bg-titan-surface border border-titan-border text-text-primary text-xs focus:border-accent-teal focus:outline-none transition-colors placeholder-text-muted"
-                        />
+                        <div className="mt-2 flex flex-wrap gap-1.5">
+                          {['talking_head', 'skit', 'reply_video', 'product_demo'].map(style => (
+                            <button
+                              key={style}
+                              type="button"
+                              onClick={() => setVideoStyle(style)}
+                              className={`px-2 py-1 text-[10px] rounded border transition-colors ${
+                                videoStyle === style
+                                  ? 'bg-accent-teal/10 border-accent-teal text-accent-teal'
+                                  : 'bg-titan-surface border-titan-border text-text-muted hover:border-titan-border-light'
+                              }`}
+                            >
+                              {videoStyleOptions.find(o => o.value === style)?.label.split(' (')[0]}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Audience */}
+                      <div>
+                        <label className="block text-[10px] text-text-muted uppercase tracking-wider font-medium mb-2">
+                          Target Audience
+                        </label>
+                        <div className="space-y-2">
+                          <input 
+                            type="text" 
+                            value={targetAudience}
+                            onChange={(e) => setTargetAudience(e.target.value)}
+                            placeholder="Who is this for? (e.g., Women 25-45 with acne)" 
+                            className="w-full px-3 py-2 rounded bg-titan-surface border border-titan-border text-text-primary text-xs focus:border-accent-teal focus:outline-none transition-colors placeholder-text-muted"
+                          />
+                          <input 
+                            type="text" 
+                            value={niche}
+                            onChange={(e) => setNiche(e.target.value)}
+                            placeholder="Your niche (e.g., Skincare, Fitness)" 
+                            className="w-full px-3 py-2 rounded bg-titan-surface border border-titan-border text-text-primary text-xs focus:border-accent-teal focus:outline-none transition-colors placeholder-text-muted"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Tips */}
+                      <div className="p-2.5 bg-accent-teal/5 border border-accent-teal/20 rounded">
+                        <p className="text-[10px] text-accent-teal">
+                          💡 <strong>Pro tip:</strong> Adding context helps the AI give you more specific, actionable feedback for your exact product and audience.
+                        </p>
                       </div>
                     </div>
-
-                    {/* Video Style */}
-                    <div>
-                      <label className="block text-[10px] text-text-muted uppercase tracking-wider font-medium mb-2">
-                        Video Style
-                      </label>
-                      <select
-                        value={videoStyle}
-                        onChange={(e) => setVideoStyle(e.target.value)}
-                        className="w-full px-3 py-2 rounded bg-titan-surface border border-titan-border text-text-primary text-xs focus:border-accent-teal focus:outline-none transition-colors"
-                      >
-                        {videoStyleOptions.map(opt => (
-                          <option key={opt.value} value={opt.value} className="bg-titan-surface">
-                            {opt.label}
-                          </option>
-                        ))}
-                      </select>
-                      <div className="mt-2 flex flex-wrap gap-1.5">
-                        {['talking_head', 'skit', 'reply_video', 'product_demo'].map(style => (
-                          <button
-                            key={style}
-                            type="button"
-                            onClick={() => setVideoStyle(style)}
-                            className={`px-2 py-1 text-[10px] rounded border transition-colors ${
-                              videoStyle === style
-                                ? 'bg-accent-teal/10 border-accent-teal text-accent-teal'
-                                : 'bg-titan-surface border-titan-border text-text-muted hover:border-titan-border-light'
-                            }`}
-                          >
-                            {videoStyleOptions.find(o => o.value === style)?.label.split(' (')[0]}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Audience */}
-                    <div>
-                      <label className="block text-[10px] text-text-muted uppercase tracking-wider font-medium mb-2">
-                        Target Audience
-                      </label>
-                      <div className="space-y-2">
-                        <input 
-                          type="text" 
-                          value={targetAudience}
-                          onChange={(e) => setTargetAudience(e.target.value)}
-                          placeholder="Who is this for? (e.g., Women 25-45 with acne)" 
-                          className="w-full px-3 py-2 rounded bg-titan-surface border border-titan-border text-text-primary text-xs focus:border-accent-teal focus:outline-none transition-colors placeholder-text-muted"
-                        />
-                        <input 
-                          type="text" 
-                          value={niche}
-                          onChange={(e) => setNiche(e.target.value)}
-                          placeholder="Your niche (e.g., Skincare, Fitness)" 
-                          className="w-full px-3 py-2 rounded bg-titan-surface border border-titan-border text-text-primary text-xs focus:border-accent-teal focus:outline-none transition-colors placeholder-text-muted"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Tips */}
-                    <div className="p-2.5 bg-accent-teal/5 border border-accent-teal/20 rounded">
-                      <p className="text-[10px] text-accent-teal">
-                        💡 <strong>Pro tip:</strong> Adding context helps the AI give you more specific, actionable feedback for your exact product and audience.
-                      </p>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <button 
-                onClick={handleAudit}
-                disabled={isAnalyzing || !canAnalyze}
-                className="w-full bg-text-primary hover:bg-white text-titan-bg font-medium py-2.5 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
-              >
-                {isAnalyzing ? (
-                  <>
-                    <Loader2 className="animate-spin" size={14} />
-                    Analyzing...
-                  </>
-                ) : (
-                  <>
-                    <Play size={14} />
-                    Analyze Video
-                  </>
-                )}
-              </button>
-
-            </div>
-
-            {/* History */}
-            <div className="bg-titan-surface rounded border border-titan-border p-5">
-              <div className="flex items-center gap-2 mb-4">
-                <History className="text-text-muted" size={14} />
-                <h3 className="text-xs font-semibold text-text-primary uppercase tracking-wider">History</h3>
-              </div>
-              <div className="space-y-2">
-                {auditHistory.slice(0, 4).map(record => (
-                  <div key={record.id} className="flex items-center justify-between p-2.5 rounded bg-titan-bg border border-titan-border">
-                    <div>
-                      <p className="text-xs text-text-primary truncate max-w-[120px]">
-                        {record.fileName || record.link || 'Video'}
-                      </p>
-                      <p className="text-[10px] text-text-muted">{record.date}</p>
-                    </div>
-                    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded ${
-                      parseInt(record.score) >= 80 ? 'bg-accent-teal/10 text-accent-teal' : 
-                      parseInt(record.score) >= 50 ? 'bg-accent-orange/10 text-accent-orange' : 
-                      'bg-accent-fuchsia/10 text-accent-fuchsia'
-                    }`}>
-                      {record.score}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Right Column: Results */}
-          <div className="lg:col-span-2">
-            {result ? (
-              <div className="bg-titan-surface rounded border border-titan-border p-6 relative overflow-hidden">
-                <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-accent-teal to-accent-fuchsia"></div>
-                
-                <div className="flex items-center gap-2 mb-5">
-                  <CheckCircle className="text-accent-teal" size={16} />
-                  <h2 className="text-sm font-semibold text-text-primary">Results</h2>
+                  )}
                 </div>
+
+                <button 
+                  onClick={handleAudit}
+                  disabled={isAnalyzing || !canAnalyze}
+                  className="w-full bg-text-primary hover:bg-white text-titan-bg font-medium py-2.5 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+                >
+                  {isAnalyzing ? (
+                    <>
+                      <Loader2 className="animate-spin" size={14} />
+                      Analyzing...
+                    </>
+                  ) : (
+                    <>
+                      <Play size={14} />
+                      Analyze Video
+                    </>
+                  )}
+                </button>
+
+              </div>
+
+              {/* History */}
+              <div className="bg-titan-surface rounded border border-titan-border p-5">
+                <div className="flex items-center gap-2 mb-4">
+                  <History className="text-text-muted" size={14} />
+                  <h3 className="text-xs font-semibold text-text-primary uppercase tracking-wider">History</h3>
+                </div>
+                <div className="space-y-2">
+                  {auditHistory.slice(0, 4).map(record => (
+                    <div key={record.id} className="flex items-center justify-between p-2.5 rounded bg-titan-bg border border-titan-border">
+                      <div>
+                        <p className="text-xs text-text-primary truncate max-w-[120px]">
+                          {record.fileName || record.link || 'Video'}
+                        </p>
+                        <p className="text-[10px] text-text-muted">{record.date}</p>
+                      </div>
+                      <span className={`text-[10px] font-semibold px-2 py-0.5 rounded ${
+                        parseInt(record.score) >= 80 ? 'bg-accent-teal/10 text-accent-teal' : 
+                        parseInt(record.score) >= 50 ? 'bg-accent-orange/10 text-accent-orange' : 
+                        'bg-accent-fuchsia/10 text-accent-fuchsia'
+                      }`}>
+                        {record.score}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Right Column: Results */}
+            <div className="lg:col-span-2">
+              {result ? (
+                <div className="bg-titan-surface rounded border border-titan-border p-6 relative overflow-hidden">
+                  <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-accent-teal to-accent-fuchsia"></div>
+                  
+                  <div className="flex items-center gap-2 mb-5">
+                    <CheckCircle className="text-accent-teal" size={16} />
+                    <h2 className="text-sm font-semibold text-text-primary">Results</h2>
+                  </div>
+                  
+                  <div className="prose prose-invert max-w-none text-sm">
+                    <ReactMarkdown
+                      components={{
+                        h2: ({node, ...props}) => <h2 className="text-lg font-semibold text-text-primary mt-4 mb-2" {...props} />,
+                        h3: ({node, ...props}) => <h3 className="text-sm font-semibold text-accent-teal mt-4 mb-2" {...props} />,
+                        p: ({node, ...props}) => <p className="text-text-secondary text-sm leading-relaxed mb-3" {...props} />,
+                        li: ({node, ...props}) => <li className="text-text-secondary text-sm mb-1.5" {...props} />,
+                        strong: ({node, ...props}) => <span className="text-text-primary font-semibold" {...props} />,
+                        hr: ({node, ...props}) => <hr className="border-titan-border my-4" {...props} />,
+                      }}
+                    >
+                      {result}
+                    </ReactMarkdown>
+                  </div>
+
+                  <div className="mt-6 pt-4 border-t border-titan-border">
+                    <div className="flex items-start gap-2">
+                      <AlertTriangle className="text-accent-orange shrink-0 mt-0.5" size={12} />
+                      <p className="text-[10px] text-text-muted">
+                        AI analysis based on TikTok virality metrics. Results may vary by niche.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="h-[400px] bg-titan-surface rounded border border-titan-border border-dashed flex flex-col items-center justify-center text-center p-8">
+                  <div className="w-14 h-14 bg-titan-elevated rounded flex items-center justify-center text-text-muted mb-4">
+                    <Sparkles size={24} />
+                  </div>
+                  <h3 className="text-base font-semibold text-text-primary mb-1">Ready to Audit</h3>
+                  <p className="text-sm text-text-muted max-w-xs mb-6">
+                    Upload a video to receive performance analysis and improvement recommendations
+                  </p>
+                  <div className="grid grid-cols-2 gap-3 text-xs text-text-muted">
+                    <div className="flex items-center gap-1.5">
+                      <CheckCircle size={10} className="text-accent-teal" />
+                      Hook Analysis
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <CheckCircle size={10} className="text-accent-teal" />
+                      CTA Strength
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <CheckCircle size={10} className="text-accent-teal" />
+                      Pacing Check
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <CheckCircle size={10} className="text-accent-teal" />
+                      Product Clarity
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+          </div>
+        )}
+
+        {/* ═══════════════════════════════════════════════════════════════════════ */}
+        {/* LIVE SCRIPT GENERATOR TAB */}
+        {/* ═══════════════════════════════════════════════════════════════════════ */}
+        {activeTab === 'live' && (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+            
+            {/* Left Column: Form */}
+            <div className="lg:col-span-1 space-y-4">
+              <div className="bg-titan-surface rounded border border-titan-border p-5">
                 
-                <div className="prose prose-invert max-w-none text-sm">
-                  <ReactMarkdown
-                    components={{
-                      h2: ({node, ...props}) => <h2 className="text-lg font-semibold text-text-primary mt-4 mb-2" {...props} />,
-                      h3: ({node, ...props}) => <h3 className="text-sm font-semibold text-accent-teal mt-4 mb-2" {...props} />,
-                      p: ({node, ...props}) => <p className="text-text-secondary text-sm leading-relaxed mb-3" {...props} />,
-                      li: ({node, ...props}) => <li className="text-text-secondary text-sm mb-1.5" {...props} />,
-                      strong: ({node, ...props}) => <span className="text-text-primary font-semibold" {...props} />,
-                      hr: ({node, ...props}) => <hr className="border-titan-border my-4" {...props} />,
-                    }}
+                {/* Header */}
+                <div className="mb-5 pb-4 border-b border-titan-border">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Radio className="text-accent-fuchsia" size={16} />
+                    <h3 className="text-sm font-semibold text-text-primary">LIVE Script Generator</h3>
+                  </div>
+                  <p className="text-xs text-text-muted">
+                    Generate talking points for your TikTok LIVE stream. Works for any product!
+                  </p>
+                </div>
+
+                {/* Product Name */}
+                <div className="mb-4">
+                  <label className="block text-xs font-medium text-text-secondary mb-2">
+                    Product Name <span className="text-accent-fuchsia">*</span>
+                  </label>
+                  <input 
+                    type="text" 
+                    value={liveProductName}
+                    onChange={(e) => setLiveProductName(e.target.value)}
+                    placeholder="e.g., Nitric Oxide Booster, Tom Ford Cologne" 
+                    className="w-full px-3 py-2.5 rounded bg-titan-bg border border-titan-border text-text-primary text-sm focus:border-accent-fuchsia focus:outline-none transition-colors placeholder-text-muted"
+                  />
+                </div>
+
+                {/* Category */}
+                <div className="mb-4">
+                  <label className="block text-xs font-medium text-text-secondary mb-2">
+                    Product Category <span className="text-accent-fuchsia">*</span>
+                  </label>
+                  <select
+                    value={liveCategory}
+                    onChange={(e) => setLiveCategory(e.target.value)}
+                    className="w-full px-3 py-2.5 rounded bg-titan-bg border border-titan-border text-text-primary text-sm focus:border-accent-fuchsia focus:outline-none transition-colors"
                   >
-                    {result}
-                  </ReactMarkdown>
+                    {productCategoryOptions.map(opt => (
+                      <option key={opt.value} value={opt.value} className="bg-titan-surface">
+                        {opt.label}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
-                <div className="mt-6 pt-4 border-t border-titan-border">
-                  <div className="flex items-start gap-2">
-                    <AlertTriangle className="text-accent-orange shrink-0 mt-0.5" size={12} />
-                    <p className="text-[10px] text-text-muted">
-                      AI analysis based on TikTok virality metrics. Results may vary by niche.
+                {/* Target Audience */}
+                <div className="mb-4">
+                  <label className="block text-xs font-medium text-text-secondary mb-2">
+                    Target Audience <span className="text-accent-fuchsia">*</span>
+                  </label>
+                  <select
+                    value={liveAudience}
+                    onChange={(e) => setLiveAudience(e.target.value)}
+                    className="w-full px-3 py-2.5 rounded bg-titan-bg border border-titan-border text-text-primary text-sm focus:border-accent-fuchsia focus:outline-none transition-colors"
+                  >
+                    {audienceOptions.map(opt => (
+                      <option key={opt.value} value={opt.value} className="bg-titan-surface">
+                        {opt.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Product Description */}
+                <div className="mb-4">
+                  <label className="block text-xs font-medium text-text-secondary mb-2">
+                    What does it do? <span className="text-accent-fuchsia">*</span>
+                  </label>
+                  <textarea 
+                    value={liveDescription}
+                    onChange={(e) => setLiveDescription(e.target.value)}
+                    placeholder="Describe what the product does, its main ingredients or features, and who it's for..."
+                    rows={3}
+                    className="w-full px-3 py-2.5 rounded bg-titan-bg border border-titan-border text-text-primary text-sm focus:border-accent-fuchsia focus:outline-none transition-colors placeholder-text-muted resize-none"
+                  />
+                </div>
+
+                {/* Key Benefit (Optional) */}
+                <div className="mb-4">
+                  <label className="block text-xs font-medium text-text-secondary mb-2">
+                    Key Selling Point <span className="text-text-muted">(Optional)</span>
+                  </label>
+                  <input 
+                    type="text" 
+                    value={liveKeyBenefit}
+                    onChange={(e) => setLiveKeyBenefit(e.target.value)}
+                    placeholder="e.g., More energy without the crash" 
+                    className="w-full px-3 py-2.5 rounded bg-titan-bg border border-titan-border text-text-primary text-sm focus:border-accent-fuchsia focus:outline-none transition-colors placeholder-text-muted"
+                  />
+                </div>
+
+                {/* Email/Phone Capture - Shows AFTER clicking generate if not logged in */}
+                {!user && showEmailCapture && (
+                  <div className="mb-5 p-4 bg-accent-fuchsia/5 border border-accent-fuchsia/20 rounded animate-in fade-in slide-in-from-top-2 duration-300">
+                    <p className="text-xs text-accent-fuchsia font-medium mb-3">
+                      Almost there! Enter your email to get your script:
                     </p>
+                    <div className="space-y-3">
+                      <div className="relative">
+                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" size={14} />
+                        <input 
+                          type="email" 
+                          value={liveEmail}
+                          onChange={(e) => setLiveEmail(e.target.value)}
+                          placeholder="your@email.com" 
+                          className="w-full pl-9 pr-3 py-2.5 rounded bg-titan-bg border border-titan-border text-text-primary text-sm focus:border-accent-fuchsia focus:outline-none transition-colors placeholder-text-muted"
+                          autoFocus
+                        />
+                      </div>
+                      <div className="relative">
+                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" size={14} />
+                        <input 
+                          type="tel" 
+                          value={livePhone}
+                          onChange={(e) => setLivePhone(e.target.value)}
+                          placeholder="Phone (optional)" 
+                          className="w-full pl-9 pr-3 py-2.5 rounded bg-titan-bg border border-titan-border text-text-primary text-sm focus:border-accent-fuchsia focus:outline-none transition-colors placeholder-text-muted"
+                        />
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
-            ) : (
-              <div className="h-[400px] bg-titan-surface rounded border border-titan-border border-dashed flex flex-col items-center justify-center text-center p-8">
-                <div className="w-14 h-14 bg-titan-elevated rounded flex items-center justify-center text-text-muted mb-4">
-                  <Sparkles size={24} />
-                </div>
-                <h3 className="text-base font-semibold text-text-primary mb-1">Ready to Audit</h3>
-                <p className="text-sm text-text-muted max-w-xs mb-6">
-                  Upload a video to receive performance analysis and improvement recommendations
-                </p>
-                <div className="grid grid-cols-2 gap-3 text-xs text-text-muted">
-                  <div className="flex items-center gap-1.5">
-                    <CheckCircle size={10} className="text-accent-teal" />
-                    Hook Analysis
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <CheckCircle size={10} className="text-accent-teal" />
-                    CTA Strength
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <CheckCircle size={10} className="text-accent-teal" />
-                    Pacing Check
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <CheckCircle size={10} className="text-accent-teal" />
-                    Product Clarity
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
+                )}
 
-        </div>
+                <button 
+                  onClick={handleGenerateClick}
+                  disabled={isGeneratingScript || (showEmailCapture && !liveEmail.trim()) || !productInfoComplete}
+                  className="w-full bg-accent-fuchsia hover:bg-accent-fuchsia/90 text-white font-medium py-2.5 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+                >
+                  {isGeneratingScript ? (
+                    <>
+                      <Loader2 className="animate-spin" size={14} />
+                      Generating...
+                    </>
+                  ) : showEmailCapture && !liveEmail.trim() ? (
+                    <>
+                      <Mail size={14} />
+                      Enter Email to Continue
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles size={14} />
+                      Generate LIVE Script
+                    </>
+                  )}
+                </button>
+
+                {!user && !showEmailCapture && (
+                  <p className="text-[10px] text-text-muted text-center mt-3">
+                    Already have an account?{' '}
+                    <a href="#/login" className="text-accent-fuchsia hover:underline">Log in</a>
+                  </p>
+                )}
+                
+                {showEmailCapture && (
+                  <p className="text-[10px] text-text-muted text-center mt-3">
+                    We'll send your script to this email
+                  </p>
+                )}
+
+              </div>
+
+              {/* Tips Card */}
+              <div className="bg-titan-surface rounded border border-titan-border p-5">
+                <h3 className="text-xs font-semibold text-text-primary uppercase tracking-wider mb-3">
+                  LIVE Stream Tips
+                </h3>
+                <div className="space-y-2.5">
+                  <div className="flex items-start gap-2">
+                    <CheckCircle size={12} className="text-accent-teal mt-0.5 shrink-0" />
+                    <p className="text-xs text-text-muted">Read the script naturally - don't sound robotic</p>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <CheckCircle size={12} className="text-accent-teal mt-0.5 shrink-0" />
+                    <p className="text-xs text-text-muted">Repeat urgency and CTA every 2-3 minutes</p>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <CheckCircle size={12} className="text-accent-teal mt-0.5 shrink-0" />
+                    <p className="text-xs text-text-muted">Use the infographic as your LIVE background</p>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <CheckCircle size={12} className="text-accent-teal mt-0.5 shrink-0" />
+                    <p className="text-xs text-text-muted">Engage with comments while staying on script</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Column: Results */}
+            <div className="lg:col-span-2 space-y-4">
+              
+              {/* Script Result */}
+              {generatedScript ? (
+                <div className="bg-titan-surface rounded border border-titan-border p-6 relative overflow-hidden">
+                  <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-accent-fuchsia to-accent-teal"></div>
+                  
+                  <div className="flex items-center justify-between mb-5">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="text-accent-teal" size={16} />
+                      <h2 className="text-sm font-semibold text-text-primary">Your LIVE Script</h2>
+                    </div>
+                    <button
+                      onClick={handleCopyScript}
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-titan-bg border border-titan-border rounded text-xs text-text-secondary hover:text-text-primary hover:border-titan-border-light transition-colors"
+                    >
+                      {scriptCopied ? (
+                        <>
+                          <CheckCircle size={12} className="text-accent-teal" />
+                          Copied!
+                        </>
+                      ) : (
+                        <>
+                          <Copy size={12} />
+                          Copy Script
+                        </>
+                      )}
+                    </button>
+                  </div>
+                  
+                  <div className="prose prose-invert max-w-none text-sm">
+                    <ReactMarkdown
+                      components={{
+                        h2: ({node, ...props}) => <h2 className="text-lg font-semibold text-text-primary mt-4 mb-2" {...props} />,
+                        h3: ({node, ...props}) => <h3 className="text-sm font-semibold text-accent-fuchsia mt-4 mb-2" {...props} />,
+                        p: ({node, ...props}) => <p className="text-text-secondary text-sm leading-relaxed mb-3" {...props} />,
+                        li: ({node, ...props}) => <li className="text-text-secondary text-sm mb-1.5" {...props} />,
+                        strong: ({node, ...props}) => <span className="text-text-primary font-semibold" {...props} />,
+                        hr: ({node, ...props}) => <hr className="border-titan-border my-4" {...props} />,
+                      }}
+                    >
+                      {generatedScript}
+                    </ReactMarkdown>
+                  </div>
+
+                  {!user && liveEmail && (
+                    <div className="mt-6 pt-4 border-t border-titan-border">
+                      <div className="flex items-center gap-2 text-accent-teal">
+                        <Send size={12} />
+                        <p className="text-xs">
+                          Script sent to <strong>{liveEmail}</strong>
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="h-[300px] bg-titan-surface rounded border border-titan-border border-dashed flex flex-col items-center justify-center text-center p-8">
+                  <div className="w-14 h-14 bg-titan-elevated rounded flex items-center justify-center text-text-muted mb-4">
+                    <Radio size={24} />
+                  </div>
+                  <h3 className="text-base font-semibold text-text-primary mb-1">Ready to Generate</h3>
+                  <p className="text-sm text-text-muted max-w-xs mb-6">
+                    Fill out the form to get a customized LIVE selling script for your product
+                  </p>
+                  <div className="grid grid-cols-2 gap-3 text-xs text-text-muted">
+                    <div className="flex items-center gap-1.5">
+                      <CheckCircle size={10} className="text-accent-fuchsia" />
+                      8th Grade Level
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <CheckCircle size={10} className="text-accent-fuchsia" />
+                      Authority Words
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <CheckCircle size={10} className="text-accent-fuchsia" />
+                      Urgency Triggers
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <CheckCircle size={10} className="text-accent-fuchsia" />
+                      Strong CTAs
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Infographic Result */}
+              {(isGeneratingImage || infographicData || infographicSuggestion) && (
+                <div className="bg-titan-surface rounded border border-titan-border p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="text-accent-teal" size={16} />
+                      <h3 className="text-sm font-semibold text-text-primary">LIVE Background</h3>
+                    </div>
+                    {infographicData && (
+                      <button
+                        onClick={handleDownloadInfographic}
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-accent-teal text-titan-bg rounded text-xs font-medium hover:bg-accent-teal/90 transition-colors"
+                      >
+                        <Download size={12} />
+                        Download
+                      </button>
+                    )}
+                  </div>
+
+                  {isGeneratingImage && (
+                    <div className="flex items-center justify-center py-12">
+                      <Loader2 className="animate-spin text-accent-fuchsia" size={24} />
+                      <span className="ml-3 text-sm text-text-muted">Generating infographic...</span>
+                    </div>
+                  )}
+
+                  {infographicData && (
+                    <div className="rounded overflow-hidden border border-titan-border">
+                      <img 
+                        src={`data:${infographicData.mimeType};base64,${infographicData.data}`}
+                        alt="LIVE Stream Background"
+                        className="w-full"
+                      />
+                    </div>
+                  )}
+
+                  {infographicSuggestion && !infographicData && !isGeneratingImage && (
+                    <div className="bg-titan-bg rounded border border-titan-border p-4">
+                      <p className="text-xs text-text-muted mb-3">
+                        Image generation is temporarily unavailable. Here's a guide to create your own:
+                      </p>
+                      <div className="space-y-2">
+                        <p className="text-sm font-medium text-text-primary">{infographicSuggestion.title}</p>
+                        <ol className="list-decimal list-inside space-y-1">
+                          {infographicSuggestion.steps.map((step, i) => (
+                            <li key={i} className="text-xs text-text-secondary">{step}</li>
+                          ))}
+                        </ol>
+                        <p className="text-xs text-accent-teal mt-2">Colors: {infographicSuggestion.colors}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  <p className="text-[10px] text-text-muted mt-3">
+                    Use this as your LIVE stream background. The clean design won't distract from you or your product.
+                  </p>
+                </div>
+              )}
+
+            </div>
+
+          </div>
+        )}
+
       </div>
     </div>
   );
