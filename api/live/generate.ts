@@ -176,7 +176,7 @@ async function sendBrevoEmail(to: string, productName: string, script: string): 
         'content-type': 'application/json',
       },
       body: JSON.stringify({
-        sender: { name: 'Titans Agency', email: 'noreply@titansagency.co' },
+        sender: { name: 'Titans Agency', email: 'script@titansagency.co' },
         to: [{ email: to }],
         subject: `Your LIVE Script for ${productName} is Ready!`,
         htmlContent,
@@ -348,38 +348,120 @@ async function generateInfographic(req: VercelRequest, res: VercelResponse) {
   try {
     const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
 
-    // Build product-specific explanation based on category
-    const productExplanations: Record<string, string> = {
-      supplements: `how ${productName} works in the body - show absorption, how it affects cells/organs, and the benefit`,
-      beauty: `how ${productName} works on the skin - show layers of skin, product penetration, and visible results`,
-      cologne: `how ${productName} fragrance works - show scent notes (top, heart, base), projection, and longevity timeline`,
-      fragrance: `how ${productName} fragrance works - show scent notes (top, heart, base), projection, and longevity timeline`,
-      tech: `how ${productName} works - show the technology, key features, and user benefit`,
-      fitness: `how ${productName} helps fitness - show the process, muscle/body impact, and results`,
-      home: `how ${productName} works - show the mechanism, ease of use, and benefit`,
-      food: `how ${productName} is made and its benefits - show ingredients, process, and health benefit`,
-      pets: `how ${productName} helps pets - show ingredients, how it works, and pet health benefit`,
-      baby: `how ${productName} is safe for babies - show gentle ingredients, safety features, and benefit`,
+    // Problem-to-solution mapping by category
+    const categoryProblems: Record<string, { problem: string; action: string; bodyEffect: string; finalBenefit: string; benefits: string[] }> = {
+      supplements: {
+        problem: 'low energy, fatigue, or feeling sluggish',
+        action: 'boosts blood flow and nutrient absorption',
+        bodyEffect: 'more oxygen reaches your cells and muscles',
+        finalBenefit: 'more natural energy throughout the day',
+        benefits: ['Energy', 'Focus', 'Immunity', 'Mood', 'Strength']
+      },
+      beauty: {
+        problem: 'dry skin, dull complexion, or aging signs',
+        action: 'hydrates and nourishes skin layers',
+        bodyEffect: 'skin cells repair and regenerate faster',
+        finalBenefit: 'smoother, glowing, healthier-looking skin',
+        benefits: ['Hydration', 'Glow', 'Smoothness', 'Firmness', 'Radiance']
+      },
+      cologne: {
+        problem: 'wanting to smell great and make an impression',
+        action: 'releases layered scent notes over time',
+        bodyEffect: 'top notes fade into rich heart and base notes',
+        finalBenefit: 'confident, lasting presence for 6-8 hours',
+        benefits: ['Longevity', 'Projection', 'Compliments', 'Confidence', 'Style']
+      },
+      fragrance: {
+        problem: 'wanting to smell great and make an impression',
+        action: 'releases layered scent notes over time',
+        bodyEffect: 'top notes fade into rich heart and base notes',
+        finalBenefit: 'confident, lasting presence for 6-8 hours',
+        benefits: ['Longevity', 'Projection', 'Compliments', 'Confidence', 'Style']
+      },
+      tech: {
+        problem: 'wasting time on manual tasks or inefficiency',
+        action: 'automates and streamlines the process',
+        bodyEffect: 'works smarter so you don\'t have to',
+        finalBenefit: 'more time and less stress',
+        benefits: ['Speed', 'Ease', 'Smart', 'Efficiency', 'Control']
+      },
+      fitness: {
+        problem: 'lack of strength, endurance, or progress',
+        action: 'targets muscles and supports recovery',
+        bodyEffect: 'muscles rebuild stronger after workouts',
+        finalBenefit: 'better performance and visible gains',
+        benefits: ['Strength', 'Endurance', 'Recovery', 'Performance', 'Energy']
+      },
+      home: {
+        problem: 'clutter, mess, or daily inconvenience',
+        action: 'organizes and simplifies your routine',
+        bodyEffect: 'less time spent on tedious tasks',
+        finalBenefit: 'a cleaner, more comfortable home',
+        benefits: ['Clean', 'Easy', 'Time-Saving', 'Comfort', 'Peace']
+      },
+      fashion: {
+        problem: 'not feeling confident in your look',
+        action: 'fits perfectly and elevates your style',
+        bodyEffect: 'you look put-together effortlessly',
+        finalBenefit: 'more confidence in how you present yourself',
+        benefits: ['Style', 'Comfort', 'Confidence', 'Quality', 'Versatility']
+      },
+      food: {
+        problem: 'poor nutrition or unhealthy eating habits',
+        action: 'delivers quality nutrients your body needs',
+        bodyEffect: 'your body absorbs real, clean ingredients',
+        finalBenefit: 'feeling healthier and more satisfied',
+        benefits: ['Nutrition', 'Energy', 'Taste', 'Health', 'Quality']
+      },
+      pets: {
+        problem: 'pet health issues or picky eating',
+        action: 'provides nutrients pets actually need',
+        bodyEffect: 'supports their digestion and energy',
+        finalBenefit: 'a happier, healthier pet',
+        benefits: ['Health', 'Energy', 'Coat', 'Digestion', 'Happiness']
+      },
+      baby: {
+        problem: 'keeping baby safe and comfortable',
+        action: 'uses gentle, safe materials',
+        bodyEffect: 'no harsh chemicals or irritants',
+        finalBenefit: 'peace of mind for parents, comfort for baby',
+        benefits: ['Safety', 'Gentle', 'Comfort', 'Quality', 'Trust']
+      },
+      other: {
+        problem: 'a common daily frustration',
+        action: 'solves the problem simply',
+        bodyEffect: 'makes your life easier',
+        finalBenefit: 'less stress, better results',
+        benefits: ['Easy', 'Effective', 'Quality', 'Value', 'Results']
+      }
     };
 
-    const explanation = productExplanations[categoryKey] || `what ${productName} does and how it benefits the user`;
+    const catData = categoryProblems[categoryKey] || categoryProblems.other;
+    
+    // Override with user-provided benefit if available
+    const userProblem = keyBenefit ? `${keyBenefit.toLowerCase()}` : catData.problem;
 
-    const imagePrompt = `Create a simple, easy-to-understand infographic explaining ${explanation} for beginners.
+    const imagePrompt = `Create a clean, easy-to-understand infographic that visually explains how ${productName} solves a problem.
 
-INFOGRAPHIC STYLE:
-- Modern flat design
-- Minimal, clean layout
-- White or light background
-- Soft rounded icons
-- Simple arrows and labels connecting each step
-- Designed like a health app graphic
-- Easy for ages 30-60 to understand
-- Large, readable text
-- 3-4 simple steps maximum
-- Professional but friendly look
-${keyBenefit ? `\nHighlight this key benefit: "${keyBenefit}"` : ''}
+Use arrows, simple icons, and minimal text. Each step should be clear:
 
-This will be used as a TikTok LIVE stream background, so keep it clean and not too busy.`;
+Step 1: THE PROBLEM - ${userProblem}
+Step 2: WHAT ${productName.toUpperCase()} DOES - ${catData.action}
+Step 3: HOW IT HELPS - ${catData.bodyEffect}
+Step 4: THE RESULT - ${catData.finalBenefit}
+
+Below the steps, add a horizontal bar listing benefits using icons + small labels:
+${catData.benefits.join(' | ')}
+
+STYLE REQUIREMENTS:
+- Modern flat design with soft blue, green, or neutral tones
+- White or very light background
+- Simple rounded icons for each step
+- Clear arrows connecting each step
+- Large, readable text (easy for ages 30-60)
+- NO brand logos, NO product images
+- Clean enough to use as a TikTok LIVE stream background
+- Must be universal and professional looking`;
 
     // Use Nano Banana Pro (Gemini 3 Pro Image Preview)
     const response = await ai.models.generateContent({
