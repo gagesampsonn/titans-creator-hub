@@ -202,6 +202,7 @@ async function sendBrevoEmail(to: string, productName: string, script: string): 
  */
 async function generateScript(req: VercelRequest, res: VercelResponse) {
   const { 
+    brandName,
     productName,
     category,
     targetAudience,
@@ -211,10 +212,14 @@ async function generateScript(req: VercelRequest, res: VercelResponse) {
     phone,
   } = req.body;
 
-  if (!productName?.trim()) return res.status(400).json({ error: 'Product name is required' });
+  if (!productName?.trim()) return res.status(400).json({ error: 'Product type is required' });
   if (!category) return res.status(400).json({ error: 'Product category is required' });
   if (!targetAudience) return res.status(400).json({ error: 'Target audience is required' });
-  if (!productDescription?.trim()) return res.status(400).json({ error: 'Product description is required' });
+  
+  // Build full product name
+  const fullProductName = brandName?.trim() 
+    ? `${brandName.trim()} ${productName.trim()}` 
+    : productName.trim();
 
   // Check if user is logged in
   let userId: string | null = null;
@@ -237,58 +242,64 @@ async function generateScript(req: VercelRequest, res: VercelResponse) {
     const audienceLabel = audienceLabels[targetAudience] || targetAudience;
     const categoryLabel = productCategoryLabels[categoryKey] || category;
 
-    const systemPrompt = `Generate SHORT, PUNCHY talking points for a TikTok LIVE selling "${productName}".
+    const systemPrompt = `You are an expert on ${categoryLabel} products. Generate a TikTok LIVE selling script for "${fullProductName}".
 
-PRODUCT: ${productName}
+CRITICAL: You MUST use your real knowledge about what "${productName}" actually does:
+- If it's CREATINE: You know it increases ATP production, builds lean muscle, draws water into muscles for fuller look, improves strength and endurance
+- If it's ASHWAGANDHA: You know it lowers cortisol (stress hormone), improves sleep, reduces anxiety, balances hormones
+- If it's COLLAGEN: You know it improves skin elasticity, reduces wrinkles, strengthens hair and nails
+- If it's PRE-WORKOUT: You know it increases energy, focus, blood flow, muscle pumps
+- For ANY product type: Use your training knowledge about what it actually does in the body
+
+PRODUCT: ${fullProductName}
+PRODUCT TYPE: ${productName}
 AUDIENCE: ${audienceLabel}  
 CATEGORY: ${categoryLabel}
-WHAT IT DOES: ${productDescription}
-${keyBenefit ? `MAIN BENEFIT: ${keyBenefit}` : ''}
+${productDescription ? `CREATOR'S EXTRA NOTES: ${productDescription}` : ''}
+${keyBenefit ? `KEY SELLING POINT: ${keyBenefit}` : ''}
 
-CRITICAL STYLE RULES:
-- BE DIRECT AND CONFIDENT. No hedging, no "I think", no "honestly", no "might help"
-- SHORT PHRASES ONLY. Max 10 words per bullet point
-- NO FILLER WORDS: Remove "and honestly", "what I like is", "also I noticed", "these might be"
-- SOUND LIKE AN EXPERT who knows the product, not someone discovering it
-- State facts, don't suggest possibilities
+STYLE RULES:
+- BE DIRECT AND CONFIDENT. No "I think", no "honestly", no "might help"
+- SHORT PHRASES. Max 10 words per bullet
+- NO FILLER: Remove "and honestly", "what I like is", "also I noticed"
+- SOUND LIKE AN EXPERT who knows the product
 - 8th grade reading level
-- Include 1 authority word from: ${authorityWords.slice(0, 3).join(', ')} - explain in 5 words max
+- Include 1 authority word from: ${authorityWords.slice(0, 3).join(', ')} - explain simply
 
-BAD EXAMPLES (don't write like this):
-- "And honestly, I think they help me chill out" ❌
-- "What I like about these is that I'm not reaching for wine" ❌
-- "These might be something to look into" ❌
-- "Also, I noticed free shipping" ❌
-
-GOOD EXAMPLES (write like this):
-- "Helps you chill without needing wine" ✓
-- "You probably have cortisol issues" ✓
-- "60 gummies, lasts a month" ✓
-- "Free shipping on this live" ✓
-
-OUTPUT FORMAT - bullet points only, no fluff:
+OUTPUT FORMAT:
 
 **WHAT IT IS**
-• [One sentence, 10 words max]
+• [One sentence explaining what it actually does - use real knowledge]
 
 **KEY BENEFITS**
-• [Direct benefit statement]
-• [Another direct benefit]
+• [Real benefit based on what this product actually does]
+• [Another real benefit]
+• [Third benefit if applicable]
 
 **THE SCIENCE**
-• [Authority word] = [5 word explanation]
+• [Authority word] = [simple 5 word explanation]
 
 **WHO NEEDS THIS**
-• [Direct statement about who this is for - be specific]
+• [Specific person this helps - be direct, e.g. "You probably have low testosterone"]
 
 **PRODUCT DETAILS**
-• [Size/amount/duration - just facts]
-• Free shipping on this live
+• [Size/amount - e.g. "60 gummies, one month supply"]
 
-**COMMON QUESTIONS**
-• [Question] → [Short direct answer]
+**URGENCY & SOCIAL PROOF**
+• These are selling out fast
+• Just saw 3 more people grab this
+• Stock is getting low
 
-NO FILLER. NO HEDGING. DIRECT AND CONFIDENT.`;
+**CALL TO ACTION**
+• Tap the cart below to lock it in
+• Free shipping while you're on this live
+• Don't sleep on it, grab yours now
+
+**IF THEY ASK**
+• [Common question] → [Direct answer based on real product knowledge]
+• [Another question] → [Direct answer]
+
+USE YOUR REAL KNOWLEDGE of what ${productName} does. Don't just repeat what the user typed.`;
 
     const response = await ai.models.generateContent({
       model: "gemini-2.0-flash",
@@ -317,10 +328,14 @@ NO FILLER. NO HEDGING. DIRECT AND CONFIDENT.`;
  * Generate infographic
  */
 async function generateInfographic(req: VercelRequest, res: VercelResponse) {
-  const { productName, category, keyBenefit } = req.body;
+  const { brandName, productName, category, keyBenefit } = req.body;
 
-  if (!productName?.trim()) return res.status(400).json({ error: 'Product name is required' });
+  if (!productName?.trim()) return res.status(400).json({ error: 'Product type is required' });
 
+  const fullProductName = brandName?.trim() 
+    ? `${brandName.trim()} ${productName.trim()}` 
+    : productName.trim();
+    
   const categoryKey = (category || 'other').toLowerCase().replace(/[^a-z]/g, '');
   const style = categoryStyles[categoryKey] || categoryStyles.other;
 
@@ -430,30 +445,99 @@ async function generateInfographic(req: VercelRequest, res: VercelResponse) {
 
     const catData = categoryProblems[categoryKey] || categoryProblems.other;
     
+    // Product-specific knowledge for smarter infographics
+    const productKnowledge: Record<string, { problem: string; action: string; bodyEffect: string; result: string }> = {
+      'creatine': {
+        problem: 'Weak muscles, low energy in gym',
+        action: 'Increases ATP (muscle fuel)',
+        bodyEffect: 'Muscles hold more water & energy',
+        result: 'Bigger pumps, more strength'
+      },
+      'ashwagandha': {
+        problem: 'High stress, poor sleep',
+        action: 'Lowers cortisol (stress hormone)',
+        bodyEffect: 'Body relaxes, mind calms',
+        result: 'Better sleep, less anxiety'
+      },
+      'collagen': {
+        problem: 'Wrinkles, weak hair/nails',
+        action: 'Rebuilds skin protein',
+        bodyEffect: 'Skin cells regenerate faster',
+        result: 'Firmer skin, stronger hair'
+      },
+      'pre-workout': {
+        problem: 'Low energy, weak workouts',
+        action: 'Boosts blood flow & focus',
+        bodyEffect: 'More oxygen to muscles',
+        result: 'Bigger pumps, better performance'
+      },
+      'nitric oxide': {
+        problem: 'Poor circulation, low energy',
+        action: 'Opens blood vessels wider',
+        bodyEffect: 'More blood flow everywhere',
+        result: 'More energy, better performance'
+      },
+      'testosterone': {
+        problem: 'Low T, fatigue, low drive',
+        action: 'Supports natural T production',
+        bodyEffect: 'Hormones rebalance',
+        result: 'More energy, strength, drive'
+      },
+      'protein': {
+        problem: 'Slow muscle recovery',
+        action: 'Delivers amino acids to muscles',
+        bodyEffect: 'Muscles repair faster',
+        result: 'Faster gains, less soreness'
+      },
+      'vitamin d': {
+        problem: 'Low energy, weak immunity',
+        action: 'Supports immune & bone health',
+        bodyEffect: 'Body functions better',
+        result: 'More energy, stronger immunity'
+      },
+      'magnesium': {
+        problem: 'Poor sleep, muscle cramps',
+        action: 'Relaxes muscles & nerves',
+        bodyEffect: 'Body calms down naturally',
+        result: 'Better sleep, fewer cramps'
+      }
+    };
+    
+    // Find matching product knowledge
+    const productLower = productName.toLowerCase();
+    let productData = catData;
+    for (const [key, data] of Object.entries(productKnowledge)) {
+      if (productLower.includes(key)) {
+        productData = { ...catData, ...data };
+        break;
+      }
+    }
+    
     // Override with user-provided benefit if available
-    const userProblem = keyBenefit ? `${keyBenefit.toLowerCase()}` : catData.problem;
+    const userProblem = keyBenefit ? `${keyBenefit}` : productData.problem;
 
-    const imagePrompt = `Create a clean, easy-to-understand infographic that visually explains how ${productName} solves a problem.
+    const imagePrompt = `Create a clean, easy-to-understand infographic that visually explains how ${productName.toUpperCase()} works in the body.
 
-Use arrows, simple icons, and minimal text. Each step should be clear:
+IMPORTANT: You know what ${productName} does. Use that knowledge to create an accurate infographic.
+
+Use arrows, simple icons, and minimal text. 4 steps in a grid layout:
 
 Step 1: THE PROBLEM - ${userProblem}
-Step 2: WHAT ${productName.toUpperCase()} DOES - ${catData.action}
-Step 3: HOW IT HELPS - ${catData.bodyEffect}
-Step 4: THE RESULT - ${catData.finalBenefit}
+Step 2: WHAT ${fullProductName.toUpperCase()} DOES - ${productData.action}
+Step 3: HOW IT HELPS THE BODY - ${productData.bodyEffect}
+Step 4: THE RESULT - ${productData.finalBenefit || productData.result}
 
-Below the steps, add a horizontal bar listing benefits using icons + small labels:
+At the bottom, add a horizontal bar with benefit icons:
 ${catData.benefits.join(' | ')}
 
-STYLE REQUIREMENTS:
-- Modern flat design with soft blue, green, or neutral tones
+STYLE:
+- Modern flat design, soft blue/green/neutral tones
 - White or very light background
 - Simple rounded icons for each step
-- Clear arrows connecting each step
-- Large, readable text (easy for ages 30-60)
-- NO brand logos, NO product images
-- Clean enough to use as a TikTok LIVE stream background
-- Must be universal and professional looking`;
+- Clear arrows connecting steps
+- Large readable text (ages 30-60 friendly)
+- NO brand logos, NO product photos
+- Clean enough for TikTok LIVE background`;
 
     // Use Nano Banana Pro (Gemini 3 Pro Image Preview)
     const response = await ai.models.generateContent({

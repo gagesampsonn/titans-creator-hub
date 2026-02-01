@@ -83,6 +83,7 @@ const VideoAudit = () => {
   // ═══════════════════════════════════════════════════════════════════════
   // LIVE SCRIPT GENERATOR STATE
   // ═══════════════════════════════════════════════════════════════════════
+  const [liveBrandName, setLiveBrandName] = useState('');
   const [liveProductName, setLiveProductName] = useState('');
   const [liveCategory, setLiveCategory] = useState('');
   const [liveAudience, setLiveAudience] = useState('');
@@ -384,7 +385,7 @@ ${videoStyle === 'lifestyle' ? 'For Lifestyle: Check how naturally the product f
   // ═══════════════════════════════════════════════════════════════════════
   // LIVE SCRIPT GENERATOR HANDLERS
   // ═══════════════════════════════════════════════════════════════════════
-  const productInfoComplete = liveProductName.trim() && liveCategory && liveAudience && liveDescription.trim();
+  const productInfoComplete = liveProductName.trim() && liveCategory && liveAudience;
   const [pendingScript, setPendingScript] = useState<string | null>(null); // Script waiting for email unlock
   const [scriptUnlocked, setScriptUnlocked] = useState(false); // Whether email was submitted
 
@@ -420,10 +421,11 @@ ${videoStyle === 'lifestyle' ? 'For Lifestyle: Check how naturally the product f
         },
         body: JSON.stringify({
           action: 'script',
+          brandName: liveBrandName.trim() || undefined,
           productName: liveProductName.trim(),
           category: liveCategory,
           targetAudience: liveAudience,
-          productDescription: liveDescription.trim(),
+          productDescription: liveDescription.trim() || undefined,
           keyBenefit: liveKeyBenefit.trim() || undefined,
           // Only include email if user is logged in (logged in users don't need gate)
           email: user ? undefined : 'pending@unlock.temp', // Placeholder to pass validation
@@ -499,6 +501,7 @@ ${videoStyle === 'lifestyle' ? 'For Lifestyle: Check how naturally the product f
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: 'infographic',
+          brandName: liveBrandName.trim() || undefined,
           productName: liveProductName.trim(),
           category: liveCategory,
           keyBenefit: liveKeyBenefit.trim() || undefined,
@@ -922,18 +925,33 @@ ${videoStyle === 'lifestyle' ? 'For Lifestyle: Check how naturally the product f
                   </p>
                 </div>
 
-                {/* Product Name */}
+                {/* Brand Name */}
                 <div className="mb-4">
                   <label className="block text-xs font-medium text-text-secondary mb-2">
-                    Product Name <span className="text-accent-fuchsia">*</span>
+                    Brand Name <span className="text-text-muted">(Optional)</span>
+                  </label>
+                  <input 
+                    type="text" 
+                    value={liveBrandName}
+                    onChange={(e) => setLiveBrandName(e.target.value)}
+                    placeholder="e.g., Beast Bites, Goli, Tom Ford" 
+                    className="w-full px-3 py-2.5 rounded bg-titan-bg border border-titan-border text-text-primary text-sm focus:border-accent-fuchsia focus:outline-none transition-colors placeholder-text-muted"
+                  />
+                </div>
+
+                {/* Product Type */}
+                <div className="mb-4">
+                  <label className="block text-xs font-medium text-text-secondary mb-2">
+                    Product Type <span className="text-accent-fuchsia">*</span>
                   </label>
                   <input 
                     type="text" 
                     value={liveProductName}
                     onChange={(e) => setLiveProductName(e.target.value)}
-                    placeholder="e.g., Nitric Oxide Booster, Tom Ford Cologne" 
+                    placeholder="e.g., Creatine, Ashwagandha, Cologne, Pre-workout" 
                     className="w-full px-3 py-2.5 rounded bg-titan-bg border border-titan-border text-text-primary text-sm focus:border-accent-fuchsia focus:outline-none transition-colors placeholder-text-muted"
                   />
+                  <p className="text-[10px] text-text-muted mt-1">AI will research what this product does</p>
                 </div>
 
                 {/* Category */}
@@ -972,21 +990,21 @@ ${videoStyle === 'lifestyle' ? 'For Lifestyle: Check how naturally the product f
                   </select>
                 </div>
 
-                {/* Product Description */}
+                {/* Extra Notes */}
                 <div className="mb-4">
                   <label className="block text-xs font-medium text-text-secondary mb-2">
-                    What does it do? <span className="text-accent-fuchsia">*</span>
+                    Extra Notes <span className="text-text-muted">(Optional)</span>
                   </label>
                   <textarea 
                     value={liveDescription}
                     onChange={(e) => setLiveDescription(e.target.value)}
-                    placeholder="Describe what the product does, its main ingredients or features, and who it's for..."
-                    rows={3}
+                    placeholder="Any specific details about THIS product (e.g., 60 gummies per bottle, tastes like candy, etc.)"
+                    rows={2}
                     className="w-full px-3 py-2.5 rounded bg-titan-bg border border-titan-border text-text-primary text-sm focus:border-accent-fuchsia focus:outline-none transition-colors placeholder-text-muted resize-none"
                   />
                 </div>
 
-                {/* Key Benefit (Optional) */}
+                {/* Key Selling Point (Optional) */}
                 <div className="mb-4">
                   <label className="block text-xs font-medium text-text-secondary mb-2">
                     Key Selling Point <span className="text-text-muted">(Optional)</span>
@@ -995,7 +1013,7 @@ ${videoStyle === 'lifestyle' ? 'For Lifestyle: Check how naturally the product f
                     type="text" 
                     value={liveKeyBenefit}
                     onChange={(e) => setLiveKeyBenefit(e.target.value)}
-                    placeholder="e.g., More energy without the crash" 
+                    placeholder="e.g., Bigger pumps, Better sleep, Lasts 8 hours" 
                     className="w-full px-3 py-2.5 rounded bg-titan-bg border border-titan-border text-text-primary text-sm focus:border-accent-fuchsia focus:outline-none transition-colors placeholder-text-muted"
                   />
                 </div>
