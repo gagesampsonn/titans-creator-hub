@@ -525,7 +525,7 @@ Use arrows, simple icons, and minimal text. 4 steps in a grid layout:
 Step 1: THE PROBLEM - ${userProblem}
 Step 2: WHAT ${fullProductName.toUpperCase()} DOES - ${productData.action}
 Step 3: HOW IT HELPS THE BODY - ${productData.bodyEffect}
-Step 4: THE RESULT - ${productData.finalBenefit || productData.result}
+Step 4: THE RESULT - ${productData.finalBenefit || (productData as any).result || catData.finalBenefit}
 
 At the bottom, add a horizontal bar with benefit icons:
 ${catData.benefits.join(' | ')}
