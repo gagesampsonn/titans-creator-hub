@@ -244,62 +244,55 @@ async function generateScript(req: VercelRequest, res: VercelResponse) {
 
     const systemPrompt = `You are an expert on ${categoryLabel} products. Generate a TikTok LIVE selling script for "${fullProductName}".
 
-CRITICAL: You MUST use your real knowledge about what "${productName}" actually does:
-- If it's CREATINE: You know it increases ATP production, builds lean muscle, draws water into muscles for fuller look, improves strength and endurance
-- If it's ASHWAGANDHA: You know it lowers cortisol (stress hormone), improves sleep, reduces anxiety, balances hormones
-- If it's COLLAGEN: You know it improves skin elasticity, reduces wrinkles, strengthens hair and nails
-- If it's PRE-WORKOUT: You know it increases energy, focus, blood flow, muscle pumps
-- For ANY product type: Use your training knowledge about what it actually does in the body
+USE YOUR REAL KNOWLEDGE about what "${productName}" actually does:
+- CREATINE: increases ATP, builds muscle, draws water into muscles for fuller look, improves strength
+- ASHWAGANDHA: lowers cortisol, improves sleep, reduces anxiety, balances hormones
+- COLLAGEN: improves skin elasticity, reduces wrinkles, strengthens hair/nails
+- PRE-WORKOUT: increases energy, focus, blood flow, muscle pumps
+- For ANY product: Use your training knowledge about what it does
 
 PRODUCT: ${fullProductName}
 PRODUCT TYPE: ${productName}
 AUDIENCE: ${audienceLabel}  
 CATEGORY: ${categoryLabel}
-${productDescription ? `CREATOR'S EXTRA NOTES: ${productDescription}` : ''}
-${keyBenefit ? `KEY SELLING POINT: ${keyBenefit}` : ''}
+${productDescription ? `EXTRA INFO: ${productDescription}` : ''}
+${keyBenefit ? `HIGHLIGHT: ${keyBenefit}` : ''}
 
-STYLE RULES:
-- BE DIRECT AND CONFIDENT. No "I think", no "honestly", no "might help"
-- SHORT PHRASES. Max 10 words per bullet
-- NO FILLER: Remove "and honestly", "what I like is", "also I noticed"
-- SOUND LIKE AN EXPERT who knows the product
-- 8th grade reading level
-- Include 1 authority word from: ${authorityWords.slice(0, 3).join(', ')} - explain simply
+STYLE: Direct, confident, 8th grade reading level. No filler words.
 
-OUTPUT FORMAT:
+OUTPUT FORMAT (use this exact structure):
 
-**WHAT IT IS**
-• [One sentence explaining what it actually does - use real knowledge]
+**${fullProductName.toUpperCase()}**
 
-**KEY BENEFITS**
-• [Real benefit based on what this product actually does]
-• [Another real benefit]
-• [Third benefit if applicable]
+• [What ${productName} does - use real knowledge, e.g. "supports strength, power, and recovery"]
+• [How it works in body - e.g. "helps muscles produce more ATP during workouts"]
+• [Visible benefit - e.g. "supports that fuller / rounder muscle look"]
+• [Convenience factor - e.g. "easy to add to your daily routine"]
 
-**THE SCIENCE**
-• [Authority word] = [simple 5 word explanation]
+**WHO THIS IS FOR**
 
-**WHO NEEDS THIS**
-• [Specific person this helps - be direct, e.g. "You probably have low testosterone"]
+• [Target person 1 - e.g. "anyone trying to break through a gym plateau"]
+• [Target person 2 - e.g. "beginners AND experienced lifters"]
 
-**PRODUCT DETAILS**
-• [Size/amount - e.g. "60 gummies, one month supply"]
+**WHY PEOPLE LIKE IT**
 
-**URGENCY & SOCIAL PROOF**
-• These are selling out fast
-• Just saw 3 more people grab this
-• Stock is getting low
+• [Unique selling point - e.g. "tastes like candy, not chalky powder"]
+• [Product form benefit - e.g. "same proven ${productName} in ${productDescription || 'easy'} form"]
 
-**CALL TO ACTION**
-• Tap the cart below to lock it in
-• Free shipping while you're on this live
-• Don't sleep on it, grab yours now
+**LIVE CTA LOOP** (rotate through these)
 
-**IF THEY ASK**
-• [Common question] → [Direct answer based on real product knowledge]
-• [Another question] → [Direct answer]
+• ${productName} is one of the most researched ${categoryLabel.toLowerCase()} products
+• This just makes it easy to actually take daily
+• We've got people grabbing these right now
+• If you [relevant activity], this belongs in your stack
+• Tap the cart and grab yours while we're live
+• Free shipping on this live - add it to your cart now
 
-USE YOUR REAL KNOWLEDGE of what ${productName} does. Don't just repeat what the user typed.`;
+**REPEAT LINE** (say this every few minutes)
+
+"[Product benefit summary] — it's ${productName} without the hassle, just [simple action]. Tap the cart, free shipping on the live."
+
+USE REAL ${productName.toUpperCase()} KNOWLEDGE. This script will also be used to generate an infographic background.`;
 
     const response = await ai.models.generateContent({
       model: "gemini-2.0-flash",

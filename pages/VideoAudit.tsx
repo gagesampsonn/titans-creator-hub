@@ -1004,16 +1004,16 @@ ${videoStyle === 'lifestyle' ? 'For Lifestyle: Check how naturally the product f
                   />
                 </div>
 
-                {/* Key Selling Point (Optional) */}
+                {/* Product Highlight (Optional) */}
                 <div className="mb-4">
                   <label className="block text-xs font-medium text-text-secondary mb-2">
-                    Key Selling Point <span className="text-text-muted">(Optional)</span>
+                    What makes it special? <span className="text-text-muted">(Optional)</span>
                   </label>
                   <input 
                     type="text" 
                     value={liveKeyBenefit}
                     onChange={(e) => setLiveKeyBenefit(e.target.value)}
-                    placeholder="e.g., Bigger pumps, Better sleep, Lasts 8 hours" 
+                    placeholder="e.g., Gummy form, No chalky powder, Free shipping" 
                     className="w-full px-3 py-2.5 rounded bg-titan-bg border border-titan-border text-text-primary text-sm focus:border-accent-fuchsia focus:outline-none transition-colors placeholder-text-muted"
                   />
                 </div>
