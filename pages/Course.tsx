@@ -51,7 +51,14 @@ const Course: React.FC = () => {
   // Check for guest access key in URL
   const accessKey = searchParams.get('access');
   const hasGuestKey = accessKey === GUEST_ACCESS_KEY;
+  
+  // Check for direct video link (shareable preview)
+  const directVideoId = searchParams.get('video');
+  const hasDirectVideoLink = !!directVideoId;
 
+  // Track if viewing via shareable link (limited access to one video)
+  const [isShareablePreview, setIsShareablePreview] = useState(false);
+  
   // Check Whop membership on mount
   const DEV_BYPASS = false; // PRODUCTION MODE - verifies WHOP membership
   
@@ -60,6 +67,14 @@ const Course: React.FC = () => {
       // Guest access via secret URL key
       if (hasGuestKey) {
         setIsGuestAccess(true);
+        setHasAccess(true);
+        setCheckingAccess(false);
+        return;
+      }
+      
+      // Direct video link - allow viewing this one video without login
+      if (hasDirectVideoLink && !user) {
+        setIsShareablePreview(true);
         setHasAccess(true);
         setCheckingAccess(false);
         return;
@@ -103,7 +118,7 @@ const Course: React.FC = () => {
     if (!authLoading) {
       checkMembership();
     }
-  }, [user, authLoading, hasGuestKey]);
+  }, [user, authLoading, hasGuestKey, hasDirectVideoLink]);
 
   // Handle video selection from URL params
   useEffect(() => {
@@ -127,6 +142,11 @@ const Course: React.FC = () => {
   }, [searchParams, hasAccess]);
 
   const handleVideoSelect = (module: CourseModule, video: CourseVideo) => {
+    // If in shareable preview mode and trying to select a different video, prompt login
+    if (isShareablePreview && video.id !== directVideoId) {
+      navigate('/login');
+      return;
+    }
     setSelectedModule(module);
     setSelectedVideo(video);
     setSearchParams({ video: video.id });
@@ -144,8 +164,8 @@ const Course: React.FC = () => {
     });
   };
 
-  // Loading state (skip if guest access key is present)
-  if ((authLoading || checkingAccess) && !hasGuestKey) {
+  // Loading state (skip if guest access key or direct video link is present)
+  if ((authLoading || checkingAccess) && !hasGuestKey && !hasDirectVideoLink) {
     return (
       <div className="min-h-screen bg-titan-bg flex items-center justify-center">
         <div className="text-center">
@@ -156,8 +176,8 @@ const Course: React.FC = () => {
     );
   }
 
-  // Not logged in (but allow guest access with key)
-  if (!user && !hasGuestKey) {
+  // Not logged in (but allow guest access with key or direct video link)
+  if (!user && !hasGuestKey && !hasDirectVideoLink) {
     return (
       <div className="min-h-screen bg-titan-bg">
         <div className="max-w-3xl mx-auto px-6 py-16">
@@ -246,8 +266,8 @@ const Course: React.FC = () => {
     );
   }
 
-  // No access (but allow guest access with key)
-  if (!hasAccess && !hasGuestKey) {
+  // No access (but allow guest access with key or direct video link)
+  if (!hasAccess && !hasGuestKey && !hasDirectVideoLink) {
     return (
       <div className="min-h-screen bg-titan-bg">
         <div className="max-w-2xl mx-auto px-6 py-20">
@@ -329,7 +349,7 @@ const Course: React.FC = () => {
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   />
                   {/* Email watermark overlay */}
-                  <EmailWatermark email={isGuestAccess ? 'Guest Preview' : (user?.email || '')} />
+                  <EmailWatermark email={isShareablePreview ? 'Preview - Sign up for full access' : (isGuestAccess ? 'Guest Preview' : (user?.email || ''))} />
                 </div>
                 
                 {/* Video info */}
