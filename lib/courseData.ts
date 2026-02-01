@@ -349,6 +349,28 @@ export const courseModules: CourseModule[] = [
         difficulty: 'beginner',
         tags: ['opus clips', 'editing', 'ai', 'product plug', 'longform', 'shortform', 'tiktok shop', 'beginner'],
       },
+      {
+        id: 'cc-4',
+        title: 'Bottom of Funnel (BOF) Content Strategy',
+        description: 'Learn how to create bottom of funnel content that converts viewers who are ready to buy. BOF content targets people at the decision stage - they know what they want, they just need that final push.',
+        duration: '10:00',
+        embedUrl: 'https://www.loom.com/embed/603b91de2a7840a995c3ff2c457db728',
+        videoType: 'loom',
+        order: 4,
+        topics: [
+          { label: 'What is Bottom of Funnel' },
+          { label: 'BOF vs TOF Content' },
+          { label: 'Targeting Ready Buyers' },
+          { label: 'Conversion-Focused Scripts' },
+        ],
+        keyTakeaways: [
+          'Understand the marketing funnel for TikTok Shop',
+          'Create content for buyers ready to purchase',
+          'Increase conversion rates with BOF strategies',
+        ],
+        difficulty: 'intermediate',
+        tags: ['bof', 'bottom of funnel', 'funnel', 'conversion', 'sales', 'strategy', 'intermediate'],
+      },
     ],
   },
   {
