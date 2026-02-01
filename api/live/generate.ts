@@ -242,57 +242,56 @@ async function generateScript(req: VercelRequest, res: VercelResponse) {
     const audienceLabel = audienceLabels[targetAudience] || targetAudience;
     const categoryLabel = productCategoryLabels[categoryKey] || category;
 
-    const systemPrompt = `You are an expert on ${categoryLabel} products. Generate a TikTok LIVE selling script for "${fullProductName}".
+    const systemPrompt = `Generate a TikTok LIVE script for "${fullProductName}".
 
-USE YOUR REAL KNOWLEDGE about what "${productName}" actually does:
-- CREATINE: increases ATP, builds muscle, draws water into muscles for fuller look, improves strength
-- ASHWAGANDHA: lowers cortisol, improves sleep, reduces anxiety, balances hormones
-- COLLAGEN: improves skin elasticity, reduces wrinkles, strengthens hair/nails
-- PRE-WORKOUT: increases energy, focus, blood flow, muscle pumps
-- For ANY product: Use your training knowledge about what it does
+USE REAL KNOWLEDGE about ${productName}. You know what it does.
+
+CRITICAL FORMATTING RULES:
+1. EACH BULLET ON ITS OWN LINE
+2. MAX 12 WORDS PER BULLET - NO EXCEPTIONS
+3. NO PARAGRAPHS - ONLY SHORT BULLETS
+4. KEEP IT PUNCHY AND SCANNABLE
 
 PRODUCT: ${fullProductName}
-PRODUCT TYPE: ${productName}
-AUDIENCE: ${audienceLabel}  
-CATEGORY: ${categoryLabel}
-${productDescription ? `EXTRA INFO: ${productDescription}` : ''}
+TYPE: ${productName}
+AUDIENCE: ${audienceLabel}
+${productDescription ? `NOTES: ${productDescription}` : ''}
 ${keyBenefit ? `HIGHLIGHT: ${keyBenefit}` : ''}
 
-STYLE: Direct, confident, 8th grade reading level. No filler words.
-
-OUTPUT FORMAT (use this exact structure):
+OUTPUT (each bullet = new line, max 12 words):
 
 **${fullProductName.toUpperCase()}**
 
-• [What ${productName} does - use real knowledge, e.g. "supports strength, power, and recovery"]
-• [How it works in body - e.g. "helps muscles produce more ATP during workouts"]
-• [Visible benefit - e.g. "supports that fuller / rounder muscle look"]
-• [Convenience factor - e.g. "easy to add to your daily routine"]
+• supports strength, power, and recovery
+• helps muscles produce more ATP
+• gives that fuller, rounder muscle look
+• easy to add to your daily routine
 
 **WHO THIS IS FOR**
 
-• [Target person 1 - e.g. "anyone trying to break through a gym plateau"]
-• [Target person 2 - e.g. "beginners AND experienced lifters"]
+• anyone stuck at a gym plateau
+• beginners AND experienced lifters
 
 **WHY PEOPLE LIKE IT**
 
-• [Unique selling point - e.g. "tastes like candy, not chalky powder"]
-• [Product form benefit - e.g. "same proven ${productName} in ${productDescription || 'easy'} form"]
+• tastes like candy, not chalky powder
+• same proven creatine in gummy form
+• one month supply per bottle
 
-**LIVE CTA LOOP** (rotate through these)
+**LIVE CTA LOOP**
 
-• ${productName} is one of the most researched ${categoryLabel.toLowerCase()} products
-• This just makes it easy to actually take daily
-• We've got people grabbing these right now
-• If you [relevant activity], this belongs in your stack
-• Tap the cart and grab yours while we're live
-• Free shipping on this live - add it to your cart now
+• one of the most researched supplements
+• makes it easy to take daily
+• people are grabbing these right now
+• if you lift, this belongs in your stack
+• tap the cart and grab yours
+• free shipping while we're live
 
-**REPEAT LINE** (say this every few minutes)
+**REPEAT LINE**
 
-"[Product benefit summary] — it's ${productName} without the hassle, just [simple action]. Tap the cart, free shipping on the live."
+"Supports strength and muscle fullness — just chew and go. Tap the cart, free shipping on the live."
 
-USE REAL ${productName.toUpperCase()} KNOWLEDGE. This script will also be used to generate an infographic background.`;
+REMEMBER: MAX 12 WORDS PER BULLET. EACH BULLET ON NEW LINE.`;
 
     const response = await ai.models.generateContent({
       model: "gemini-2.0-flash",
