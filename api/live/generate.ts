@@ -208,33 +208,21 @@ async function generateScript(req: VercelRequest, res: VercelResponse) {
     targetAudience,
     productDescription,
     keyBenefit,
-    email,
-    phone,
     template, // Template data from library
   } = req.body;
 
-  if (!productName?.trim()) return res.status(400).json({ error: 'Product type is required' });
-  if (!category) return res.status(400).json({ error: 'Product category is required' });
-  if (!targetAudience) return res.status(400).json({ error: 'Target audience is required' });
+  if (!productName?.trim()) return res.status(400).json({ error: 'Product type is required', success: false });
+  if (!category) return res.status(400).json({ error: 'Product category is required', success: false });
+  if (!targetAudience) return res.status(400).json({ error: 'Target audience is required', success: false });
   
   // Build full product name
   const fullProductName = brandName?.trim() 
     ? `${brandName.trim()} ${productName.trim()}` 
     : productName.trim();
 
-  // Check if user is logged in
-  let userId: string | null = null;
-  const authHeader = req.headers.authorization;
-  if (authHeader?.startsWith('Bearer ')) {
-    const token = authHeader.split(' ')[1];
-    const anonClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    const { data: { user } } = await anonClient.auth.getUser(token);
-    userId = user?.id || null;
-  }
+  // No auth required for script generation - email capture happens after
 
-  // Email not required upfront - will be captured after script generation
-
-  if (!GEMINI_API_KEY) return res.status(500).json({ error: 'AI service not configured' });
+  if (!GEMINI_API_KEY) return res.status(500).json({ error: 'AI service not configured', success: false });
 
   try {
     const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });

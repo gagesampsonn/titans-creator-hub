@@ -414,7 +414,7 @@ ${videoStyle === 'lifestyle' ? 'For Lifestyle: Check how naturally the product f
   const [pendingScript, setPendingScript] = useState<string | null>(null); // Script waiting for email unlock
   const [scriptUnlocked, setScriptUnlocked] = useState(false); // Whether email was submitted
 
-  // First click: Generate script (will be gated if not logged in)
+  // First click: Generate script (works for anyone, email gate comes after)
   const handleGenerateScript = async () => {
     if (!productInfoComplete) return;
     
@@ -427,22 +427,14 @@ ${videoStyle === 'lifestyle' ? 'For Lifestyle: Check how naturally the product f
     setInfographicSuggestion(null);
 
     try {
-      // Get access token if logged in
-      let accessToken: string | undefined;
-      if (session?.access_token) {
-        accessToken = session.access_token;
-      } else {
-        const { data } = await supabase.auth.getSession();
-        accessToken = data.session?.access_token;
-      }
+      // Check if user is logged in
+      const isLoggedIn = !!user;
 
-      // For non-logged-in users, we generate without email first (just to get the script)
-      // We'll send email later when they unlock
+      // Generate script - no auth required
       const response = await fetch('/api/live/generate', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(accessToken ? { 'Authorization': `Bearer ${accessToken}` } : {}),
         },
         body: JSON.stringify({
           action: 'script',
@@ -459,9 +451,6 @@ ${videoStyle === 'lifestyle' ? 'For Lifestyle: Check how naturally the product f
             demoIdeas: selectedTemplate.demoIdeas,
             infographicPrompt: selectedTemplate.infographicPrompt,
           } : undefined,
-          // Only include email if user is logged in (logged in users don't need gate)
-          email: user ? undefined : 'pending@unlock.temp', // Placeholder to pass validation
-          phone: undefined,
         }),
       });
 
@@ -474,7 +463,7 @@ ${videoStyle === 'lifestyle' ? 'For Lifestyle: Check how naturally the product f
       }
 
       // If user is logged in, show script directly
-      if (user) {
+      if (isLoggedIn) {
         setGeneratedScript(data.script);
         setScriptUnlocked(true);
       } else {
