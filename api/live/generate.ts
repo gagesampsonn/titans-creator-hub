@@ -328,10 +328,25 @@ Line 4 — [purpose]
 
 REMEMBER: Put each bullet on its OWN LINE with a blank line between them.`;
 
-    const response = await ai.models.generateContent({
-      model: "gemini-2.0-flash",
-      contents: { parts: [{ text: systemPrompt }] },
-    });
+    // Try with primary model, fallback to alternative if rate limited
+    let response;
+    try {
+      response = await ai.models.generateContent({
+        model: "gemini-2.0-flash",
+        contents: { parts: [{ text: systemPrompt }] },
+      });
+    } catch (primaryError: any) {
+      // If rate limited, try alternative model
+      if (primaryError.message?.includes('429') || primaryError.message?.includes('RESOURCE_EXHAUSTED')) {
+        console.log('[Script] Rate limited on 2.0-flash, trying 1.5-flash...');
+        response = await ai.models.generateContent({
+          model: "gemini-1.5-flash",
+          contents: { parts: [{ text: systemPrompt }] },
+        });
+      } else {
+        throw primaryError;
+      }
+    }
 
     const script = response.text || "Failed to generate script. Please try again.";
 
@@ -347,12 +362,20 @@ REMEMBER: Put each bullet on its OWN LINE with a blank line between them.`;
 
   } catch (error: any) {
     console.error('[Script Generation Error]:', error);
-    console.error('[Script Generation Error Details]:', error.message, error.stack);
+    
+    // Check for rate limiting
+    if (error.message?.includes('429') || error.message?.includes('RESOURCE_EXHAUSTED')) {
+      return res.status(429).json({ 
+        success: false, 
+        error: 'Too many requests. Please wait a moment and try again.',
+        isRateLimit: true
+      });
+    }
+    
     return res.status(500).json({ 
       success: false, 
-      error: 'Failed to generate script', 
-      details: error.message,
-      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      error: 'Failed to generate script. Please try again.',
+      details: error.message
     });
   }
 }
