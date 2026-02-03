@@ -328,9 +328,9 @@ Line 4 — [purpose]
 
 REMEMBER: Put each bullet on its OWN LINE with a blank line between them.`;
 
-    // Use Gemini 1.5 Flash
+    // Use Gemini 2.5 Flash (same as VideoAudit)
     const response = await ai.models.generateContent({
-      model: "models/gemini-1.5-flash",
+      model: "gemini-2.5-flash",
       contents: { parts: [{ text: systemPrompt }] },
     });
 
