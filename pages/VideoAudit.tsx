@@ -457,7 +457,9 @@ ${videoStyle === 'lifestyle' ? 'For Lifestyle: Check how naturally the product f
       const data = await response.json();
 
       if (!response.ok || !data.success) {
-        setGeneratedScript(`## Error\n\n${data.error || "Failed to generate script. Please try again."}`);
+        const errorMsg = data.details || data.error || "Failed to generate script. Please try again.";
+        console.error('[LiveScript] API Error:', data);
+        setGeneratedScript(`## Error\n\n${errorMsg}`);
         setIsGeneratingScript(false);
         return;
       }

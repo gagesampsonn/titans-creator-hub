@@ -347,7 +347,13 @@ REMEMBER: Put each bullet on its OWN LINE with a blank line between them.`;
 
   } catch (error: any) {
     console.error('[Script Generation Error]:', error);
-    return res.status(500).json({ success: false, error: 'Failed to generate script', details: error.message });
+    console.error('[Script Generation Error Details]:', error.message, error.stack);
+    return res.status(500).json({ 
+      success: false, 
+      error: 'Failed to generate script', 
+      details: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
   }
 }
 
