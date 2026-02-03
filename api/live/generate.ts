@@ -328,25 +328,11 @@ Line 4 — [purpose]
 
 REMEMBER: Put each bullet on its OWN LINE with a blank line between them.`;
 
-    // Try with primary model, fallback to alternative if rate limited
-    let response;
-    try {
-      response = await ai.models.generateContent({
-        model: "gemini-2.0-flash",
-        contents: { parts: [{ text: systemPrompt }] },
-      });
-    } catch (primaryError: any) {
-      // If rate limited, try alternative model
-      if (primaryError.message?.includes('429') || primaryError.message?.includes('RESOURCE_EXHAUSTED')) {
-        console.log('[Script] Rate limited on 2.0-flash, trying 1.5-flash...');
-        response = await ai.models.generateContent({
-          model: "gemini-1.5-flash",
-          contents: { parts: [{ text: systemPrompt }] },
-        });
-      } else {
-        throw primaryError;
-      }
-    }
+    // Use gemini-1.5-flash (stable model)
+    const response = await ai.models.generateContent({
+      model: "gemini-1.5-flash-latest",
+      contents: { parts: [{ text: systemPrompt }] },
+    });
 
     const script = response.text || "Failed to generate script. Please try again.";
 
