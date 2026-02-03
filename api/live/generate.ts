@@ -632,7 +632,7 @@ STYLE:
  * Save lead and send email (called after user unlocks script)
  */
 async function saveLead(req: VercelRequest, res: VercelResponse) {
-  const { email, phone, productName, category, targetAudience, script } = req.body;
+  const { email, phone, productName, category, targetAudience } = req.body;
 
   if (!email?.trim()) {
     return res.status(400).json({ error: 'Email is required' });
@@ -654,12 +654,9 @@ async function saveLead(req: VercelRequest, res: VercelResponse) {
       }
     }, { onConflict: 'email', ignoreDuplicates: false });
 
-    // Send email with script
-    if (script && productName) {
-      await sendBrevoEmail(email.trim(), productName, script);
-    }
+    // Email sending disabled for now - can be added later
 
-    return res.status(200).json({ success: true, message: 'Lead saved and email sent' });
+    return res.status(200).json({ success: true, message: 'Lead saved' });
   } catch (error: any) {
     console.error('[Save Lead Error]:', error);
     return res.status(500).json({ success: false, error: 'Failed to save lead' });

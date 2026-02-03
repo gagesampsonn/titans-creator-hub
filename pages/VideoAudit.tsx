@@ -487,7 +487,7 @@ ${videoStyle === 'lifestyle' ? 'For Lifestyle: Check how naturally the product f
   const handleUnlockScript = async () => {
     if (!liveEmail.trim() || !pendingScript) return;
 
-    // Save lead and send email via API
+    // Save lead to database
     try {
       await fetch('/api/live/generate', {
         method: 'POST',
@@ -499,7 +499,6 @@ ${videoStyle === 'lifestyle' ? 'For Lifestyle: Check how naturally the product f
           productName: liveProductName.trim(),
           category: liveCategory,
           targetAudience: liveAudience,
-          script: pendingScript,
         }),
       });
     } catch (error) {
@@ -1174,7 +1173,7 @@ ${videoStyle === 'lifestyle' ? 'For Lifestyle: Check how naturally the product f
                       </p>
                     </div>
                     <p className="text-xs text-text-muted mb-3">
-                      Enter your email to unlock it. We'll also send you a copy:
+                      Enter your email to unlock:
                     </p>
                     <div className="space-y-3">
                       <div className="relative">
@@ -1310,16 +1309,6 @@ ${videoStyle === 'lifestyle' ? 'For Lifestyle: Check how naturally the product f
                     </ReactMarkdown>
                   </div>
 
-                  {!user && liveEmail && (
-                    <div className="mt-6 pt-4 border-t border-titan-border">
-                      <div className="flex items-center gap-2 text-accent-teal">
-                        <Send size={12} />
-                        <p className="text-xs">
-                          Script sent to <strong>{liveEmail}</strong>
-                        </p>
-                      </div>
-                    </div>
-                  )}
                 </div>
               ) : (
                 <div className="h-[300px] bg-titan-surface rounded border border-titan-border border-dashed flex flex-col items-center justify-center text-center p-8">
