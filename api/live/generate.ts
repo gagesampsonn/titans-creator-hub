@@ -210,6 +210,7 @@ async function generateScript(req: VercelRequest, res: VercelResponse) {
     keyBenefit,
     email,
     phone,
+    template, // Template data from library
   } = req.body;
 
   if (!productName?.trim()) return res.status(400).json({ error: 'Product type is required' });
@@ -238,9 +239,20 @@ async function generateScript(req: VercelRequest, res: VercelResponse) {
   try {
     const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
     const categoryKey = category.toLowerCase().replace(/[^a-z]/g, '');
-    const authorityWords = authorityWordsByCategory[categoryKey] || authorityWordsByCategory.other;
+    // Use template authority words if provided, otherwise use category defaults
+    const authorityWords = template?.authorityWords || authorityWordsByCategory[categoryKey] || authorityWordsByCategory.other;
+    const coreAngles = template?.coreAngles || [];
+    const demoIdeas = template?.demoIdeas || [];
     const audienceLabel = audienceLabels[targetAudience] || targetAudience;
     const categoryLabel = productCategoryLabels[categoryKey] || category;
+
+    // Build template-specific guidance
+    const templateGuidance = template ? `
+TEMPLATE GUIDANCE (Titans Library):
+Authority Words to USE: ${authorityWords.join(', ')}
+Core Angles to cover: ${coreAngles.join(', ')}
+Demo Ideas: ${demoIdeas.join('; ')}
+` : '';
 
     const systemPrompt = `TIKTOK SHOP LIVE SCRIPT GENERATOR
 
@@ -262,9 +274,9 @@ No medical claims. No guarantees.
 
 NICHE AUTHORITY WORD RULE (CRITICAL):
 Every bullet MUST include at least one niche authority word — a term people in that category recognize.
-Examples: longevity, atomizer, dosage, bioavailability, absorption, SPF, texture, refresh rate, wattage, etc.
+Use these authority words: ${authorityWords.join(', ')}
 These words signal expertise.
-
+${templateGuidance}
 PRODUCT INFO:
 PRODUCT NAME: ${fullProductName}
 TYPE: ${productName}
@@ -347,7 +359,7 @@ USE REAL KNOWLEDGE about ${productName}. Include authority words specific to ${c
  * Generate infographic
  */
 async function generateInfographic(req: VercelRequest, res: VercelResponse) {
-  const { brandName, productName, category, keyBenefit } = req.body;
+  const { brandName, productName, category, keyBenefit, infographicPrompt: customInfographicPrompt } = req.body;
 
   if (!productName?.trim()) return res.status(400).json({ error: 'Product type is required' });
 
@@ -535,7 +547,19 @@ async function generateInfographic(req: VercelRequest, res: VercelResponse) {
     // Override with user-provided benefit if available
     const userProblem = keyBenefit ? `${keyBenefit}` : productData.problem;
 
-    const imagePrompt = `Create a clean, easy-to-understand infographic that visually explains how ${productName.toUpperCase()} works in the body.
+    // Use custom template prompt if provided, otherwise build default
+    const imagePrompt = customInfographicPrompt 
+      ? `${customInfographicPrompt}
+
+STYLE REQUIREMENTS:
+- Modern flat design, soft blue/green/neutral tones
+- White or very light background
+- Simple rounded icons for each step
+- Clear arrows connecting steps
+- Large readable text (ages 30-60 friendly)
+- NO brand logos, NO product photos
+- Clean enough for TikTok LIVE background`
+      : `Create a clean, easy-to-understand infographic that visually explains how ${productName.toUpperCase()} works in the body.
 
 IMPORTANT: You know what ${productName} does. Use that knowledge to create an accurate infographic.
 

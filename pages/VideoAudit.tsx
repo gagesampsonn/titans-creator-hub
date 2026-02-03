@@ -1,9 +1,10 @@
 import React, { useState, useRef } from 'react';
 import { GoogleGenAI } from "@google/genai";
 import ReactMarkdown from 'react-markdown';
-import { Upload, Video, Link as LinkIcon, Play, CheckCircle, AlertTriangle, Loader2, Sparkles, History, AlertCircle, Radio, Copy, Download, Mail, Phone, Send } from 'lucide-react';
+import { Upload, Video, Link as LinkIcon, Play, CheckCircle, AlertTriangle, Loader2, Sparkles, History, AlertCircle, Radio, Copy, Download, Mail, Phone, Send, ChevronDown, BookOpen, Lightbulb } from 'lucide-react';
 import { useAuth } from '../lib/AuthContext';
 import { supabase } from '../lib/supabase';
+import { liveTemplates, templateCategories, LiveTemplate } from '../lib/liveTemplates';
 
 interface AuditRecord {
   id: string;
@@ -98,6 +99,30 @@ const VideoAudit = () => {
   const [infographicSuggestion, setInfographicSuggestion] = useState<{ title: string; steps: string[]; colors: string } | null>(null);
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [scriptCopied, setScriptCopied] = useState(false);
+  
+  // Template library state
+  const [showTemplateLibrary, setShowTemplateLibrary] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState<LiveTemplate | null>(null);
+  const [expandedCategory, setExpandedCategory] = useState<string | null>('supplements');
+
+  // Apply template to form
+  const applyTemplate = (template: LiveTemplate) => {
+    setSelectedTemplate(template);
+    setLiveProductName(template.name);
+    // Map template category to form category
+    const categoryMap: Record<string, string> = {
+      'supplements': 'supplements',
+      'beauty': 'beauty',
+      'grooming': 'cologne',
+      'wellness': 'fitness',
+      'household': 'home',
+    };
+    setLiveCategory(categoryMap[template.category] || '');
+    setLiveKeyBenefit(template.infographicConcept);
+    // Set description with authority words hint
+    setLiveDescription(`Authority words: ${template.authorityWords.slice(0, 4).join(', ')}`);
+    setShowTemplateLibrary(false);
+  };
 
   // Video style options
   const videoStyleOptions = [
@@ -427,6 +452,13 @@ ${videoStyle === 'lifestyle' ? 'For Lifestyle: Check how naturally the product f
           targetAudience: liveAudience,
           productDescription: liveDescription.trim() || undefined,
           keyBenefit: liveKeyBenefit.trim() || undefined,
+          // Pass template data if selected
+          template: selectedTemplate ? {
+            authorityWords: selectedTemplate.authorityWords,
+            coreAngles: selectedTemplate.coreAngles,
+            demoIdeas: selectedTemplate.demoIdeas,
+            infographicPrompt: selectedTemplate.infographicPrompt,
+          } : undefined,
           // Only include email if user is logged in (logged in users don't need gate)
           email: user ? undefined : 'pending@unlock.temp', // Placeholder to pass validation
           phone: undefined,
@@ -505,6 +537,8 @@ ${videoStyle === 'lifestyle' ? 'For Lifestyle: Check how naturally the product f
           productName: liveProductName.trim(),
           category: liveCategory,
           keyBenefit: liveKeyBenefit.trim() || undefined,
+          // Pass template's custom infographic prompt if selected
+          infographicPrompt: selectedTemplate?.infographicPrompt || undefined,
         }),
       });
 
@@ -912,6 +946,61 @@ ${videoStyle === 'lifestyle' ? 'For Lifestyle: Check how naturally the product f
             
             {/* Left Column: Form */}
             <div className="lg:col-span-1 space-y-4">
+              
+              {/* Template Library Panel */}
+              <div className="bg-titan-surface rounded border border-titan-border overflow-hidden">
+                <button
+                  onClick={() => setShowTemplateLibrary(!showTemplateLibrary)}
+                  className="w-full p-4 flex items-center justify-between hover:bg-titan-elevated transition-colors"
+                >
+                  <div className="flex items-center gap-2">
+                    <BookOpen size={16} className="text-accent-fuchsia" />
+                    <span className="text-sm font-semibold text-text-primary">Product Templates</span>
+                    <span className="px-2 py-0.5 bg-accent-fuchsia/10 text-accent-fuchsia text-[10px] font-semibold rounded-full">
+                      {liveTemplates.length}
+                    </span>
+                  </div>
+                  <ChevronDown size={16} className={`text-text-muted transition-transform ${showTemplateLibrary ? 'rotate-180' : ''}`} />
+                </button>
+                
+                {showTemplateLibrary && (
+                  <div className="border-t border-titan-border max-h-[400px] overflow-y-auto">
+                    {templateCategories.map(cat => (
+                      <div key={cat.value} className="border-b border-titan-border last:border-b-0">
+                        <button
+                          onClick={() => setExpandedCategory(expandedCategory === cat.value ? null : cat.value)}
+                          className="w-full px-4 py-3 flex items-center justify-between bg-titan-bg hover:bg-titan-elevated transition-colors"
+                        >
+                          <span className="text-xs font-medium text-text-secondary">{cat.label}</span>
+                          <ChevronDown size={12} className={`text-text-muted transition-transform ${expandedCategory === cat.value ? 'rotate-180' : ''}`} />
+                        </button>
+                        
+                        {expandedCategory === cat.value && (
+                          <div className="px-2 py-2 space-y-1 bg-titan-surface">
+                            {liveTemplates.filter(t => t.category === cat.value).map(template => (
+                              <button
+                                key={template.id}
+                                onClick={() => applyTemplate(template)}
+                                className={`w-full text-left p-3 rounded border transition-all ${
+                                  selectedTemplate?.id === template.id
+                                    ? 'bg-accent-fuchsia/10 border-accent-fuchsia/30'
+                                    : 'bg-titan-bg border-titan-border hover:border-titan-border-light'
+                                }`}
+                              >
+                                <p className="text-xs font-medium text-text-primary mb-1">{template.name}</p>
+                                <p className="text-[10px] text-text-muted line-clamp-1">
+                                  {template.authorityWords.slice(0, 3).join(' • ')}
+                                </p>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
               <div className="bg-titan-surface rounded border border-titan-border p-5">
                 
                 {/* Header */}
@@ -1017,6 +1106,53 @@ ${videoStyle === 'lifestyle' ? 'For Lifestyle: Check how naturally the product f
                     className="w-full px-3 py-2.5 rounded bg-titan-bg border border-titan-border text-text-primary text-sm focus:border-accent-fuchsia focus:outline-none transition-colors placeholder-text-muted"
                   />
                 </div>
+
+                {/* Selected Template Guidance */}
+                {selectedTemplate && (
+                  <div className="mb-4 p-3 bg-accent-fuchsia/5 border border-accent-fuchsia/20 rounded">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Lightbulb size={12} className="text-accent-fuchsia" />
+                      <p className="text-xs font-medium text-accent-fuchsia">Template: {selectedTemplate.name}</p>
+                    </div>
+                    
+                    {/* Authority Words */}
+                    <div className="mb-2">
+                      <p className="text-[10px] text-text-muted uppercase tracking-wider mb-1">Authority Words</p>
+                      <div className="flex flex-wrap gap-1">
+                        {selectedTemplate.authorityWords.map((word, i) => (
+                          <span key={i} className="px-1.5 py-0.5 bg-titan-bg border border-titan-border rounded text-[10px] text-text-secondary">
+                            {word}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Demo Ideas */}
+                    <div className="mb-2">
+                      <p className="text-[10px] text-text-muted uppercase tracking-wider mb-1">Demo Ideas</p>
+                      <ul className="space-y-0.5">
+                        {selectedTemplate.demoIdeas.map((idea, i) => (
+                          <li key={i} className="text-[10px] text-text-secondary flex items-start gap-1">
+                            <span className="text-accent-teal">•</span> {idea}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    {/* Core Angles */}
+                    <div>
+                      <p className="text-[10px] text-text-muted uppercase tracking-wider mb-1">Core Angles</p>
+                      <p className="text-[10px] text-text-secondary">{selectedTemplate.coreAngles.join(' • ')}</p>
+                    </div>
+
+                    <button
+                      onClick={() => setSelectedTemplate(null)}
+                      className="mt-2 text-[10px] text-text-muted hover:text-text-secondary"
+                    >
+                      Clear template
+                    </button>
+                  </div>
+                )}
 
                 {/* Generate Button - Only shows if script not yet generated */}
                 {!pendingScript && !generatedScript && (
