@@ -328,9 +328,9 @@ Line 4 — [purpose]
 
 REMEMBER: Put each bullet on its OWN LINE with a blank line between them.`;
 
-    // Use gemini-pro (stable model)
+    // Use Gemini 1.5 Flash
     const response = await ai.models.generateContent({
-      model: "gemini-pro",
+      model: "models/gemini-1.5-flash",
       contents: { parts: [{ text: systemPrompt }] },
     });
 
