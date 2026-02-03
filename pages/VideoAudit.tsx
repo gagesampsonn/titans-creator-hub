@@ -1297,12 +1297,13 @@ ${videoStyle === 'lifestyle' ? 'For Lifestyle: Check how naturally the product f
                   <div className="prose prose-invert max-w-none text-sm">
                     <ReactMarkdown
                       components={{
-                        h2: ({node, ...props}) => <h2 className="text-lg font-semibold text-text-primary mt-4 mb-2" {...props} />,
-                        h3: ({node, ...props}) => <h3 className="text-sm font-semibold text-accent-fuchsia mt-4 mb-2" {...props} />,
-                        p: ({node, ...props}) => <p className="text-text-secondary text-sm leading-relaxed mb-3" {...props} />,
-                        li: ({node, ...props}) => <li className="text-text-secondary text-sm mb-1.5" {...props} />,
+                        h2: ({node, ...props}) => <h2 className="text-lg font-semibold text-text-primary mt-6 mb-3" {...props} />,
+                        h3: ({node, ...props}) => <h3 className="text-sm font-semibold text-accent-fuchsia mt-6 mb-3" {...props} />,
+                        p: ({node, ...props}) => <p className="text-text-secondary text-sm leading-relaxed mb-2" {...props} />,
+                        ul: ({node, ...props}) => <ul className="space-y-2 my-4" {...props} />,
+                        li: ({node, ...props}) => <li className="text-text-secondary text-sm flex items-start gap-2" {...props} />,
                         strong: ({node, ...props}) => <span className="text-text-primary font-semibold" {...props} />,
-                        hr: ({node, ...props}) => <hr className="border-titan-border my-4" {...props} />,
+                        hr: ({node, ...props}) => <hr className="border-titan-border my-6" {...props} />,
                       }}
                     >
                       {generatedScript}

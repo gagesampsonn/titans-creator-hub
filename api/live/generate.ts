@@ -245,80 +245,88 @@ Demo Ideas: ${demoIdeas.join('; ')}
     const systemPrompt = `TIKTOK SHOP LIVE SCRIPT GENERATOR
 
 TASK: Generate TikTok Shop LIVE talking points for "${fullProductName}"
-Creator is speaking casually on livestream while viewers enter and leave constantly.
 
-TONE RULES:
-- Calm
-- Informational
-- Casual
-- No hype energy
-- No cringe persuasion tone
-- No exclamation marks
-- Feels like commentary + instruction, not a commercial
+CRITICAL FORMATTING RULE:
+Each bullet point MUST be on its own line.
+Use this exact format with line breaks between each bullet:
 
-BANNED LANGUAGE (never use):
-fuel your, power, game changer, level up, don't wait, secure yours, act now, crazy results, shred, transform, miracle, instant
-No medical claims. No guarantees.
+• first bullet here
 
-NICHE AUTHORITY WORD RULE (CRITICAL):
-Every bullet MUST include at least one niche authority word — a term people in that category recognize.
-Use these authority words: ${authorityWords.join(', ')}
-These words signal expertise.
+• second bullet here
+
+• third bullet here
+
+TONE: Calm, informational, casual. No hype. No exclamation marks.
+
+BANNED: fuel your, power, game changer, level up, don't wait, secure yours, act now, crazy results, shred, transform, miracle, instant
+
+AUTHORITY WORDS TO USE: ${authorityWords.join(', ')}
+Every bullet should include one authority word OR a short CTA.
 ${templateGuidance}
-PRODUCT INFO:
-PRODUCT NAME: ${fullProductName}
+PRODUCT: ${fullProductName}
 TYPE: ${productName}
 AUDIENCE: ${audienceLabel}
 CATEGORY: ${categoryLabel}
 ${productDescription ? `NOTES: ${productDescription}` : ''}
 ${keyBenefit ? `MAIN BENEFIT: ${keyBenefit}` : ''}
 
-OUTPUT FORMAT:
+---
 
 **LIVE SCRIPT**
 
-8-12 bullet points TOTAL. Max 10 words per bullet.
-Each bullet must contain one niche authority word OR a short direct CTA.
-CTAs: tap the cart, click the link below, grab it from the cart, add it to your cart, cart's right there, hit the shopping cart
+• [what it is with authority word]
 
-Structure should naturally include:
-- what it is
-- key spec
-- benefit
-- demo/feature mention
-- who it's for
-- objection killer
-- social proof
-- multiple short CTAs throughout (every 2-3 lines)
+• [key spec or feature]
 
-• [bullet with authority word about what it is]
-• [bullet with key spec/feature]
 • tap the cart
-• [bullet with benefit using authority word]
-• [bullet about who it's for]
-• seeing people grab this in the chat
+
+• [benefit with authority word]
+
+• [who it's for]
+
+• seeing people grab this in chat
+
 • grab it from the cart
-• [bullet with product detail/spec]
+
+• [product detail]
+
 • [objection killer]
+
 • cart's right there
-• [social proof or final detail]
+
+• [social proof]
+
 • click the shopping cart
+
+---
 
 **WHAT EACH LINE DOES**
 
 Line 1 — [purpose]
-Line 2 — [purpose]
-Line 3 — CTA
-(etc for each line)
 
-**CTA LOOP** (4 short repeatable CTAs)
+Line 2 — [purpose]
+
+Line 3 — CTA
+
+Line 4 — [purpose]
+
+(continue for each line)
+
+---
+
+**CTA LOOP**
 
 • tap the cart
+
 • cart's right there
+
 • grab it below
+
 • click the shopping cart
 
-USE REAL KNOWLEDGE about ${productName}. Include authority words specific to ${categoryLabel}.`;
+---
+
+REMEMBER: Put each bullet on its OWN LINE with a blank line between them.`;
 
     const response = await ai.models.generateContent({
       model: "gemini-2.0-flash",
