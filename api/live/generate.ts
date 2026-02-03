@@ -242,15 +242,25 @@ async function generateScript(req: VercelRequest, res: VercelResponse) {
     const audienceLabel = audienceLabels[targetAudience] || targetAudience;
     const categoryLabel = productCategoryLabels[categoryKey] || category;
 
-    const systemPrompt = `Generate a TikTok LIVE script for "${fullProductName}".
+    const systemPrompt = `Generate LIVE stream talking points for "${fullProductName}".
 
-USE REAL KNOWLEDGE about ${productName}. You know what it does.
+TONE: Like you're casually explaining to a friend. NO HYPE. NO CRINGE. Just facts.
 
-CRITICAL FORMATTING RULES:
-1. EACH BULLET ON ITS OWN LINE
-2. MAX 12 WORDS PER BULLET - NO EXCEPTIONS
-3. NO PARAGRAPHS - ONLY SHORT BULLETS
-4. KEEP IT PUNCHY AND SCANNABLE
+BANNED PHRASES (never use):
+- "Fuel your muscles"
+- "Chew your way to gains"  
+- "Delicious gummy power"
+- "Level up"
+- "Don't wait"
+- "Secure yours NOW"
+- Any exclamation marks
+- Any hyped-up marketing speak
+
+GOOD TONE EXAMPLES:
+- "creatine helps with strength and recovery"
+- "draws water into muscles for that fuller look"
+- "same stuff as powder, just easier to take"
+- "people are picking this up right now"
 
 PRODUCT: ${fullProductName}
 TYPE: ${productName}
@@ -258,40 +268,40 @@ AUDIENCE: ${audienceLabel}
 ${productDescription ? `NOTES: ${productDescription}` : ''}
 ${keyBenefit ? `HIGHLIGHT: ${keyBenefit}` : ''}
 
-OUTPUT (each bullet = new line, max 12 words):
+FORMAT: Each bullet MUST be on its own line. Max 10 words each.
 
 **${fullProductName.toUpperCase()}**
 
-• supports strength, power, and recovery
-• helps muscles produce more ATP
-• gives that fuller, rounder muscle look
-• easy to add to your daily routine
+• ${productName} supports strength and recovery
+• helps your muscles produce more ATP
+• draws water into muscles for fuller look
+• easy to take, no mixing required
 
 **WHO THIS IS FOR**
 
-• anyone stuck at a gym plateau
-• beginners AND experienced lifters
+• anyone trying to push past a plateau
+• works for beginners and experienced lifters
 
 **WHY PEOPLE LIKE IT**
 
-• tastes like candy, not chalky powder
-• same proven creatine in gummy form
-• one month supply per bottle
+• no chalky powder to mix
+• same creatine, just in gummy form
+• ${productDescription || 'convenient daily option'}
 
 **LIVE CTA LOOP**
 
-• one of the most researched supplements
-• makes it easy to take daily
-• people are grabbing these right now
-• if you lift, this belongs in your stack
-• tap the cart and grab yours
-• free shipping while we're live
+• creatine is one of the most studied supplements
+• this just makes it easier to actually take
+• seeing people grab these right now
+• if you train at all, worth having
+• tap the cart to check it out
+• free shipping while you're on this live
 
 **REPEAT LINE**
 
-"Supports strength and muscle fullness — just chew and go. Tap the cart, free shipping on the live."
+"Supports strength and that fuller muscle look — ${productName} without the powder. Tap the cart, free shipping on the live."
 
-REMEMBER: MAX 12 WORDS PER BULLET. EACH BULLET ON NEW LINE.`;
+NO CRINGE. NO HYPE. JUST CASUAL FACTS.`;
 
     const response = await ai.models.generateContent({
       model: "gemini-2.0-flash",
