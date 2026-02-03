@@ -242,66 +242,83 @@ async function generateScript(req: VercelRequest, res: VercelResponse) {
     const audienceLabel = audienceLabels[targetAudience] || targetAudience;
     const categoryLabel = productCategoryLabels[categoryKey] || category;
 
-    const systemPrompt = `Generate LIVE stream talking points for "${fullProductName}".
+    const systemPrompt = `TIKTOK SHOP LIVE SCRIPT GENERATOR
 
-TONE: Like you're casually explaining to a friend. NO HYPE. NO CRINGE. Just facts.
+TASK: Generate TikTok Shop LIVE talking points for "${fullProductName}"
+Creator is speaking casually on livestream while viewers enter and leave constantly.
 
-BANNED PHRASES (never use):
-- "Fuel your muscles"
-- "Chew your way to gains"  
-- "Delicious gummy power"
-- "Level up"
-- "Don't wait"
-- "Secure yours NOW"
-- Any exclamation marks
-- Any hyped-up marketing speak
+TONE RULES:
+- Calm
+- Informational
+- Casual
+- No hype energy
+- No cringe persuasion tone
+- No exclamation marks
+- Feels like commentary + instruction, not a commercial
 
-GOOD TONE EXAMPLES:
-- "creatine helps with strength and recovery"
-- "draws water into muscles for that fuller look"
-- "same stuff as powder, just easier to take"
-- "people are picking this up right now"
+BANNED LANGUAGE (never use):
+fuel your, power, game changer, level up, don't wait, secure yours, act now, crazy results, shred, transform, miracle, instant
+No medical claims. No guarantees.
 
-PRODUCT: ${fullProductName}
+NICHE AUTHORITY WORD RULE (CRITICAL):
+Every bullet MUST include at least one niche authority word — a term people in that category recognize.
+Examples: longevity, atomizer, dosage, bioavailability, absorption, SPF, texture, refresh rate, wattage, etc.
+These words signal expertise.
+
+PRODUCT INFO:
+PRODUCT NAME: ${fullProductName}
 TYPE: ${productName}
 AUDIENCE: ${audienceLabel}
+CATEGORY: ${categoryLabel}
 ${productDescription ? `NOTES: ${productDescription}` : ''}
-${keyBenefit ? `HIGHLIGHT: ${keyBenefit}` : ''}
+${keyBenefit ? `MAIN BENEFIT: ${keyBenefit}` : ''}
 
-FORMAT: Each bullet MUST be on its own line. Max 10 words each.
+OUTPUT FORMAT:
 
-**${fullProductName.toUpperCase()}**
+**LIVE SCRIPT**
 
-• ${productName} supports strength and recovery
-• helps your muscles produce more ATP
-• draws water into muscles for fuller look
-• easy to take, no mixing required
+8-12 bullet points TOTAL. Max 10 words per bullet.
+Each bullet must contain one niche authority word OR a short direct CTA.
+CTAs: tap the cart, click the link below, grab it from the cart, add it to your cart, cart's right there, hit the shopping cart
 
-**WHO THIS IS FOR**
+Structure should naturally include:
+- what it is
+- key spec
+- benefit
+- demo/feature mention
+- who it's for
+- objection killer
+- social proof
+- multiple short CTAs throughout (every 2-3 lines)
 
-• anyone trying to push past a plateau
-• works for beginners and experienced lifters
+• [bullet with authority word about what it is]
+• [bullet with key spec/feature]
+• tap the cart
+• [bullet with benefit using authority word]
+• [bullet about who it's for]
+• seeing people grab this in the chat
+• grab it from the cart
+• [bullet with product detail/spec]
+• [objection killer]
+• cart's right there
+• [social proof or final detail]
+• click the shopping cart
 
-**WHY PEOPLE LIKE IT**
+**WHAT EACH LINE DOES**
 
-• no chalky powder to mix
-• same creatine, just in gummy form
-• ${productDescription || 'convenient daily option'}
+Line 1 — [purpose]
+Line 2 — [purpose]
+Line 3 — CTA
+(etc for each line)
 
-**LIVE CTA LOOP**
+**CTA LOOP** (4 short repeatable CTAs)
 
-• creatine is one of the most studied supplements
-• this just makes it easier to actually take
-• seeing people grab these right now
-• if you train at all, worth having
-• tap the cart to check it out
-• free shipping while you're on this live
+• tap the cart
+• cart's right there
+• grab it below
+• click the shopping cart
 
-**REPEAT LINE**
-
-"Supports strength and that fuller muscle look — ${productName} without the powder. Tap the cart, free shipping on the live."
-
-NO CRINGE. NO HYPE. JUST CASUAL FACTS.`;
+USE REAL KNOWLEDGE about ${productName}. Include authority words specific to ${categoryLabel}.`;
 
     const response = await ai.models.generateContent({
       model: "gemini-2.0-flash",

@@ -1004,16 +1004,16 @@ ${videoStyle === 'lifestyle' ? 'For Lifestyle: Check how naturally the product f
                   />
                 </div>
 
-                {/* Product Highlight (Optional) */}
+                {/* Image Description (Optional) */}
                 <div className="mb-4">
                   <label className="block text-xs font-medium text-text-secondary mb-2">
-                    What makes it special? <span className="text-text-muted">(Optional)</span>
+                    What should the infographic show? <span className="text-text-muted">(Optional)</span>
                   </label>
                   <input 
                     type="text" 
                     value={liveKeyBenefit}
                     onChange={(e) => setLiveKeyBenefit(e.target.value)}
-                    placeholder="e.g., Gummy form, No chalky powder, Free shipping" 
+                    placeholder="e.g., How ingredients absorb, Blood flow diagram, Scent layers" 
                     className="w-full px-3 py-2.5 rounded bg-titan-bg border border-titan-border text-text-primary text-sm focus:border-accent-fuchsia focus:outline-none transition-colors placeholder-text-muted"
                   />
                 </div>

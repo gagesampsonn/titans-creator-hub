@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { 
   Building2, 
   Users, 
@@ -22,7 +23,8 @@ import {
   Check,
   MessageCircle,
   Phone,
-  Sparkles
+  Sparkles,
+  Play
 } from 'lucide-react';
 import TopVideos2025 from '../components/TopVideos2025';
 import CampaignOverviewModal from '../components/CampaignOverviewModal';
@@ -196,6 +198,16 @@ const BrandPortal = () => {
           <p className="text-base text-gray-500 mb-8 max-w-2xl mx-auto">
             And why some of TikTok's biggest brands trust our model
           </p>
+          
+          {/* Interactive Pitch CTA */}
+          <Link 
+            to="/pitch"
+            className="inline-flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-orange-500 to-rose-500 text-white font-semibold rounded-xl hover:opacity-90 transition-all shadow-lg shadow-orange-500/25 group"
+          >
+            <Play size={20} className="group-hover:scale-110 transition-transform" />
+            Watch Interactive Presentation
+            <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+          </Link>
         </div>
       </div>
 

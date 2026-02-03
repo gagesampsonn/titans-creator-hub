@@ -18,6 +18,7 @@ import Settings from './pages/Settings';
 import Onboarding from './pages/Onboarding';
 import Course from './pages/Course';
 import CourseLogin from './pages/CourseLogin';
+import BrandPitch from './pages/BrandPitch';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -304,6 +305,7 @@ const App = () => {
               <Route path="/onboarding" element={<Onboarding />} />
               <Route path="/course" element={<Course />} />
               <Route path="/course-login" element={<CourseLogin />} />
+              <Route path="/pitch" element={<BrandPitch />} />
             </Routes>
           </main>
           <Footer />
