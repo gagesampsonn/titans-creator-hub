@@ -3,17 +3,87 @@
  * 
  * Unified endpoint for LIVE script and infographic generation.
  * Use action: "script" or action: "infographic"
+ * 
+ * SECURITY:
+ * - Rate limited: 10 requests per minute per IP
+ * - Input validation on all fields
+ * - Service key from env only
  */
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient } from '@supabase/supabase-js';
 import { GoogleGenAI } from "@google/genai";
 
-const SUPABASE_URL = 'https://myylgglbtroabqclzvvn.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im15eWxnZ2xidHJvYWJxY2x6dnZuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU2NTk5MTQsImV4cCI6MjA4MTIzNTkxNH0.W2WEETRhflBK_MeZbnoRc-NXRH4BV_u8Zk_aPqOoraA';
-const SUPABASE_SERVICE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im15eWxnZ2xidHJvYWJxY2x6dnZuIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NTY1OTkxNCwiZXhwIjoyMDgxMjM1OTE0fQ.cvJQ6xQ_c0sVXwKSfAnLgnCSjh4NnBzfAKjSFwN3Hug';
+// ═══════════════════════════════════════════════════════════════════════
+// CONFIGURATION (sensitive keys from env only)
+// ═══════════════════════════════════════════════════════════════════════
+const SUPABASE_URL = process.env.SUPABASE_URL || 'https://myylgglbtroabqclzvvn.supabase.co';
+const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im15eWxnZ2xidHJvYWJxY2x6dnZuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU2NTk5MTQsImV4cCI6MjA4MTIzNTkxNH0.W2WEETRhflBK_MeZbnoRc-NXRH4BV_u8Zk_aPqOoraA';
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY || '';
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || process.env.API_KEY || '';
 const BREVO_API_KEY = process.env.BREVO_API_KEY || '';
+
+// ═══════════════════════════════════════════════════════════════════════
+// RATE LIMITING (in-memory, resets on cold start - good enough for serverless)
+// ═══════════════════════════════════════════════════════════════════════
+const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 minute
+const RATE_LIMIT_MAX_REQUESTS = 10; // 10 requests per minute per IP
+
+const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
+
+function getRateLimitKey(req: VercelRequest): string {
+  // Get IP from various headers (Vercel, Cloudflare, etc.)
+  const forwarded = req.headers['x-forwarded-for'];
+  const ip = typeof forwarded === 'string' ? forwarded.split(',')[0].trim() : 
+             req.headers['x-real-ip'] as string || 
+             req.socket?.remoteAddress || 
+             'unknown';
+  return `ratelimit:${ip}`;
+}
+
+function checkRateLimit(req: VercelRequest): { allowed: boolean; remaining: number; resetIn: number } {
+  const key = getRateLimitKey(req);
+  const now = Date.now();
+  
+  const record = rateLimitStore.get(key);
+  
+  if (!record || now > record.resetTime) {
+    // First request or window expired
+    rateLimitStore.set(key, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS });
+    return { allowed: true, remaining: RATE_LIMIT_MAX_REQUESTS - 1, resetIn: RATE_LIMIT_WINDOW_MS };
+  }
+  
+  if (record.count >= RATE_LIMIT_MAX_REQUESTS) {
+    return { allowed: false, remaining: 0, resetIn: record.resetTime - now };
+  }
+  
+  record.count++;
+  return { allowed: true, remaining: RATE_LIMIT_MAX_REQUESTS - record.count, resetIn: record.resetTime - now };
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// INPUT VALIDATION & SANITIZATION
+// ═══════════════════════════════════════════════════════════════════════
+function sanitizeString(input: any, maxLength: number = 200): string {
+  if (typeof input !== 'string') return '';
+  // Remove potential XSS/injection characters, trim, and limit length
+  return input
+    .replace(/<[^>]*>/g, '') // Remove HTML tags
+    .replace(/[<>\"'`;(){}]/g, '') // Remove dangerous characters
+    .trim()
+    .slice(0, maxLength);
+}
+
+function validateEmail(email: string): boolean {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email) && email.length <= 254;
+}
+
+function validatePhone(phone: string): boolean {
+  // Allow digits, spaces, dashes, parentheses, plus sign
+  const phoneRegex = /^[\d\s\-\(\)\+]{7,20}$/;
+  return phoneRegex.test(phone);
+}
 
 // Authority words by category
 const authorityWordsByCategory: Record<string, string[]> = {
@@ -201,24 +271,36 @@ async function sendBrevoEmail(to: string, productName: string, script: string): 
  * Generate LIVE script
  */
 async function generateScript(req: VercelRequest, res: VercelResponse) {
-  const { 
-    brandName,
-    productName,
-    category,
-    targetAudience,
-    productDescription,
-    keyBenefit,
-    template, // Template data from library
-  } = req.body;
+  // Sanitize all inputs
+  const brandName = sanitizeString(req.body.brandName, 100);
+  const productName = sanitizeString(req.body.productName, 100);
+  const category = sanitizeString(req.body.category, 50);
+  const targetAudience = sanitizeString(req.body.targetAudience, 50);
+  const productDescription = sanitizeString(req.body.productDescription, 500);
+  const keyBenefit = sanitizeString(req.body.keyBenefit, 200);
+  const template = req.body.template; // Template data from library
 
-  if (!productName?.trim()) return res.status(400).json({ error: 'Product type is required', success: false });
+  // Validate required fields
+  if (!productName) return res.status(400).json({ error: 'Product type is required', success: false });
   if (!category) return res.status(400).json({ error: 'Product category is required', success: false });
   if (!targetAudience) return res.status(400).json({ error: 'Target audience is required', success: false });
   
-  // Build full product name
-  const fullProductName = brandName?.trim() 
-    ? `${brandName.trim()} ${productName.trim()}` 
-    : productName.trim();
+  // Validate category is in allowed list
+  const validCategories = Object.keys(productCategoryLabels);
+  if (!validCategories.includes(category.toLowerCase())) {
+    return res.status(400).json({ error: 'Invalid category', success: false });
+  }
+
+  // Validate audience is in allowed list
+  const validAudiences = Object.keys(audienceLabels);
+  if (!validAudiences.includes(targetAudience)) {
+    return res.status(400).json({ error: 'Invalid target audience', success: false });
+  }
+
+  // Build full product name (already sanitized)
+  const fullProductName = brandName
+    ? `${brandName} ${productName}` 
+    : productName;
 
   // No auth required for script generation - email capture happens after
 
@@ -649,8 +731,27 @@ STYLE:
 async function saveLead(req: VercelRequest, res: VercelResponse) {
   const { email, phone, productName, category, targetAudience } = req.body;
 
-  if (!email?.trim()) {
-    return res.status(400).json({ error: 'Email is required' });
+  // Validate email
+  const sanitizedEmail = sanitizeString(email, 254).toLowerCase();
+  if (!sanitizedEmail || !validateEmail(sanitizedEmail)) {
+    return res.status(400).json({ error: 'Valid email is required', success: false });
+  }
+
+  // Validate phone (optional)
+  const sanitizedPhone = phone ? sanitizeString(phone, 20) : null;
+  if (sanitizedPhone && !validatePhone(sanitizedPhone)) {
+    return res.status(400).json({ error: 'Invalid phone number format', success: false });
+  }
+
+  // Sanitize other inputs
+  const sanitizedProductName = sanitizeString(productName, 100);
+  const sanitizedCategory = sanitizeString(category, 50);
+  const sanitizedAudience = sanitizeString(targetAudience, 50);
+
+  // Check for service key
+  if (!SUPABASE_SERVICE_KEY) {
+    console.error('[Save Lead] Service key not configured');
+    return res.status(500).json({ success: false, error: 'Service temporarily unavailable' });
   }
 
   try {
@@ -658,18 +759,16 @@ async function saveLead(req: VercelRequest, res: VercelResponse) {
     
     // Save lead to database
     await admin.from('marketing_leads').upsert({
-      email: email.trim().toLowerCase(),
-      phone: phone?.trim() || null,
+      email: sanitizedEmail,
+      phone: sanitizedPhone,
       source: 'live_script_generator',
       metadata: {
-        productName,
-        category,
-        targetAudience,
+        productName: sanitizedProductName,
+        category: sanitizedCategory,
+        targetAudience: sanitizedAudience,
         generatedAt: new Date().toISOString(),
       }
     }, { onConflict: 'email', ignoreDuplicates: false });
-
-    // Email sending disabled for now - can be added later
 
     return res.status(200).json({ success: true, message: 'Lead saved' });
   } catch (error: any) {
@@ -679,6 +778,13 @@ async function saveLead(req: VercelRequest, res: VercelResponse) {
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  // ═══════════════════════════════════════════════════════════════════════
+  // SECURITY HEADERS
+  // ═══════════════════════════════════════════════════════════════════════
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
@@ -686,7 +792,29 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
+  // ═══════════════════════════════════════════════════════════════════════
+  // RATE LIMITING
+  // ═══════════════════════════════════════════════════════════════════════
+  const rateLimit = checkRateLimit(req);
+  res.setHeader('X-RateLimit-Limit', RATE_LIMIT_MAX_REQUESTS.toString());
+  res.setHeader('X-RateLimit-Remaining', rateLimit.remaining.toString());
+  res.setHeader('X-RateLimit-Reset', Math.ceil(rateLimit.resetIn / 1000).toString());
+  
+  if (!rateLimit.allowed) {
+    return res.status(429).json({ 
+      success: false,
+      error: 'Too many requests. Please wait a moment before trying again.',
+      retryAfter: Math.ceil(rateLimit.resetIn / 1000)
+    });
+  }
+
   const { action } = req.body;
+
+  // Validate action
+  const validActions = ['script', 'infographic', 'save-lead'];
+  if (!action || !validActions.includes(action)) {
+    return res.status(400).json({ error: 'Invalid action. Use "script", "infographic", or "save-lead"' });
+  }
 
   if (action === 'script') {
     return generateScript(req, res);
@@ -694,8 +822,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return generateInfographic(req, res);
   } else if (action === 'save-lead') {
     return saveLead(req, res);
-  } else {
-    return res.status(400).json({ error: 'Invalid action. Use "script", "infographic", or "save-lead"' });
   }
 }
 
