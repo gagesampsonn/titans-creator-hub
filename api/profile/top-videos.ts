@@ -1,13 +1,27 @@
+/**
+ * GET /api/profile/top-videos
+ * SECURITY: Rate limited to 60 requests/min (read-only)
+ */
+
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient } from '@supabase/supabase-js';
+import { applyRateLimit } from '../_shared/rateLimit';
 
 const supabaseUrl = process.env.VITE_SUPABASE_URL || 'https://myylgglbtroabqclzvvn.supabase.co';
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY!;
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  
+  if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
+
+  // Rate limit: 60 requests per minute (read-only)
+  if (applyRateLimit(req, res, 'profile-top-videos', 'readonly')) return;
 
   try {
     // Get auth token

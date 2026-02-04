@@ -1,11 +1,14 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient } from '@supabase/supabase-js';
+import { applyRateLimit } from '../_shared/rateLimit';
 
 /**
  * TikTok Shop OAuth Handler (Combined)
  * 
  * GET /api/tiktok?action=auth-url&state={state}&type={creator|seller}
  * GET /api/tiktok?action=status
+ * 
+ * SECURITY: Rate limited to 10 requests/15min (auth endpoint)
  */
 
 const TIKTOK_APP_KEY = process.env.TIKTOK_APP_KEY || '6icca7gipvtch';
@@ -155,9 +158,18 @@ async function handleStatus(req: VercelRequest, res: VercelResponse) {
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  // CORS
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  
+  if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
+
+  // Rate limit: 10 requests per 15 min (auth endpoint)
+  if (applyRateLimit(req, res, 'tiktok', 'auth')) return;
 
   try {
     const { action } = req.query;

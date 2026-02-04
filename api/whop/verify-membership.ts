@@ -1,4 +1,10 @@
+/**
+ * POST /api/whop/verify-membership
+ * SECURITY: Rate limited to 10 requests/15min (auth endpoint)
+ */
+
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { applyRateLimit } from '../_shared/rateLimit';
 
 // Whop API Configuration
 const WHOP_API_KEY = process.env.WHOP_API_KEY;
@@ -40,10 +46,17 @@ interface WhopMembershipsResponse {
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  // Only allow POST requests
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  
+  if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
+
+  // Rate limit: 10 requests per 15 min (auth endpoint)
+  if (applyRateLimit(req, res, 'whop-verify', 'auth')) return;
 
   const { email } = req.body;
 

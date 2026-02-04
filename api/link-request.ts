@@ -1,16 +1,30 @@
+/**
+ * POST /api/link-request
+ * SECURITY: Rate limited to 30 requests/min (standard)
+ */
+
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient } from '@supabase/supabase-js';
+import { applyRateLimit } from './_shared/rateLimit';
 
-const SUPABASE_URL = 'https://myylgglbtroabqclzvvn.supabase.co';
-const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im15eWxnZ2xidHJvYWJxY2x6dnZuIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NTY1OTkxNCwiZXhwIjoyMDgxMjM1OTE0fQ.cvJQ6xQ_c0sVXwKSfAnLgnCSjh4NnBzfAKjSFwN3Hug';
+const SUPABASE_URL = process.env.SUPABASE_URL || 'https://myylgglbtroabqclzvvn.supabase.co';
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY || '';
 
 // Discord webhook URL
-const DISCORD_WEBHOOK_URL = process.env.DISCORD_LINK_REQUEST_WEBHOOK || 'https://discord.com/api/webhooks/1451248447825907884/lkgaAdry3GJPLA1cLxByqzCcWCh_Nb9d4ybmIeolq-qQ0JkvDn3hGHOdn7RPWORe5aK1';
+const DISCORD_WEBHOOK_URL = process.env.DISCORD_LINK_REQUEST_WEBHOOK || '';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  
+  if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
+
+  // Rate limit: 30 requests per minute (standard)
+  if (applyRateLimit(req, res, 'link-request', 'standard')) return;
 
   // Verify auth
   const authHeader = req.headers.authorization;
