@@ -865,9 +865,9 @@ const SlideContentConverts = ({ isActive }: { isActive: boolean }) => {
           </div>
         </div>
         
-        <p className="text-gray-500 mt-8 text-sm">
-          Strategic content > random content
-        </p>
+          <p className="text-gray-500 mt-8 text-sm">
+            Strategic content &gt; random content
+          </p>
       </div>
     </div>
   );
