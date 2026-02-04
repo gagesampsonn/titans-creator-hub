@@ -26,8 +26,8 @@ const BREVO_API_KEY = process.env.BREVO_API_KEY || '';
 // ═══════════════════════════════════════════════════════════════════════
 // RATE LIMITING (in-memory, resets on cold start - good enough for serverless)
 // ═══════════════════════════════════════════════════════════════════════
-const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 minute
-const RATE_LIMIT_MAX_REQUESTS = 10; // 10 requests per minute per IP
+const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000; // 1 hour
+const RATE_LIMIT_MAX_REQUESTS = 10; // 10 requests per hour per IP
 
 const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
 
