@@ -6,12 +6,41 @@
  */
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { applyRateLimit } from '../_shared/rateLimit';
 
-const GROK_API_KEY = process.env.GROK_API_KEY || '';
+// Inline rate limiting to avoid import issues
+const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
+
+function getRateLimitKey(req: VercelRequest): string {
+  const forwarded = req.headers['x-forwarded-for'];
+  const ip = typeof forwarded === 'string' 
+    ? forwarded.split(',')[0].trim() 
+    : (req.headers['x-real-ip'] as string) || 'unknown';
+  return `trends:${ip}`;
+}
+
+function checkRateLimit(req: VercelRequest): { allowed: boolean; remaining: number } {
+  const key = getRateLimitKey(req);
+  const now = Date.now();
+  const windowMs = 60 * 60 * 1000; // 1 hour
+  const maxRequests = 10;
+  
+  const record = rateLimitStore.get(key);
+  
+  if (!record || now > record.resetTime) {
+    rateLimitStore.set(key, { count: 1, resetTime: now + windowMs });
+    return { allowed: true, remaining: maxRequests - 1 };
+  }
+  
+  if (record.count >= maxRequests) {
+    return { allowed: false, remaining: 0 };
+  }
+  
+  record.count++;
+  return { allowed: true, remaining: maxRequests - record.count };
+}
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  // CORS & Security headers
+  // CORS & Security headers - set first thing
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
@@ -22,19 +51,29 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  // Rate limit
-  if (applyRateLimit(req, res, 'trends', 'expensive')) return;
-
-  // Check API key
-  if (!GROK_API_KEY) {
-    console.error('[Grok] API key missing');
-    return res.status(500).json({ 
-      error: 'AI service not configured',
-      message: 'GROK_API_KEY is not set'
-    });
-  }
-
+  // Wrap everything in try-catch to ensure JSON response on any error
   try {
+    // Rate limit check
+    const rateLimit = checkRateLimit(req);
+    if (!rateLimit.allowed) {
+      return res.status(429).json({
+        error: 'Rate limit exceeded',
+        message: 'Too many requests. Please try again later.',
+        remaining: 0
+      });
+    }
+
+    // Check API key
+    const GROK_API_KEY = process.env.GROK_API_KEY || '';
+    if (!GROK_API_KEY) {
+      console.error('[Grok] API key missing');
+      return res.status(500).json({ 
+        error: 'AI service not configured',
+        message: 'GROK_API_KEY environment variable is not set in Vercel'
+      });
+    }
+
+    console.log('[Grok] API key found, length:', GROK_API_KEY.length);
     const prompt = `You are an elite TikTok Shop affiliate marketing intelligence analyst.
 
 Your job is NOT to give general trends.
@@ -204,7 +243,8 @@ Focus on signals, patterns, and angles that lead to commissions.`;
     
     return res.status(500).json({
       error: 'Failed to scan trends',
-      message: error.message || 'An unexpected error occurred'
+      message: error.message || 'An unexpected error occurred',
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 }
