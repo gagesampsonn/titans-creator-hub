@@ -2,7 +2,7 @@
  * Trend Pulse API - Grok-powered trend scanning
  * Uses xAI's Grok for real-time market intelligence
  * 
- * SECURITY: Rate limited to 10 requests/hour (expensive AI operation)
+ * SECURITY: Rate limited to 10 requests/hour
  */
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
@@ -11,23 +11,26 @@ import { applyRateLimit } from '../_shared/rateLimit';
 const GROK_API_KEY = process.env.GROK_API_KEY || '';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  // CORS
+  // CORS & Security headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Content-Type', 'application/json');
   
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  // Rate limit: 10 requests per hour (expensive AI operation)
+  // Rate limit
   if (applyRateLimit(req, res, 'trends', 'expensive')) return;
 
+  // Check API key
   if (!GROK_API_KEY) {
+    console.error('[Grok] API key missing');
     return res.status(500).json({ 
       error: 'AI service not configured',
-      message: 'Please set GROK_API_KEY in your Vercel environment variables'
+      message: 'GROK_API_KEY is not set'
     });
   }
 
@@ -119,7 +122,8 @@ Example format:
 Everything should feel like information creators normally don't share publicly.
 Focus on signals, patterns, and angles that lead to commissions.`;
 
-    // Use Grok API (OpenAI-compatible format)
+    console.log('[Grok] Calling API...');
+    
     const response = await fetch('https://api.x.ai/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -127,40 +131,76 @@ Focus on signals, patterns, and angles that lead to commissions.`;
         'Authorization': `Bearer ${GROK_API_KEY}`,
       },
       body: JSON.stringify({
-        model: 'grok-4-latest',
+        model: 'grok-4-1-fast-non-reasoning',
         messages: [
           {
             role: 'system',
-            content: 'You are an elite TikTok Shop affiliate intelligence analyst. You have real-time access to creator discussions, FastMoss/Kalodata data patterns, and viral TikTok content. Your intel is specific, actionable, and focused on commission generation - not vanity metrics. You think like a top-earning affiliate, not a brand marketer.'
+            content: 'You are an elite TikTok Shop affiliate intelligence analyst with real-time knowledge. Provide specific, actionable intel focused on commission generation.'
           },
           {
             role: 'user',
             content: prompt
           }
         ],
+        stream: false,
         temperature: 0.7,
-        max_tokens: 2048,
       }),
     });
 
+    // Always read as text first to handle non-JSON errors
+    const responseText = await response.text();
+    console.log('[Grok] Status:', response.status);
+    
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      console.error('Grok API error:', response.status, errorData);
-      throw new Error(errorData.error?.message || `Grok API error: ${response.status}`);
+      console.error('[Grok] Error response:', responseText.slice(0, 500));
+      
+      // Try to parse error as JSON
+      let errorMessage = `Grok API error: ${response.status}`;
+      try {
+        const errorData = JSON.parse(responseText);
+        errorMessage = errorData.error?.message || errorData.message || errorMessage;
+      } catch {
+        // Not JSON, use raw text
+        errorMessage = responseText.slice(0, 200) || errorMessage;
+      }
+      
+      return res.status(500).json({
+        error: 'Failed to scan trends',
+        message: errorMessage
+      });
     }
 
-    const data = await response.json();
-    const text = data.choices?.[0]?.message?.content || "No trends found.";
+    // Parse successful response
+    let data;
+    try {
+      data = JSON.parse(responseText);
+    } catch (parseError) {
+      console.error('[Grok] JSON parse error:', responseText.slice(0, 500));
+      return res.status(500).json({
+        error: 'Invalid response from AI',
+        message: 'Response was not valid JSON'
+      });
+    }
+
+    const text = data.choices?.[0]?.message?.content;
+    
+    if (!text) {
+      console.error('[Grok] No content in response:', JSON.stringify(data).slice(0, 500));
+      return res.status(500).json({
+        error: 'Empty response from AI',
+        message: 'No content returned'
+      });
+    }
 
     return res.status(200).json({
       success: true,
       data: text,
-      sources: ['grok-3-mini', 'real-time'],
+      sources: ['grok-4-1-fast-non-reasoning', 'real-time'],
       generatedAt: new Date().toISOString()
     });
 
   } catch (error: any) {
-    console.error('Trend scan error:', error);
+    console.error('[Grok] Catch error:', error);
     
     return res.status(500).json({
       error: 'Failed to scan trends',
