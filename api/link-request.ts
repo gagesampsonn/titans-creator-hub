@@ -10,7 +10,7 @@ import { applyRateLimit } from './_shared/rateLimit';
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://myylgglbtroabqclzvvn.supabase.co';
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY || '';
 
-// Discord webhook URL
+// Discord webhook URL - MUST be set in Vercel env vars
 const DISCORD_WEBHOOK_URL = process.env.DISCORD_LINK_REQUEST_WEBHOOK || '';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {

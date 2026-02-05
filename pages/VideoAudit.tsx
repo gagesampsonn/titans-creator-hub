@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { GoogleGenAI } from "@google/genai";
 import ReactMarkdown from 'react-markdown';
-import { Upload, Video, Link as LinkIcon, Play, CheckCircle, AlertTriangle, Loader2, Sparkles, History, AlertCircle, Radio, Copy, Download, Mail, Phone, Send, ChevronDown, BookOpen, Lightbulb } from 'lucide-react';
+import { Upload, Video, Link as LinkIcon, Play, CheckCircle, AlertTriangle, Loader2, Sparkles, History, AlertCircle, Radio, Copy, Download, Mail, Phone, Send, ChevronDown, BookOpen, Lightbulb, TrendingUp, Zap } from 'lucide-react';
 import { useAuth } from '../lib/AuthContext';
 import { supabase } from '../lib/supabase';
 import { liveTemplates, templateCategories, LiveTemplate } from '../lib/liveTemplates';
@@ -36,7 +36,7 @@ function isValidTikTokUrl(url: string): boolean {
 }
 
 // Tab type
-type TabType = 'audit' | 'live';
+type TabType = 'audit' | 'live' | 'trends';
 
 const VideoAudit = () => {
   const { user, session, loading: authLoading } = useAuth();
@@ -104,6 +104,14 @@ const VideoAudit = () => {
   const [showTemplateLibrary, setShowTemplateLibrary] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<LiveTemplate | null>(null);
   const [expandedCategory, setExpandedCategory] = useState<string | null>('supplements');
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // TREND SCANNER STATE
+  // ═══════════════════════════════════════════════════════════════════════
+  const [trendData, setTrendData] = useState<string | null>(null);
+  const [isScanning, setIsScanning] = useState(false);
+  const [trendError, setTrendError] = useState<string | null>(null);
+  const [lastScanned, setLastScanned] = useState<string | null>(null);
 
   // Apply template to form
   const applyTemplate = (template: LiveTemplate) => {
@@ -566,6 +574,42 @@ ${videoStyle === 'lifestyle' ? 'For Lifestyle: Check how naturally the product f
   };
 
   // ═══════════════════════════════════════════════════════════════════════
+  // TREND SCANNER HANDLERS
+  // ═══════════════════════════════════════════════════════════════════════
+  const handleScanTrends = async () => {
+    setIsScanning(true);
+    setTrendError(null);
+    setTrendData(null);
+
+    try {
+      const response = await fetch('/api/trends/scan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      });
+
+      const data = await response.json();
+
+      if (response.status === 429) {
+        setTrendError(`Rate limited. Try again in ${data.retryAfter || 60} seconds.`);
+        return;
+      }
+
+      if (!response.ok) {
+        throw new Error(data.message || data.error || 'Failed to scan trends');
+      }
+
+      setTrendData(data.data);
+      setLastScanned(new Date().toLocaleTimeString());
+    } catch (error: any) {
+      console.error('[Trend Scanner] Error:', error);
+      setTrendError(error.message || 'Failed to scan trends');
+    } finally {
+      setIsScanning(false);
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════
   // RENDER
   // ═══════════════════════════════════════════════════════════════════════
   return (
@@ -583,7 +627,7 @@ ${videoStyle === 'lifestyle' ? 'For Lifestyle: Check how naturally the product f
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex gap-1 mb-6 bg-titan-surface rounded-lg p-1 border border-titan-border w-fit">
+        <div className="flex flex-wrap gap-1 mb-6 bg-titan-surface rounded-lg p-1 border border-titan-border w-fit">
           <button
             onClick={() => setActiveTab('audit')}
             className={`px-4 py-2 rounded-md text-sm font-medium transition-all flex items-center gap-2 ${
@@ -604,7 +648,18 @@ ${videoStyle === 'lifestyle' ? 'For Lifestyle: Check how naturally the product f
             }`}
           >
             <Radio size={14} />
-            LIVE Script Generator
+            LIVE Script
+          </button>
+          <button
+            onClick={() => setActiveTab('trends')}
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-all flex items-center gap-2 ${
+              activeTab === 'trends'
+                ? 'bg-gradient-to-r from-orange-500 to-rose-500 text-white'
+                : 'text-text-muted hover:text-text-primary'
+            }`}
+          >
+            <TrendingUp size={14} />
+            Trend Scanner
           </button>
         </div>
 
@@ -1403,6 +1458,146 @@ ${videoStyle === 'lifestyle' ? 'For Lifestyle: Check how naturally the product f
 
             </div>
 
+          </div>
+        )}
+
+        {/* ═══════════════════════════════════════════════════════════════════════ */}
+        {/* TREND SCANNER TAB */}
+        {/* ═══════════════════════════════════════════════════════════════════════ */}
+        {activeTab === 'trends' && (
+          <div className="max-w-4xl">
+            {/* Header Card */}
+            <div className="bg-gradient-to-r from-orange-500/10 to-rose-500/10 border border-orange-500/20 rounded-lg p-6 mb-6">
+              <div className="flex items-start justify-between">
+                <div>
+                  <h2 className="text-lg font-semibold text-text-primary flex items-center gap-2">
+                    <TrendingUp className="text-orange-400" size={20} />
+                    Trend Pulse
+                  </h2>
+                  <p className="text-sm text-text-muted mt-1">
+                    AI-powered market intelligence for TikTok Shop affiliates
+                  </p>
+                  {lastScanned && (
+                    <p className="text-xs text-text-muted mt-2">
+                      Last scanned: {lastScanned}
+                    </p>
+                  )}
+                </div>
+                <button
+                  onClick={handleScanTrends}
+                  disabled={isScanning}
+                  className="px-5 py-2.5 bg-gradient-to-r from-orange-500 to-rose-500 text-white font-medium rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center gap-2"
+                >
+                  {isScanning ? (
+                    <>
+                      <Loader2 className="animate-spin" size={16} />
+                      Scanning...
+                    </>
+                  ) : (
+                    <>
+                      <Zap size={16} />
+                      Scan for Trends
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {/* Error State */}
+            {trendError && (
+              <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4 mb-6">
+                <div className="flex items-center gap-2 text-red-400">
+                  <AlertCircle size={16} />
+                  <span className="text-sm font-medium">Error</span>
+                </div>
+                <p className="text-sm text-red-300 mt-1">{trendError}</p>
+              </div>
+            )}
+
+            {/* Empty State */}
+            {!trendData && !isScanning && !trendError && (
+              <div className="bg-titan-surface border border-titan-border rounded-lg p-12 text-center">
+                <TrendingUp className="mx-auto text-text-muted mb-4" size={48} />
+                <h3 className="text-lg font-medium text-text-primary mb-2">
+                  Discover What's Hot
+                </h3>
+                <p className="text-sm text-text-muted max-w-md mx-auto mb-6">
+                  Get AI-powered insights on trending products, viral content formats, and affiliate opportunities. Perfect for finding your next winning product.
+                </p>
+                <button
+                  onClick={handleScanTrends}
+                  className="px-6 py-3 bg-gradient-to-r from-orange-500 to-rose-500 text-white font-medium rounded-lg hover:opacity-90 transition-opacity inline-flex items-center gap-2"
+                >
+                  <Zap size={16} />
+                  Start Scanning
+                </button>
+              </div>
+            )}
+
+            {/* Loading State */}
+            {isScanning && (
+              <div className="bg-titan-surface border border-titan-border rounded-lg p-12 text-center">
+                <Loader2 className="animate-spin mx-auto text-orange-400 mb-4" size={48} />
+                <h3 className="text-lg font-medium text-text-primary mb-2">
+                  Analyzing Market Trends
+                </h3>
+                <p className="text-sm text-text-muted">
+                  Scanning TikTok Shop for hot products and opportunities...
+                </p>
+              </div>
+            )}
+
+            {/* Results */}
+            {trendData && !isScanning && (
+              <div className="bg-titan-surface border border-titan-border rounded-lg overflow-hidden">
+                <div className="p-6 prose prose-invert prose-sm max-w-none">
+                  <ReactMarkdown
+                    components={{
+                      h2: ({ children }) => (
+                        <h2 className="text-lg font-semibold text-text-primary mt-6 mb-3 first:mt-0">{children}</h2>
+                      ),
+                      h3: ({ children }) => (
+                        <h3 className="text-base font-medium text-text-primary mt-4 mb-2">{children}</h3>
+                      ),
+                      ul: ({ children }) => (
+                        <ul className="space-y-2 my-3">{children}</ul>
+                      ),
+                      li: ({ children }) => (
+                        <li className="text-sm text-text-secondary flex items-start gap-2">
+                          <span className="text-orange-400 mt-1">•</span>
+                          <span>{children}</span>
+                        </li>
+                      ),
+                      p: ({ children }) => (
+                        <p className="text-sm text-text-secondary my-2">{children}</p>
+                      ),
+                      strong: ({ children }) => (
+                        <strong className="text-text-primary font-medium">{children}</strong>
+                      ),
+                    }}
+                  >
+                    {trendData}
+                  </ReactMarkdown>
+                </div>
+                <div className="border-t border-titan-border px-6 py-3 bg-titan-bg/50 flex justify-between items-center">
+                  <p className="text-xs text-text-muted">
+                    Powered by AI • Results based on current market analysis
+                  </p>
+                  <button
+                    onClick={handleScanTrends}
+                    className="text-xs text-orange-400 hover:text-orange-300 flex items-center gap-1"
+                  >
+                    <Zap size={12} />
+                    Refresh
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Rate Limit Notice */}
+            <p className="text-xs text-text-muted text-center mt-4">
+              Limited to 10 scans per hour to ensure quality results
+            </p>
           </div>
         )}
 

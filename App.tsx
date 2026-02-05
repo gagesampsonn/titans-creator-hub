@@ -55,7 +55,6 @@ const Navbar = () => {
           {/* Desktop Nav */}
           <div className="hidden md:flex items-center gap-8 text-sm">
             <Link to="/products" className={isActive('/products')}>Products</Link>
-            <Link to="/trends" className={isActive('/trends')}>Trends</Link>
             <Link to="/creatortools" className={isActive('/creatortools')}>Creator Tools</Link>
             <Link to="/course" className={`${isActive('/course')} flex items-center gap-1.5`}>
               <GraduationCap size={14} />
@@ -135,14 +134,6 @@ const Navbar = () => {
               className="flex items-center justify-between px-3 py-2.5 text-sm text-text-secondary hover:text-text-primary hover:bg-titan-elevated rounded transition-colors"
             >
               Products
-              <ChevronRight size={14} />
-            </Link>
-            <Link 
-              to="/trends" 
-              onClick={() => setIsOpen(false)} 
-              className="flex items-center justify-between px-3 py-2.5 text-sm text-text-secondary hover:text-text-primary hover:bg-titan-elevated rounded transition-colors"
-            >
-              Trends
               <ChevronRight size={14} />
             </Link>
             <Link 
