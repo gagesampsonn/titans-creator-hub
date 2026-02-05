@@ -32,42 +32,92 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const prompt = `You are an expert TikTok Shop affiliate marketing analyst with access to real-time information. Your job is to help TikTok Shop affiliates and creators make more money by identifying trending products, viral content strategies, and what's currently being talked about.
+    const prompt = `You are an elite TikTok Shop affiliate marketing intelligence analyst.
 
-Analyze CURRENT trends (as of today) and provide actionable intelligence for TikTok Shop affiliates:
+Your job is NOT to give general trends.
+Your job is to uncover money-making signals that creators can use immediately to sell more.
 
-## 🔥 HOT PRODUCTS RIGHT NOW
-Identify 3-5 products that are currently selling well on TikTok Shop or have viral potential. For each:
-- Product name/type
-- Why it's trending (viral video, seasonal, problem-solver, etc.)
-- Estimated commission potential
-- Best content angle to promote it
+Think like an affiliate trying to turn views into commission, not like a brand marketer.
 
-## 📈 TRENDING CONTENT FORMATS
-What video styles are performing best for TikTok Shop affiliates right now?
-- Specific formats (unboxing, GRWM, POV, etc.)
-- Hook styles that are converting
-- Video length sweet spots
+Use patterns seen on:
+- TikTok Shop
+- FastMoss
+- Kalodata
+- X/Twitter creator discussions
+- Viral TikTok videos
 
-## 💬 WHAT'S BUZZING ON SOCIAL
-Current discussions and trends on X/Twitter and TikTok:
-- Viral products people are talking about
-- New TikTok Shop features or changes
-- Success stories being shared
-- Any drama or news affecting affiliates
+Focus on under-the-radar momentum, not obvious mainstream products.
 
-## 🎯 NICHE OPPORTUNITIES
-Underserved niches or product categories with high potential:
-- Categories with less competition
-- Emerging trends before they peak
-- Seasonal opportunities coming up
+## 🔥 1. PRODUCTS SHOWING EARLY MOMENTUM (NOT OVER-SATURATED)
 
-## ⚡ QUICK WINS
-3 things an affiliate can do TODAY to increase their sales:
-- Specific actionable tips
-- Low-effort, high-reward strategies
+Find 3–5 products or product TYPES that show:
+• rising affiliate usage
+• multiple small creators getting traction
+• increasing engagement patterns
+• repeat appearances in viral shop videos
 
-Focus on practical, money-making advice for TikTok Shop affiliates. Be specific with product examples and content ideas they can use immediately. Include any real trending products or viral moments you're aware of.`;
+For each product include:
+- Product type
+- Why momentum is building (pattern explanation, not guess)
+- Who it sells best to (specific buyer mindset, not demographic)
+- Commission potential (low / medium / high)
+- The exact angle affiliates should use to stand out
+- What mistake most affiliates make promoting it
+
+## 📈 2. CONVERTING VIDEO STRUCTURES (WHAT'S MAKING MONEY)
+
+Identify content formats that are producing sales, not just views.
+
+Include:
+- Video structure pattern (Hook → Middle → CTA style)
+- What the hook does psychologically
+- Why viewers stay
+- What triggers the cart click
+- Ideal length
+- Whether creator shows face or not
+
+Focus on formats working for small & mid creators, not influencers.
+
+## 💬 3. CREATOR-SIDE BUZZ (NOT BRAND NEWS)
+
+Based on discussions from creators:
+- What affiliates are quietly winning with
+- Complaints about what's NOT converting
+- Workarounds creators are using
+- New TikTok Shop behaviors (algorithm, shipping, samples, etc.)
+
+Only include info that changes how a creator should act.
+
+## 🎯 4. OPPORTUNITY GAPS
+
+Where is attention high but affiliate competition still low?
+
+For each niche:
+- What buyers are currently searching/engaging with
+- Why affiliates haven't flooded it yet
+- Content angle that could dominate early
+
+## ⚡ 5. IMMEDIATE MONEY MOVES
+
+Give 3 tactical plays an affiliate could execute TODAY.
+
+Must be:
+- Specific
+- Easy to do
+- Designed to increase sales, not followers
+
+Example format:
+"Post ___ type of video for ___ product using ___ angle."
+
+🚫 DO NOT INCLUDE:
+- "Be consistent"
+- "Use good lighting"
+- Generic growth tips
+- Brand perspective advice
+- Surface-level trends
+
+Everything should feel like information creators normally don't share publicly.
+Focus on signals, patterns, and angles that lead to commissions.`;
 
     // Use Grok API (OpenAI-compatible format)
     const response = await fetch('https://api.x.ai/v1/chat/completions', {
@@ -81,7 +131,7 @@ Focus on practical, money-making advice for TikTok Shop affiliates. Be specific 
         messages: [
           {
             role: 'system',
-            content: 'You are a TikTok Shop affiliate marketing expert with real-time knowledge of current trends, viral products, and social media buzz. Provide actionable, up-to-date insights.'
+            content: 'You are an elite TikTok Shop affiliate intelligence analyst. You have real-time access to creator discussions, FastMoss/Kalodata data patterns, and viral TikTok content. Your intel is specific, actionable, and focused on commission generation - not vanity metrics. You think like a top-earning affiliate, not a brand marketer.'
           },
           {
             role: 'user',
