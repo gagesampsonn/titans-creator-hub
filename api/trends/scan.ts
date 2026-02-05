@@ -1,6 +1,6 @@
 /**
- * Trend Pulse API - Server-side Gemini integration
- * Scans multiple platforms for trending content opportunities
+ * Trend Pulse API - Grok-powered trend scanning
+ * Uses xAI's Grok for real-time market intelligence
  * 
  * SECURITY: Rate limited to 10 requests/hour (expensive AI operation)
  */
@@ -8,7 +8,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { applyRateLimit } from '../_shared/rateLimit';
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
+const GROK_API_KEY = process.env.GROK_API_KEY || '';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // CORS
@@ -24,18 +24,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Rate limit: 10 requests per hour (expensive AI operation)
   if (applyRateLimit(req, res, 'trends', 'expensive')) return;
 
-  if (!GEMINI_API_KEY) {
+  if (!GROK_API_KEY) {
     return res.status(500).json({ 
       error: 'AI service not configured',
-      message: 'Please set GEMINI_API_KEY in your Vercel environment variables'
+      message: 'Please set GROK_API_KEY in your Vercel environment variables'
     });
   }
 
   try {
-    const prompt = `
-You are an expert TikTok Shop affiliate marketing analyst. Your job is to help TikTok Shop affiliates and creators make more money by identifying trending products, viral content strategies, and what's currently being talked about in the TikTok Shop affiliate community.
+    const prompt = `You are an expert TikTok Shop affiliate marketing analyst with access to real-time information. Your job is to help TikTok Shop affiliates and creators make more money by identifying trending products, viral content strategies, and what's currently being talked about.
 
-Analyze current trends and provide actionable intelligence for TikTok Shop affiliates:
+Analyze CURRENT trends (as of today) and provide actionable intelligence for TikTok Shop affiliates:
 
 ## 🔥 HOT PRODUCTS RIGHT NOW
 Identify 3-5 products that are currently selling well on TikTok Shop or have viral potential. For each:
@@ -50,12 +49,12 @@ What video styles are performing best for TikTok Shop affiliates right now?
 - Hook styles that are converting
 - Video length sweet spots
 
-## 💬 WHAT AFFILIATES ARE TALKING ABOUT
-Current discussions in the TikTok Shop affiliate community:
-- New features or changes to TikTok Shop
-- Commission rate updates
-- Algorithm changes affecting affiliates
-- Success stories and strategies being shared
+## 💬 WHAT'S BUZZING ON SOCIAL
+Current discussions and trends on X/Twitter and TikTok:
+- Viral products people are talking about
+- New TikTok Shop features or changes
+- Success stories being shared
+- Any drama or news affecting affiliates
 
 ## 🎯 NICHE OPPORTUNITIES
 Underserved niches or product categories with high potential:
@@ -68,42 +67,45 @@ Underserved niches or product categories with high potential:
 - Specific actionable tips
 - Low-effort, high-reward strategies
 
-Focus on practical, money-making advice for TikTok Shop affiliates. Be specific with product examples and content ideas they can use immediately.
-`;
+Focus on practical, money-making advice for TikTok Shop affiliates. Be specific with product examples and content ideas they can use immediately. Include any real trending products or viral moments you're aware of.`;
 
-    // Use Gemini REST API directly
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          contents: [{
-            parts: [{ text: prompt }]
-          }],
-          generationConfig: {
-            temperature: 0.7,
-            maxOutputTokens: 2048,
+    // Use Grok API (OpenAI-compatible format)
+    const response = await fetch('https://api.x.ai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${GROK_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: 'grok-3-mini',
+        messages: [
+          {
+            role: 'system',
+            content: 'You are a TikTok Shop affiliate marketing expert with real-time knowledge of current trends, viral products, and social media buzz. Provide actionable, up-to-date insights.'
+          },
+          {
+            role: 'user',
+            content: prompt
           }
-        }),
-      }
-    );
+        ],
+        temperature: 0.7,
+        max_tokens: 2048,
+      }),
+    });
 
     if (!response.ok) {
-      const errorData = await response.json();
-      console.error('Gemini API error:', errorData);
-      throw new Error(errorData.error?.message || 'Failed to generate content');
+      const errorData = await response.json().catch(() => ({}));
+      console.error('Grok API error:', response.status, errorData);
+      throw new Error(errorData.error?.message || `Grok API error: ${response.status}`);
     }
 
     const data = await response.json();
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "No trends found.";
+    const text = data.choices?.[0]?.message?.content || "No trends found.";
 
     return res.status(200).json({
       success: true,
       data: text,
-      sources: [],
+      sources: ['grok-3-mini', 'real-time'],
       generatedAt: new Date().toISOString()
     });
 
