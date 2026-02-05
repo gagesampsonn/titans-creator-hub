@@ -10,12 +10,46 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient } from '@supabase/supabase-js';
 import { GoogleGenAI } from "@google/genai";
-import { applyRateLimit } from '../_shared/rateLimit';
 
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://myylgglbtroabqclzvvn.supabase.co';
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im15eWxnZ2xidHJvYWJxY2x6dnZuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU2NTk5MTQsImV4cCI6MjA4MTIzNTkxNH0.W2WEETRhflBK_MeZbnoRc-NXRH4BV_u8Zk_aPqOoraA';
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY || '';
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || process.env.API_KEY || '';
+
+// ═══════════════════════════════════════════════════════════════════════
+// INLINE RATE LIMITING (to avoid import issues in serverless)
+// ═══════════════════════════════════════════════════════════════════════
+const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
+
+function getRateLimitKey(req: VercelRequest): string {
+  const forwarded = req.headers['x-forwarded-for'];
+  const ip = typeof forwarded === 'string' ? forwarded.split(',')[0].trim() : 
+             req.headers['x-real-ip'] as string || 
+             req.socket?.remoteAddress || 
+             'unknown';
+  return `audit:${ip}`;
+}
+
+function checkRateLimit(req: VercelRequest): { allowed: boolean; remaining: number; resetIn: number } {
+  const key = getRateLimitKey(req);
+  const now = Date.now();
+  const windowMs = 60 * 60 * 1000; // 1 hour
+  const maxRequests = 10; // 10 per hour for expensive AI
+  
+  const record = rateLimitStore.get(key);
+  
+  if (!record || now > record.resetTime) {
+    rateLimitStore.set(key, { count: 1, resetTime: now + windowMs });
+    return { allowed: true, remaining: maxRequests - 1, resetIn: windowMs };
+  }
+  
+  if (record.count >= maxRequests) {
+    return { allowed: false, remaining: 0, resetIn: record.resetTime - now };
+  }
+  
+  record.count++;
+  return { allowed: true, remaining: maxRequests - record.count, resetIn: record.resetTime - now };
+}
 
 // Video style labels
 const videoStyleLabels: Record<string, string> = {
@@ -50,12 +84,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Content-Type', 'application/json');
   
+  try {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   // Rate limit: 10 requests per hour (expensive AI operation)
-  if (applyRateLimit(req, res, 'audit', 'expensive')) return;
+  const rateLimit = checkRateLimit(req);
+  if (!rateLimit.allowed) {
+    res.setHeader('X-RateLimit-Remaining', '0');
+    res.setHeader('X-RateLimit-Reset', Math.ceil(rateLimit.resetIn / 1000).toString());
+    return res.status(429).json({ 
+      error: 'Rate limit exceeded', 
+      retryAfter: Math.ceil(rateLimit.resetIn / 1000) 
+    });
+  }
 
   // Auth
   const authHeader = req.headers.authorization;
@@ -249,6 +293,14 @@ Provide 3 alternative hook examples based on the product/context.
       success: false,
       error: 'Failed to analyze video',
       details: error.message 
+    });
+  }
+  } catch (outerError: any) {
+    console.error('Unhandled error in audit handler:', outerError);
+    return res.status(500).json({
+      success: false,
+      error: 'Internal server error',
+      message: outerError.message
     });
   }
 }
