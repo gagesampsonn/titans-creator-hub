@@ -3,6 +3,7 @@ import { HashRouter, Routes, Route, Link, useLocation, useNavigate } from 'react
 import { Menu, X, User, ChevronRight, Settings as SettingsIcon, GraduationCap } from 'lucide-react';
 import { Analytics } from '@vercel/analytics/react';
 import { AuthProvider, useAuth } from './lib/AuthContext';
+import { WhopProvider } from './lib/WhopContext';
 import Home from './pages/Home';
 import ProductLibrary from './pages/ProductLibrary';
 import ProductDetail from './pages/ProductDetail';
@@ -275,33 +276,35 @@ const App = () => {
   return (
     <HashRouter>
       <AuthProvider>
-        <div className="min-h-screen flex flex-col bg-titan-bg font-sans text-text-primary">
-          <Navbar />
-          <main className="flex-grow">
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/products" element={<ProductLibrary />} />
-              <Route path="/products/:id" element={<ProductDetail />} />
-              <Route path="/trends" element={<TrendPulse />} />
-              <Route path="/creatortools" element={<VideoAudit />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/brands" element={<BrandPortal />} />
-              <Route path="/login" element={<Auth mode="login" />} />
-              <Route path="/signup" element={<Auth mode="signup" />} />
-              <Route path="/privacy" element={<Privacy />} />
-              <Route path="/terms" element={<Terms />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/settings" element={<Settings />} />
-              <Route path="/settings/integrations" element={<Settings />} />
-              <Route path="/onboarding" element={<Onboarding />} />
-              <Route path="/course" element={<Course />} />
-              <Route path="/course-login" element={<CourseLogin />} />
-              <Route path="/pitch" element={<BrandPitch />} />
-            </Routes>
-          </main>
-          <Footer />
-          <Analytics />
-        </div>
+        <WhopProvider>
+          <div className="min-h-screen flex flex-col bg-titan-bg font-sans text-text-primary">
+            <Navbar />
+            <main className="flex-grow">
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/products" element={<ProductLibrary />} />
+                <Route path="/products/:id" element={<ProductDetail />} />
+                <Route path="/trends" element={<TrendPulse />} />
+                <Route path="/creatortools" element={<VideoAudit />} />
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/brands" element={<BrandPortal />} />
+                <Route path="/login" element={<Auth mode="login" />} />
+                <Route path="/signup" element={<Auth mode="signup" />} />
+                <Route path="/privacy" element={<Privacy />} />
+                <Route path="/terms" element={<Terms />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/settings" element={<Settings />} />
+                <Route path="/settings/integrations" element={<Settings />} />
+                <Route path="/onboarding" element={<Onboarding />} />
+                <Route path="/course" element={<Course />} />
+                <Route path="/course-login" element={<CourseLogin />} />
+                <Route path="/pitch" element={<BrandPitch />} />
+              </Routes>
+            </main>
+            <Footer />
+            <Analytics />
+          </div>
+        </WhopProvider>
       </AuthProvider>
     </HashRouter>
   );
