@@ -49,7 +49,66 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     .eq('id', user.id)
     .single();
 
-  if (!profile?.tiktok_handle) {
+  let handle = profile?.tiktok_handle;
+
+  // If no handle set, check if user's email is already linked to a creator
+  if (!handle && user.email) {
+    const userEmailLower = user.email.toLowerCase();
+    
+    // First try: Check linked_creators table for email column (if it exists)
+    let linkedHandle: string | null = null;
+    try {
+      const { data: linkedByEmail } = await admin
+        .from('linked_creators')
+        .select('tiktok_handle')
+        .eq('email', userEmailLower)
+        .single();
+      
+      if (linkedByEmail?.tiktok_handle) {
+        linkedHandle = linkedByEmail.tiktok_handle;
+      }
+    } catch (err) {
+      // Email column might not exist yet, try fallback
+      console.log('[Metrics] Email column not available, using fallback mapping');
+    }
+    
+    // Fallback: Check known email-to-handle mappings (for immediate functionality)
+    // This is a temporary solution until the email column is added to linked_creators
+    if (!linkedHandle) {
+      const knownEmailMappings: Record<string, string> = {
+        'gagesampson2016@gmail.com': 'ttshopl',
+        // Add more mappings here as needed
+      };
+      linkedHandle = knownEmailMappings[userEmailLower] || null;
+    }
+    
+    if (linkedHandle) {
+      // Verify the handle is in linked_creators
+      const { data: isLinked } = await admin
+        .from('linked_creators')
+        .select('tiktok_handle')
+        .eq('tiktok_handle', linkedHandle)
+        .single();
+      
+      if (isLinked) {
+        // Auto-link: Update the user's profile with their TikTok handle
+        handle = linkedHandle;
+        
+        await admin
+          .from('profiles')
+          .upsert({
+            id: user.id,
+            email: user.email,
+            tiktok_handle: handle,
+            updated_at: new Date().toISOString(),
+          }, { onConflict: 'id' });
+        
+        console.log(`[Metrics] Auto-linked user ${user.email} to handle @${handle}`);
+      }
+    }
+  }
+
+  if (!handle) {
     return res.status(200).json({
       connected: false,
       handle: null,
@@ -59,8 +118,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       dailyMetrics: [],
     });
   }
-
-  const handle = profile.tiktok_handle;
 
   // Check if linked to agency
   const { data: linked } = await admin
