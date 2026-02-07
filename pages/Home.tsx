@@ -92,7 +92,7 @@ const Home = () => {
   return (
     <div className="flex flex-col bg-titan-bg overflow-hidden">
       {/* Hero Section - Cinematic */}
-      <section className="relative pt-20 pb-32 overflow-hidden">
+      <section className="relative pt-12 sm:pt-16 md:pt-20 pb-16 sm:pb-24 md:pb-32 overflow-hidden">
         {/* Gradient Orbs */}
         <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-accent-teal/5 rounded-full blur-[120px] pointer-events-none"></div>
         <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-accent-fuchsia/5 rounded-full blur-[120px] pointer-events-none"></div>
@@ -107,25 +107,25 @@ const Home = () => {
         <div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
           <div className="max-w-4xl mx-auto text-center">
             {/* Badge */}
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded bg-titan-surface border border-titan-border text-text-secondary text-xs font-medium tracking-wide mb-8">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded bg-titan-surface border border-titan-border text-text-secondary text-[11px] sm:text-xs font-medium tracking-wide mb-6 sm:mb-8">
               <span className="w-1.5 h-1.5 bg-accent-teal rounded-full animate-pulse"></span>
               Now accepting creators
             </div>
             
             {/* Main Headline */}
-            <h1 className="text-5xl md:text-7xl font-bold tracking-tight leading-[1.1] mb-6">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-bold tracking-tight leading-[1.15] mb-4 sm:mb-6">
               <span className="text-text-primary">The command center</span>
               <br />
               <span className="text-text-primary">for </span>
               <span className="text-gradient-teal">TikTok Shop</span>
             </h1>
             
-            <p className="text-lg text-text-secondary mb-10 max-w-2xl mx-auto leading-relaxed">
+            <p className="text-base sm:text-lg text-text-secondary mb-8 sm:mb-10 max-w-2xl mx-auto leading-relaxed px-2">
               Access high-GMV products, request samples instantly, and get data-driven insights to scale your affiliate revenue.
             </p>
             
             {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row items-center gap-3 justify-center">
+            <div className="flex flex-col sm:flex-row items-center gap-3 justify-center mb-16">
               <Link 
                 to="/signup" 
                 className="w-full sm:w-auto px-6 py-2.5 bg-text-primary hover:bg-white text-titan-bg font-semibold rounded text-sm transition-colors"
@@ -140,32 +140,96 @@ const Home = () => {
                 <ArrowRight size={14} />
               </Link>
             </div>
+
+            {/* Phone Mockups with Embedded Videos */}
+            <div className="mb-14">
+              <p className="text-xs text-text-muted uppercase tracking-wider mb-6">Creators & Affiliates</p>
+              <div className="flex justify-center items-end gap-2 sm:gap-4 md:gap-6">
+                {/* Phone 1 - Hidden on very small screens, show on sm+ */}
+                <div className="hidden sm:block w-[100px] sm:w-[130px] md:w-[150px] lg:w-[170px]">
+                  <div className="relative bg-titan-elevated rounded-[20px] md:rounded-[26px] p-[3px] border border-titan-border shadow-card">
+                    <div className="relative bg-titan-bg rounded-[18px] md:rounded-[24px] overflow-hidden" style={{ aspectRatio: '9/16' }}>
+                      {/* Phone notch */}
+                      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/3 h-4 md:h-5 bg-titan-elevated rounded-b-xl z-10"></div>
+                      {/* Video embed - non-clickable */}
+                      <div className="absolute inset-0 pointer-events-none">
+                        <iframe
+                          loading="lazy"
+                          src="https://www.youtube-nocookie.com/embed/957v74a3QJM?autoplay=1&mute=1&loop=1&playlist=957v74a3QJM&controls=0&showinfo=0&modestbranding=1&rel=0&disablekb=1&playsinline=1&iv_load_policy=3&fs=0"
+                          allow="autoplay; encrypted-media"
+                          title="Creator Video 1"
+                          className="w-full h-full border-0 scale-[1.2]"
+                          style={{ pointerEvents: 'none' }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Phone 2 - Center (larger, always visible) */}
+                <div className="w-[160px] sm:w-[150px] md:w-[170px] lg:w-[190px]">
+                  <div className="relative bg-titan-elevated rounded-[26px] md:rounded-[32px] p-[3px] border border-accent-teal/30 shadow-glow-teal">
+                    <div className="relative bg-titan-bg rounded-[24px] md:rounded-[30px] overflow-hidden" style={{ aspectRatio: '9/16' }}>
+                      {/* Phone notch */}
+                      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/3 h-5 md:h-6 bg-titan-elevated rounded-b-xl z-10"></div>
+                      {/* Video embed - non-clickable */}
+                      <div className="absolute inset-0 pointer-events-none">
+                        <iframe
+                          loading="lazy"
+                          src="https://www.youtube-nocookie.com/embed/nkZJpMzvb3Q?autoplay=1&mute=1&loop=1&playlist=nkZJpMzvb3Q&controls=0&showinfo=0&modestbranding=1&rel=0&disablekb=1&playsinline=1&iv_load_policy=3&fs=0"
+                          allow="autoplay; encrypted-media"
+                          title="Creator Video 2"
+                          className="w-full h-full border-0 scale-[1.2]"
+                          style={{ pointerEvents: 'none' }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Phone 3 - Hidden on very small screens, show on sm+ */}
+                <div className="hidden sm:block w-[100px] sm:w-[130px] md:w-[150px] lg:w-[170px]">
+                  <div className="relative bg-titan-elevated rounded-[20px] md:rounded-[26px] p-[3px] border border-titan-border shadow-card">
+                    <div className="relative bg-titan-bg rounded-[18px] md:rounded-[24px] overflow-hidden" style={{ aspectRatio: '9/16' }}>
+                      {/* Phone notch */}
+                      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/3 h-4 md:h-5 bg-titan-elevated rounded-b-xl z-10"></div>
+                      {/* Video embed - non-clickable */}
+                      <div className="absolute inset-0 pointer-events-none">
+                        <iframe
+                          loading="lazy"
+                          src="https://www.youtube-nocookie.com/embed/5QVxzXW1ZAw?autoplay=1&mute=1&loop=1&playlist=5QVxzXW1ZAw&controls=0&showinfo=0&modestbranding=1&rel=0&disablekb=1&playsinline=1&iv_load_policy=3&fs=0"
+                          allow="autoplay; encrypted-media"
+                          title="Creator Video 3"
+                          className="w-full h-full border-0 scale-[1.2]"
+                          style={{ pointerEvents: 'none' }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
             
             {/* Social Proof */}
-            <div className="mt-14 flex flex-wrap items-center justify-center gap-x-8 gap-y-4 text-sm text-text-muted">
-              <div className="flex items-center gap-2">
+            <div className="mt-10 sm:mt-14 grid grid-cols-2 sm:flex sm:flex-wrap items-center justify-center gap-4 sm:gap-x-8 sm:gap-y-4 text-xs sm:text-sm text-text-muted">
+              <div className="flex items-center gap-2 justify-center">
                 <span className="text-text-primary font-semibold">$5.2M+</span>
-                <span>GMV Generated</span>
+                <span>GMV</span>
               </div>
               <div className="w-px h-4 bg-titan-border hidden sm:block"></div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 justify-center">
                 <span className="text-text-primary font-semibold">3,600</span>
                 <span>Creators</span>
               </div>
               <div className="w-px h-4 bg-titan-border hidden sm:block"></div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 justify-center">
                 <span className="text-text-primary font-semibold">60+</span>
-                <span>Brands on TikTok Shop</span>
+                <span>Brands</span>
               </div>
               <div className="w-px h-4 bg-titan-border hidden md:block"></div>
-              <div className="flex items-center gap-2">
-                <span className="text-text-primary font-semibold">6,000+</span>
-                <span>Samples Sent</span>
-              </div>
-              <div className="w-px h-4 bg-titan-border hidden md:block"></div>
-              <div className="flex items-center gap-2">
-                <span className="text-text-primary font-semibold">78,000</span>
-                <span>Total Videos</span>
+              <div className="flex items-center gap-2 justify-center">
+                <span className="text-text-primary font-semibold">78K</span>
+                <span>Videos</span>
               </div>
             </div>
           </div>

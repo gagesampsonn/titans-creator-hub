@@ -42,10 +42,10 @@ const Navbar = () => {
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <div className="flex justify-between h-14 items-center">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2.5 group">
-            <img src="/titans-logo.png" alt="Titans" className="w-8 h-8 object-contain" />
-            <div className="flex items-center gap-2">
-              <span className="text-base font-semibold text-text-primary tracking-tight">TITANS</span>
+          <Link to="/" className="flex items-center group">
+            <img src="/titans-logo.png" alt="Titans" className="w-24 h-24 object-contain" />
+            <div className="flex items-center gap-2 -ml-3">
+              <span className="text-lg font-bold text-text-primary tracking-tight">TITANS</span>
               <span className="hidden sm:inline-flex px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider bg-gradient-to-r from-orange-500/20 to-rose-500/20 text-orange-400 rounded-full border border-orange-500/30">
                 For Creators
               </span>
@@ -219,9 +219,9 @@ const Footer = () => (
       <div className="grid grid-cols-2 md:grid-cols-5 gap-8">
         {/* Brand */}
         <div className="col-span-2 md:col-span-2">
-          <div className="flex items-center gap-2.5 mb-4">
-            <img src="/titans-logo.png" alt="Titans" className="w-7 h-7 object-contain" />
-            <span className="text-sm font-semibold text-text-primary tracking-tight">TITANS</span>
+          <div className="flex items-center mb-4">
+            <img src="/titans-logo.png" alt="Titans" className="w-20 h-20 object-contain" />
+            <span className="text-base font-bold text-text-primary tracking-tight -ml-2">TITANS</span>
           </div>
           <p className="text-sm text-text-muted leading-relaxed max-w-xs">
             The command center for TikTok Shop creators. Data-driven tools for modern commerce.
