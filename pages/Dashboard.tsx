@@ -545,16 +545,16 @@ const Dashboard = () => {
 
   // Full dashboard with data
   return (
-    <div className="min-h-screen bg-titan-bg py-8">
-      <div className="max-w-6xl mx-auto px-6">
+    <div className="min-h-screen bg-titan-bg py-4 sm:py-8">
+      <div className="max-w-6xl mx-auto px-3 sm:px-6">
         
         {/* Header */}
-        <div className="mb-8 flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-text-primary">Your Dashboard</h1>
-            <p className="text-sm text-text-muted">@{data.handle}</p>
-          </div>
-          <div className="flex items-center gap-3">
+        <div className="mb-6 sm:mb-8">
+          <div className="flex items-center justify-between gap-2">
+            <div>
+              <h1 className="text-xl sm:text-2xl font-bold text-text-primary">Your Dashboard</h1>
+              <p className="text-sm text-text-muted">@{data.handle}</p>
+            </div>
             <button
               onClick={() => exportToCSV(
                 data.handle || 'creator',
@@ -562,92 +562,90 @@ const Dashboard = () => {
                 data.period,
                 topProducts?.products || []
               )}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-accent-teal to-accent-fuchsia text-white text-sm font-medium rounded-lg hover:opacity-90 transition-opacity"
+              className="shrink-0 inline-flex items-center gap-2 px-3 sm:px-4 py-2 bg-gradient-to-r from-accent-teal to-accent-fuchsia text-white text-sm font-medium rounded-lg hover:opacity-90 transition-opacity"
               title="Download your performance data to share with brands"
             >
               <Download className="w-4 h-4" />
-              <span className="hidden sm:inline">Export Data</span>
+              <span className="hidden sm:inline">Export</span>
             </button>
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-titan-surface border border-titan-border rounded-full text-xs text-text-muted">
-              <span>
-                {data.period?.dateStart && data.period?.dateEnd 
-                  ? `${formatDateShort(data.period.dateStart)} – ${formatDateLong(data.period.dateEnd)}`
-                  : 'Dec 1, 2025 – Jan 6, 2026'}
-              </span>
-            </div>
+          </div>
+          {/* Date range - separate row on mobile */}
+          <div className="mt-2 inline-flex items-center gap-2 px-3 py-1.5 bg-titan-surface border border-titan-border rounded-full text-xs text-text-muted">
+            <span>
+              {data.period?.dateStart && data.period?.dateEnd 
+                ? `${formatDateShort(data.period.dateStart)} – ${formatDateLong(data.period.dateEnd)}`
+                : 'Dec 1, 2025 – Jan 6, 2026'}
+            </span>
           </div>
         </div>
 
         {/* Period Summary Banner */}
-        <div className="mb-6 p-4 bg-accent-teal/10 border border-accent-teal/20 rounded-lg">
-          <p className="text-sm text-accent-teal">
-            📊 Showing your performance for <strong>
+        <div className="mb-4 sm:mb-6 p-3 sm:p-4 bg-accent-teal/10 border border-accent-teal/20 rounded-lg">
+          <p className="text-xs sm:text-sm text-accent-teal">
+            📊 <strong>
               {data.period?.dateStart && data.period?.dateEnd 
-                ? `${formatDateFull(data.period.dateStart)} – ${formatDateFullYear(data.period.dateEnd)}`
-                : 'December 1, 2025 – January 6, 2026'}
+                ? `${formatDateShort(data.period.dateStart)} – ${formatDateLong(data.period.dateEnd)}`
+                : 'Dec 1 – Jan 6, 2026'}
             </strong>
-            {data.period?.comparisonStart && data.period?.comparisonEnd && (
-              <span className="text-text-muted"> • Compared to {formatDateShort(data.period.comparisonStart)} – {formatDateShort(data.period.comparisonEnd)}</span>
-            )}
           </p>
-          <p className="text-xs text-text-muted mt-2 flex items-center gap-1">
-            <Info className="w-3 h-3" />
-            Data shown is based on your activity since linking with Titans Agency.
+          <p className="text-[10px] sm:text-xs text-text-muted mt-1 flex items-center gap-1">
+            <Info className="w-3 h-3 shrink-0" />
+            Your performance since linking with Titans
           </p>
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <div className="bg-titan-surface border border-titan-border rounded-lg p-5">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <DollarSign className="w-5 h-5 text-accent-teal" />
-                <span className="text-xs text-text-muted">Total GMV</span>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 mb-6 sm:mb-8">
+          <div className="bg-titan-surface border border-titan-border rounded-lg p-3 sm:p-5">
+            <div className="flex items-center justify-between mb-1 sm:mb-2">
+              <div className="flex items-center gap-1 sm:gap-2">
+                <DollarSign className="w-4 sm:w-5 h-4 sm:h-5 text-accent-teal" />
+                <span className="text-[10px] sm:text-xs text-text-muted">GMV</span>
               </div>
               <ChangeIndicator value={data.summary.gmvChange || 0} />
             </div>
-            <p className="text-2xl font-bold text-text-primary">
-              ${data.summary.totalGmv.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            <p className="text-lg sm:text-2xl font-bold text-text-primary">
+              ${data.summary.totalGmv.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
             </p>
           </div>
 
-          <div className="bg-titan-surface border border-titan-border rounded-lg p-5">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <Star className="w-5 h-5 text-accent-fuchsia" />
-                <span className="text-xs text-text-muted">Top Niche</span>
+          <div className="bg-titan-surface border border-titan-border rounded-lg p-3 sm:p-5">
+            <div className="flex items-center justify-between mb-1 sm:mb-2">
+              <div className="flex items-center gap-1 sm:gap-2">
+                <Star className="w-4 sm:w-5 h-4 sm:h-5 text-accent-fuchsia" />
+                <span className="text-[10px] sm:text-xs text-text-muted">Top Niche</span>
               </div>
             </div>
-            <p className="text-lg font-bold text-text-primary truncate" title={data.summary.topNiche || 'N/A'}>
+            <p className="text-sm sm:text-lg font-bold text-text-primary truncate" title={data.summary.topNiche || 'N/A'}>
               {data.summary.topNiche || 'N/A'}
             </p>
-            <p className="text-xs text-text-muted mt-1">
-              ${(data.summary.topNicheGmv || 0).toLocaleString(undefined, { maximumFractionDigits: 0 })} GMV
+            <p className="text-[10px] sm:text-xs text-text-muted mt-0.5 sm:mt-1">
+              ${(data.summary.topNicheGmv || 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}
             </p>
           </div>
 
-          <div className="bg-titan-surface border border-titan-border rounded-lg p-5">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <Package className="w-5 h-5 text-accent-teal" />
-                <span className="text-xs text-text-muted">Items Sold</span>
+          <div className="bg-titan-surface border border-titan-border rounded-lg p-3 sm:p-5">
+            <div className="flex items-center justify-between mb-1 sm:mb-2">
+              <div className="flex items-center gap-1 sm:gap-2">
+                <Package className="w-4 sm:w-5 h-4 sm:h-5 text-accent-teal" />
+                <span className="text-[10px] sm:text-xs text-text-muted">Items</span>
               </div>
               <ChangeIndicator value={data.summary.itemsChange || 0} />
             </div>
-            <p className="text-2xl font-bold text-text-primary">
+            <p className="text-lg sm:text-2xl font-bold text-text-primary">
               {data.summary.totalItems.toLocaleString()}
             </p>
           </div>
 
-          <div className="bg-titan-surface border border-titan-border rounded-lg p-5">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <ShoppingBag className="w-5 h-5 text-accent-fuchsia" />
-                <span className="text-xs text-text-muted">Total Orders</span>
+          <div className="bg-titan-surface border border-titan-border rounded-lg p-3 sm:p-5">
+            <div className="flex items-center justify-between mb-1 sm:mb-2">
+              <div className="flex items-center gap-1 sm:gap-2">
+                <ShoppingBag className="w-4 sm:w-5 h-4 sm:h-5 text-accent-fuchsia" />
+                <span className="text-[10px] sm:text-xs text-text-muted">Orders</span>
               </div>
               <ChangeIndicator value={data.summary.ordersChange || 0} />
             </div>
-            <p className="text-2xl font-bold text-text-primary">
+            <p className="text-lg sm:text-2xl font-bold text-text-primary">
               {(data.summary.totalOrders || 0).toLocaleString()}
             </p>
           </div>
@@ -655,16 +653,16 @@ const Dashboard = () => {
 
         {/* Top Niche Banner */}
         {data.summary.topNiche && data.summary.topNiche !== 'Uncategorized' && (
-          <div className="mb-6 p-4 bg-gradient-to-r from-accent-fuchsia/10 to-accent-teal/10 border border-accent-fuchsia/20 rounded-lg">
+          <div className="mb-4 sm:mb-6 p-3 sm:p-4 bg-gradient-to-r from-accent-fuchsia/10 to-accent-teal/10 border border-accent-fuchsia/20 rounded-lg">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-accent-fuchsia to-accent-teal rounded-full flex items-center justify-center">
-                <Sparkles className="w-5 h-5 text-white" />
+              <div className="w-8 h-8 sm:w-10 sm:h-10 shrink-0 bg-gradient-to-br from-accent-fuchsia to-accent-teal rounded-full flex items-center justify-center">
+                <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
               </div>
-              <div>
-                <p className="text-sm text-text-muted">Your Top Performing Niche</p>
-                <p className="text-lg font-bold text-text-primary">{data.summary.topNiche}</p>
-                <p className="text-xs text-text-muted">
-                  ${data.summary.topNicheGmv.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} GMV in this category
+              <div className="min-w-0">
+                <p className="text-xs sm:text-sm text-text-muted">Top Niche</p>
+                <p className="text-sm sm:text-lg font-bold text-text-primary truncate">{data.summary.topNiche}</p>
+                <p className="text-[10px] sm:text-xs text-text-muted">
+                  ${data.summary.topNicheGmv.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })} GMV
                 </p>
               </div>
             </div>
@@ -673,85 +671,89 @@ const Dashboard = () => {
 
         {/* Top 5 Products */}
         {topProducts?.hasProducts && topProducts.products.length > 0 && (
-          <div className="bg-titan-surface border border-titan-border rounded-lg overflow-hidden mb-8">
-            <div className="px-6 py-4 border-b border-titan-border">
+          <div className="bg-titan-surface border border-titan-border rounded-lg overflow-hidden mb-6 sm:mb-8">
+            <div className="px-3 sm:px-6 py-3 sm:py-4 border-b border-titan-border">
               <div className="flex items-center gap-2">
-                <Award className="w-5 h-5 text-accent-teal" />
-                <h2 className="font-semibold text-text-primary">Top 5 Products</h2>
+                <Award className="w-4 sm:w-5 h-4 sm:h-5 text-accent-teal" />
+                <h2 className="font-semibold text-sm sm:text-base text-text-primary">Top 5 Products</h2>
               </div>
-              <p className="text-xs text-text-muted mt-1">
-                Your best performing products • Click product to copy ID for commission requests
+              <p className="text-[10px] sm:text-xs text-text-muted mt-1">
+                Best performers • Tap to copy ID
               </p>
             </div>
             <div className="divide-y divide-titan-border">
               {topProducts.products.map((product, index) => (
                 <div 
                   key={product.id} 
-                  className="px-6 py-4 flex items-center gap-4 hover:bg-titan-elevated/30 transition-colors group relative"
+                  className="px-3 sm:px-6 py-3 sm:py-4 hover:bg-titan-elevated/30 transition-colors group relative"
                 >
-                  {/* Rank Badge */}
-                  <div className={`
-                    w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm
-                    ${index === 0 ? 'bg-gradient-to-br from-yellow-400 to-amber-500 text-black' : ''}
-                    ${index === 1 ? 'bg-gradient-to-br from-gray-300 to-gray-400 text-black' : ''}
-                    ${index === 2 ? 'bg-gradient-to-br from-amber-600 to-amber-700 text-white' : ''}
-                    ${index >= 3 ? 'bg-titan-bg border border-titan-border text-text-muted' : ''}
-                  `}>
-                    {index + 1}
-                  </div>
-                  
-                  {/* Product Info */}
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-text-primary truncate">
-                      {product.product_name}
-                    </p>
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-accent-teal/10 text-accent-teal text-xs rounded-full">
-                        <Tag className="w-3 h-3" />
-                        {product.product_category || 'Uncategorized'}
-                      </span>
-                      {product.product_id && (
-                        <button
-                          onClick={() => copyProductId(product.product_id!)}
-                          className="inline-flex items-center gap-1 px-2 py-0.5 bg-titan-bg hover:bg-titan-elevated text-text-muted hover:text-text-primary text-xs rounded-full transition-colors"
-                          title="Copy Product ID to share with agency for higher commission"
-                        >
-                          {copiedProductId === product.product_id ? (
-                            <>
-                              <CheckCircle className="w-3 h-3 text-green-400" />
-                              <span className="text-green-400">Copied!</span>
-                            </>
-                          ) : (
-                            <>
-                              <Copy className="w-3 h-3" />
-                              <span>Copy ID</span>
-                            </>
-                          )}
-                        </button>
-                      )}
+                  {/* Mobile: Stack layout / Desktop: Row layout */}
+                  <div className="flex items-start gap-3">
+                    {/* Rank Badge */}
+                    <div className={`
+                      w-8 h-8 shrink-0 rounded-full flex items-center justify-center font-bold text-sm
+                      ${index === 0 ? 'bg-gradient-to-br from-yellow-400 to-amber-500 text-black' : ''}
+                      ${index === 1 ? 'bg-gradient-to-br from-gray-300 to-gray-400 text-black' : ''}
+                      ${index === 2 ? 'bg-gradient-to-br from-amber-600 to-amber-700 text-white' : ''}
+                      ${index >= 3 ? 'bg-titan-bg border border-titan-border text-text-muted' : ''}
+                    `}>
+                      {index + 1}
                     </div>
-                  </div>
-                  
-                  {/* Stats */}
-                  <div className="flex items-center gap-6 text-sm">
-                    <div className="text-right">
-                      <p className="text-accent-teal font-semibold">
-                        ${Number(product.gmv).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    
+                    {/* Product Info + Stats Container */}
+                    <div className="flex-1 min-w-0">
+                      {/* Product Name - Full width, better truncation */}
+                      <p className="font-medium text-text-primary text-sm sm:text-base line-clamp-2 sm:truncate leading-tight">
+                        {product.product_name}
                       </p>
-                      <p className="text-xs text-text-muted">GMV</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-text-primary font-medium">
-                        {product.items_sold}
-                      </p>
-                      <p className="text-xs text-text-muted">Items</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-accent-fuchsia font-semibold flex items-center gap-1 justify-end">
-                        <Film className="w-3.5 h-3.5" />
-                        {(videoCounts as Record<string, number>)[`${data.handle}:::${product.product_name}`] || 0}
-                      </p>
-                      <p className="text-xs text-text-muted">Videos</p>
+                      
+                      {/* Stats Row - Mobile optimized */}
+                      <div className="flex items-center gap-3 sm:gap-4 mt-2 text-xs sm:text-sm">
+                        <div>
+                          <span className="text-accent-teal font-semibold">
+                            ${Number(product.gmv).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                          </span>
+                          <span className="text-text-muted ml-1 hidden sm:inline">GMV</span>
+                        </div>
+                        <div>
+                          <span className="text-text-primary font-medium">{product.items_sold}</span>
+                          <span className="text-text-muted ml-1">Items</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Film className="w-3 h-3 text-accent-fuchsia" />
+                          <span className="text-accent-fuchsia font-semibold">
+                            {(videoCounts as Record<string, number>)[`${data.handle}:::${product.product_name}`] || 0}
+                          </span>
+                          <span className="text-text-muted hidden sm:inline">Videos</span>
+                        </div>
+                      </div>
+                      
+                      {/* Category + Copy Button Row */}
+                      <div className="flex flex-wrap items-center gap-2 mt-2">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-accent-teal/10 text-accent-teal text-xs rounded-full">
+                          <Tag className="w-3 h-3" />
+                          {product.product_category || 'Uncategorized'}
+                        </span>
+                        {product.product_id && (
+                          <button
+                            onClick={() => copyProductId(product.product_id!)}
+                            className="inline-flex items-center gap-1 px-2 py-1 bg-titan-bg hover:bg-titan-elevated text-text-muted hover:text-text-primary text-xs rounded-full transition-colors border border-titan-border"
+                            title="Copy Product ID"
+                          >
+                            {copiedProductId === product.product_id ? (
+                              <>
+                                <CheckCircle className="w-3 h-3 text-green-400" />
+                                <span className="text-green-400">Copied!</span>
+                              </>
+                            ) : (
+                              <>
+                                <Copy className="w-3 h-3" />
+                                <span>Copy ID</span>
+                              </>
+                            )}
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -759,10 +761,10 @@ const Dashboard = () => {
             </div>
             
             {/* Help text for copying product IDs */}
-            <div className="px-6 py-3 bg-titan-bg/50 border-t border-titan-border">
-              <p className="text-xs text-text-muted flex items-center gap-2">
-                <Info className="w-3 h-3" />
-                Copy product IDs and share in Discord to request higher commission rates from the agency!
+            <div className="px-3 sm:px-6 py-2 sm:py-3 bg-titan-bg/50 border-t border-titan-border">
+              <p className="text-[10px] sm:text-xs text-text-muted flex items-center gap-1.5 sm:gap-2">
+                <Info className="w-3 h-3 shrink-0" />
+                <span>Share product IDs in Discord for higher commission rates!</span>
               </p>
             </div>
           </div>
@@ -780,16 +782,16 @@ const Dashboard = () => {
         )}
 
         {/* Top Livestreams Section - Always shows for linked creators */}
-        <div className="bg-titan-surface border border-titan-border rounded-lg overflow-hidden mb-8">
-          <div className="px-6 py-4 border-b border-titan-border">
+        <div className="bg-titan-surface border border-titan-border rounded-lg overflow-hidden mb-6 sm:mb-8">
+          <div className="px-3 sm:px-6 py-3 sm:py-4 border-b border-titan-border">
             <div className="flex items-center gap-2">
-              <Radio className="w-5 h-5 text-red-500" />
-              <h2 className="font-semibold text-text-primary">Top Livestreams</h2>
+              <Radio className="w-4 sm:w-5 h-4 sm:h-5 text-red-500" />
+              <h2 className="font-semibold text-sm sm:text-base text-text-primary">Top Livestreams</h2>
             </div>
-            <p className="text-xs text-text-muted mt-1">
-              Your best performing live sessions
+            <p className="text-[10px] sm:text-xs text-text-muted mt-1">
+              Best live sessions
               {livestreams?.dateRange && (
-                <span> • {new Date(livestreams.dateRange.start).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} – {new Date(livestreams.dateRange.end).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                <span className="hidden sm:inline"> • {new Date(livestreams.dateRange.start).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} – {new Date(livestreams.dateRange.end).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
               )}
             </p>
           </div>
@@ -799,18 +801,18 @@ const Dashboard = () => {
             <>
               {/* Livestream Summary Stats */}
               {livestreams.summary && (
-                <div className="grid grid-cols-3 gap-4 p-4 bg-titan-bg/50 border-b border-titan-border">
+                <div className="grid grid-cols-3 gap-2 sm:gap-4 p-3 sm:p-4 bg-titan-bg/50 border-b border-titan-border">
                   <div className="text-center">
-                    <p className="text-lg font-bold text-text-primary">{livestreams.summary.totalStreams}</p>
-                    <p className="text-xs text-text-muted">Total Streams</p>
+                    <p className="text-base sm:text-lg font-bold text-text-primary">{livestreams.summary.totalStreams}</p>
+                    <p className="text-[10px] sm:text-xs text-text-muted">Streams</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-lg font-bold text-red-400">${livestreams.summary.totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
-                    <p className="text-xs text-text-muted">Live Revenue</p>
+                    <p className="text-base sm:text-lg font-bold text-red-400">${livestreams.summary.totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</p>
+                    <p className="text-[10px] sm:text-xs text-text-muted">Revenue</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-lg font-bold text-text-primary">{formatDuration(livestreams.summary.avgDuration)}</p>
-                    <p className="text-xs text-text-muted">Avg Duration</p>
+                    <p className="text-base sm:text-lg font-bold text-text-primary">{formatDuration(livestreams.summary.avgDuration)}</p>
+                    <p className="text-[10px] sm:text-xs text-text-muted">Avg Time</p>
                   </div>
                 </div>
               )}
@@ -819,11 +821,11 @@ const Dashboard = () => {
                 {livestreams.livestreams.map((stream, index) => (
                   <div 
                     key={stream.id} 
-                    className="px-6 py-4 flex items-center gap-4 hover:bg-titan-elevated/30 transition-colors"
+                    className="px-3 sm:px-6 py-3 sm:py-4 flex items-start gap-3 hover:bg-titan-elevated/30 transition-colors"
                   >
                     {/* Rank Badge */}
                     <div className={`
-                      w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm
+                      w-8 h-8 shrink-0 rounded-full flex items-center justify-center font-bold text-sm
                       ${index === 0 ? 'bg-gradient-to-br from-red-400 to-red-600 text-white' : ''}
                       ${index === 1 ? 'bg-gradient-to-br from-orange-400 to-orange-500 text-white' : ''}
                       ${index === 2 ? 'bg-gradient-to-br from-yellow-400 to-yellow-500 text-black' : ''}
@@ -835,23 +837,20 @@ const Dashboard = () => {
                     {/* Stream Info */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <Video className="w-4 h-4 text-red-400" />
-                        <p className="font-medium text-text-primary truncate">
+                        <Video className="w-4 h-4 shrink-0 text-red-400" />
+                        <p className="font-medium text-text-primary text-sm sm:text-base line-clamp-2 sm:truncate leading-tight">
                           {stream.name || 'Untitled Stream'}
                         </p>
                       </div>
-                      <div className="flex items-center gap-2 mt-1 text-xs text-text-muted">
-                        <Clock className="w-3 h-3" />
-                        <span>{formatDuration(stream.durationSeconds)}</span>
+                      <div className="flex items-center gap-3 mt-2 text-xs sm:text-sm">
+                        <div className="flex items-center gap-1 text-text-muted">
+                          <Clock className="w-3 h-3" />
+                          <span>{formatDuration(stream.durationSeconds)}</span>
+                        </div>
+                        <div className="text-red-400 font-semibold">
+                          ${stream.revenue.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                        </div>
                       </div>
-                    </div>
-                    
-                    {/* Revenue */}
-                    <div className="text-right">
-                      <p className="text-red-400 font-semibold">
-                        ${stream.revenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                      </p>
-                      <p className="text-xs text-text-muted">Revenue</p>
                     </div>
                   </div>
                 ))}
