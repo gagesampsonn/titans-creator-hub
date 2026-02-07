@@ -42,14 +42,40 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
-  // Get profile
-  const { data: profile } = await admin
+  // Get profile - try by user ID first, then by email as fallback
+  let handle: string | null = null;
+  
+  const { data: profileById } = await admin
     .from('profiles')
     .select('tiktok_handle')
     .eq('id', user.id)
     .single();
-
-  let handle = profile?.tiktok_handle;
+  
+  if (profileById?.tiktok_handle) {
+    handle = profileById.tiktok_handle;
+  } else if (user.email) {
+    // Fallback: look up by email (handles case where profile exists but with different user ID)
+    const { data: profileByEmail } = await admin
+      .from('profiles')
+      .select('tiktok_handle')
+      .eq('email', user.email.toLowerCase())
+      .single();
+    
+    if (profileByEmail?.tiktok_handle) {
+      handle = profileByEmail.tiktok_handle;
+      console.log(`[Metrics] Found profile by email for ${user.email} with handle @${handle}`);
+      
+      // Create/update profile for current user ID with the found handle
+      await admin
+        .from('profiles')
+        .upsert({
+          id: user.id,
+          email: user.email,
+          tiktok_handle: handle,
+          updated_at: new Date().toISOString(),
+        }, { onConflict: 'id' });
+    }
+  }
 
   // If no handle set, check if user's email is already linked to a creator
   if (!handle && user.email) {
