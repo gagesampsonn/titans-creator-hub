@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Search, ChevronDown, ChevronUp, Smartphone, ExternalLink, Package, Zap, Loader2, Lock } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Search, ChevronDown, ChevronUp, Smartphone, ExternalLink, Package, Zap, Lock } from 'lucide-react';
 import { PRODUCT_SAMPLES, ProductSample, getGmvMaxProducts, getNonGmvMaxProducts } from '../data/product-samples';
 import { useAuth } from '../lib/AuthContext';
 
@@ -21,11 +21,12 @@ const useIsMobile = () => {
 };
 
 // Product Row Component
-const ProductRow = ({ product, isMobile, isExpanded, onToggle }: { 
+const ProductRow = ({ product, isMobile, isExpanded, onToggle, onRequest }: { 
   product: ProductSample; 
   isMobile: boolean;
   isExpanded: boolean;
   onToggle: () => void;
+  onRequest: (link: string, e: React.MouseEvent) => void;
 }) => {
   const hasBundle = product.bundleProducts && product.bundleProducts.length > 0;
   
@@ -60,23 +61,20 @@ const ProductRow = ({ product, isMobile, isExpanded, onToggle }: {
 
         {/* CTA */}
         <div className="flex-shrink-0">
-          <a
-            href={product.tiktokLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={(e) => e.stopPropagation()}
+          <button
+            onClick={(e) => onRequest(product.tiktokLink, e)}
             className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium text-sm transition-all ${
               isMobile
                 ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white hover:from-orange-600 hover:to-red-600'
-                : 'bg-titan-elevated border border-titan-border text-text-muted'
+                : 'bg-titan-elevated border border-titan-border text-text-muted cursor-default'
             }`}
           >
             {isMobile ? (
-              <>Get Link <ExternalLink size={12} /></>
+              <>Request <ExternalLink size={12} /></>
             ) : (
               <><Smartphone size={14} /> Mobile</>
             )}
-          </a>
+          </button>
         </div>
       </div>
 
@@ -95,59 +93,50 @@ const ProductRow = ({ product, isMobile, isExpanded, onToggle }: {
   );
 };
 
+// Titans Whop membership URL
+const TITANS_WHOP_URL = 'https://whop.com/titans/';
+
 const ProductLibrary = () => {
-  const { user, loading: authLoading } = useAuth();
-  const navigate = useNavigate();
+  const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [showGmvMax, setShowGmvMax] = useState(true);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [pendingLink, setPendingLink] = useState<string | null>(null);
   const isMobile = useIsMobile();
   
   const gmvMaxProducts = getGmvMaxProducts(PRODUCT_SAMPLES);
   const regularProducts = getNonGmvMaxProducts(PRODUCT_SAMPLES);
 
-  // Show loading while checking auth
-  if (authLoading) {
-    return (
-      <div className="min-h-screen bg-titan-bg flex items-center justify-center">
-        <Loader2 size={24} className="animate-spin text-accent-teal" />
-      </div>
-    );
-  }
+  // Handle sample request click
+  const handleRequestClick = (tiktokLink: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (!isMobile) {
+      // Desktop - just show mobile notice (already handled by button styling)
+      return;
+    }
 
-  // Show login prompt if not authenticated
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-titan-bg flex items-center justify-center p-4">
-        <div className="max-w-md w-full text-center">
-          <div className="w-16 h-16 bg-gradient-to-br from-accent-teal/20 to-accent-fuchsia/20 rounded-2xl flex items-center justify-center mx-auto mb-6">
-            <Lock size={28} className="text-accent-teal" />
-          </div>
-          <h1 className="text-2xl font-bold text-text-primary mb-3">Get Free Samples</h1>
-          <p className="text-text-secondary mb-8">
-            Sign up or log in to access exclusive product samples from top TikTok Shop brands.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Link
-              to="/signup"
-              className="px-6 py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white font-semibold rounded-xl hover:from-orange-600 hover:to-red-600 transition-all"
-            >
-              Sign Up Free
-            </Link>
-            <Link
-              to="/login"
-              className="px-6 py-3 bg-titan-surface border border-titan-border text-text-primary font-medium rounded-xl hover:bg-titan-elevated transition-all"
-            >
-              Log In
-            </Link>
-          </div>
-          <p className="text-xs text-text-muted mt-6">
-            Join 1000+ creators getting free samples daily
-          </p>
-        </div>
-      </div>
-    );
-  }
+    if (!user) {
+      // Not logged in - show login modal
+      setPendingLink(tiktokLink);
+      setShowLoginModal(true);
+      return;
+    }
+
+    // User is logged in - check if they're a Titans member
+    // For now, we'll redirect to Whop if they don't have access
+    // TODO: Check actual membership status via WhopContext
+    // For launch, assume logged in users need to join Titans
+    window.open(TITANS_WHOP_URL, '_blank');
+  };
+
+  // Handle after login - open the pending link
+  const handleContinueToWhop = () => {
+    setShowLoginModal(false);
+    window.open(TITANS_WHOP_URL, '_blank');
+  };
   
   // Filter by search
   const filteredProducts = React.useMemo(() => {
@@ -231,23 +220,20 @@ const ProductLibrary = () => {
             {/* GMV Max Grid */}
             <div className="p-3 grid grid-cols-3 sm:grid-cols-5 gap-2">
               {filteredGmvMax.map(product => (
-                <a
+                <button
                   key={product.id}
-                  href={product.tiktokLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  onClick={(e) => handleRequestClick(product.tiktokLink, e)}
                   className={`p-3 rounded-lg text-center transition-all ${
                     isMobile 
                       ? 'bg-titan-surface border border-titan-border hover:border-yellow-500/50'
-                      : 'bg-titan-surface/50 border border-titan-border/50'
+                      : 'bg-titan-surface/50 border border-titan-border/50 cursor-default'
                   }`}
-                  onClick={(e) => !isMobile && e.preventDefault()}
                 >
                   <p className="font-semibold text-text-primary text-sm truncate">{product.brand}</p>
                   {isMobile && (
-                    <p className="text-xs text-yellow-400 mt-1">Get Link</p>
+                    <p className="text-xs text-yellow-400 mt-1">Request</p>
                   )}
-                </a>
+                </button>
               ))}
             </div>
           </div>
@@ -280,6 +266,7 @@ const ProductLibrary = () => {
               isMobile={isMobile}
               isExpanded={expandedId === product.id}
               onToggle={() => setExpandedId(expandedId === product.id ? null : product.id)}
+              onRequest={handleRequestClick}
             />
           ))}
           
@@ -291,6 +278,57 @@ const ProductLibrary = () => {
           )}
         </div>
       </div>
+
+      {/* Login Modal */}
+      {showLoginModal && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-titan-surface border border-titan-border rounded-2xl max-w-md w-full p-6 relative">
+            <button
+              onClick={() => setShowLoginModal(false)}
+              className="absolute top-4 right-4 text-text-muted hover:text-text-primary"
+            >
+              <span className="sr-only">Close</span>
+              ✕
+            </button>
+            
+            <div className="text-center">
+              <div className="w-14 h-14 bg-gradient-to-br from-orange-500/20 to-red-500/20 rounded-xl flex items-center justify-center mx-auto mb-4">
+                <Lock size={24} className="text-orange-400" />
+              </div>
+              <h2 className="text-xl font-bold text-text-primary mb-2">
+                Become a Titans Member
+              </h2>
+              <p className="text-text-secondary text-sm mb-6">
+                Get access to exclusive product samples, GMV Max campaigns, and creator tools.
+              </p>
+              
+              <div className="space-y-3">
+                <a
+                  href={TITANS_WHOP_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block w-full px-6 py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white font-semibold rounded-xl hover:from-orange-600 hover:to-red-600 transition-all text-center"
+                >
+                  Join Titans →
+                </a>
+                
+                {!user && (
+                  <div className="pt-3 border-t border-titan-border">
+                    <p className="text-xs text-text-muted mb-3">Already a member?</p>
+                    <Link
+                      to="/login"
+                      onClick={() => setShowLoginModal(false)}
+                      className="block w-full px-6 py-2.5 bg-titan-elevated border border-titan-border text-text-primary font-medium rounded-xl hover:bg-titan-bg transition-all text-center text-sm"
+                    >
+                      Log In
+                    </Link>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
