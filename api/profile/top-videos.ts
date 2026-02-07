@@ -5,7 +5,29 @@
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient } from '@supabase/supabase-js';
-import { applyRateLimit } from '../_shared/rateLimit';
+
+// Inline rate limiting
+const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
+function applyRateLimit(req: VercelRequest, res: VercelResponse, prefix: string): boolean {
+  const forwarded = req.headers['x-forwarded-for'];
+  const ip = typeof forwarded === 'string' ? forwarded.split(',')[0].trim() : 'unknown';
+  const key = `${prefix}:${ip}`;
+  const now = Date.now();
+  const windowMs = 60 * 1000;
+  const maxRequests = 60;
+  
+  const record = rateLimitStore.get(key);
+  if (!record || now > record.resetTime) {
+    rateLimitStore.set(key, { count: 1, resetTime: now + windowMs });
+    return false;
+  }
+  if (record.count >= maxRequests) {
+    res.status(429).json({ error: 'Too many requests' });
+    return true;
+  }
+  record.count++;
+  return false;
+}
 
 const supabaseUrl = process.env.VITE_SUPABASE_URL || 'https://myylgglbtroabqclzvvn.supabase.co';
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY!;
@@ -20,8 +42,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  // Rate limit: 60 requests per minute (read-only)
-  if (applyRateLimit(req, res, 'profile-top-videos', 'readonly')) return;
+  // Rate limit: 60 requests per minute
+  if (applyRateLimit(req, res, 'profile-top-videos')) return;
 
   try {
     // Get auth token

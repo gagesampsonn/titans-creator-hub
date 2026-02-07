@@ -4,7 +4,29 @@
  */
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { applyRateLimit } from '../_shared/rateLimit';
+
+// Inline rate limiting
+const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
+function applyRateLimit(req: VercelRequest, res: VercelResponse, prefix: string): boolean {
+  const forwarded = req.headers['x-forwarded-for'];
+  const ip = typeof forwarded === 'string' ? forwarded.split(',')[0].trim() : 'unknown';
+  const key = `${prefix}:${ip}`;
+  const now = Date.now();
+  const windowMs = 15 * 60 * 1000; // 15 min for auth
+  const maxRequests = 10;
+  
+  const record = rateLimitStore.get(key);
+  if (!record || now > record.resetTime) {
+    rateLimitStore.set(key, { count: 1, resetTime: now + windowMs });
+    return false;
+  }
+  if (record.count >= maxRequests) {
+    res.status(429).json({ error: 'Too many requests' });
+    return true;
+  }
+  record.count++;
+  return false;
+}
 
 // Whop API Configuration
 const WHOP_API_KEY = process.env.WHOP_API_KEY;
@@ -55,8 +77,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  // Rate limit: 10 requests per 15 min (auth endpoint)
-  if (applyRateLimit(req, res, 'whop-verify', 'auth')) return;
+  // Rate limit: 10 requests per 15 min
+  if (applyRateLimit(req, res, 'whop-verify')) return;
 
   const { email } = req.body;
 
