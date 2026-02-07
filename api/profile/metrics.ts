@@ -9,7 +9,29 @@
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient } from '@supabase/supabase-js';
-import { applyRateLimit } from '../_shared/rateLimit';
+
+// Inline rate limiting to avoid module import issues
+const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
+function applyRateLimit(req: VercelRequest, res: VercelResponse, prefix: string): boolean {
+  const forwarded = req.headers['x-forwarded-for'];
+  const ip = typeof forwarded === 'string' ? forwarded.split(',')[0].trim() : 'unknown';
+  const key = `${prefix}:${ip}`;
+  const now = Date.now();
+  const windowMs = 60 * 1000; // 1 minute
+  const maxRequests = 60;
+  
+  const record = rateLimitStore.get(key);
+  if (!record || now > record.resetTime) {
+    rateLimitStore.set(key, { count: 1, resetTime: now + windowMs });
+    return false;
+  }
+  if (record.count >= maxRequests) {
+    res.status(429).json({ error: 'Too many requests' });
+    return true;
+  }
+  record.count++;
+  return false;
+}
 
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://myylgglbtroabqclzvvn.supabase.co';
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im15eWxnZ2xidHJvYWJxY2x6dnZuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU2NTk5MTQsImV4cCI6MjA4MTIzNTkxNH0.W2WEETRhflBK_MeZbnoRc-NXRH4BV_u8Zk_aPqOoraA';
@@ -23,8 +45,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
 
-  // Rate limit: 60 requests per minute (read-only)
-  if (applyRateLimit(req, res, 'profile-metrics', 'readonly')) return;
+  // Rate limit: 60 requests per minute
+  if (applyRateLimit(req, res, 'profile-metrics')) return;
 
   // Auth
   const authHeader = req.headers.authorization;
