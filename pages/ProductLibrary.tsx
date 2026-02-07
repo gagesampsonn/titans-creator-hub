@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Search, ChevronDown, ChevronUp, Smartphone, ExternalLink, Package, Zap } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Search, ChevronDown, ChevronUp, Smartphone, ExternalLink, Package, Zap, Loader2, Lock } from 'lucide-react';
 import { PRODUCT_SAMPLES, ProductSample, getGmvMaxProducts, getNonGmvMaxProducts } from '../data/product-samples';
+import { useAuth } from '../lib/AuthContext';
 
 // Check if on mobile
 const useIsMobile = () => {
@@ -94,6 +96,8 @@ const ProductRow = ({ product, isMobile, isExpanded, onToggle }: {
 };
 
 const ProductLibrary = () => {
+  const { user, loading: authLoading } = useAuth();
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [showGmvMax, setShowGmvMax] = useState(true);
@@ -101,6 +105,49 @@ const ProductLibrary = () => {
   
   const gmvMaxProducts = getGmvMaxProducts(PRODUCT_SAMPLES);
   const regularProducts = getNonGmvMaxProducts(PRODUCT_SAMPLES);
+
+  // Show loading while checking auth
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-titan-bg flex items-center justify-center">
+        <Loader2 size={24} className="animate-spin text-accent-teal" />
+      </div>
+    );
+  }
+
+  // Show login prompt if not authenticated
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-titan-bg flex items-center justify-center p-4">
+        <div className="max-w-md w-full text-center">
+          <div className="w-16 h-16 bg-gradient-to-br from-accent-teal/20 to-accent-fuchsia/20 rounded-2xl flex items-center justify-center mx-auto mb-6">
+            <Lock size={28} className="text-accent-teal" />
+          </div>
+          <h1 className="text-2xl font-bold text-text-primary mb-3">Get Free Samples</h1>
+          <p className="text-text-secondary mb-8">
+            Sign up or log in to access exclusive product samples from top TikTok Shop brands.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Link
+              to="/signup"
+              className="px-6 py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white font-semibold rounded-xl hover:from-orange-600 hover:to-red-600 transition-all"
+            >
+              Sign Up Free
+            </Link>
+            <Link
+              to="/login"
+              className="px-6 py-3 bg-titan-surface border border-titan-border text-text-primary font-medium rounded-xl hover:bg-titan-elevated transition-all"
+            >
+              Log In
+            </Link>
+          </div>
+          <p className="text-xs text-text-muted mt-6">
+            Join 1000+ creators getting free samples daily
+          </p>
+        </div>
+      </div>
+    );
+  }
   
   // Filter by search
   const filteredProducts = React.useMemo(() => {
