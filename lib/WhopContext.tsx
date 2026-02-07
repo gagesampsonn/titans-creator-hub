@@ -9,6 +9,10 @@ interface WhopAccess {
   auditLimit: number;
   isAdmin: boolean;
   activeProducts: { id: string; name: string; tier: string }[];
+  // Multi-auth access
+  hasTitansDiscordRole: boolean;
+  hasWhopMembership: boolean;
+  authMethod: 'whop' | 'discord' | 'email' | null;
 }
 
 interface WhopContextType {
@@ -31,6 +35,9 @@ const defaultAccess: WhopAccess = {
   auditLimit: 3, // Free trial audits
   isAdmin: false,
   activeProducts: [],
+  hasTitansDiscordRole: false,
+  hasWhopMembership: false,
+  authMethod: null,
 };
 
 const WhopContext = createContext<WhopContextType>({
@@ -113,7 +120,7 @@ export const WhopProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const response = await fetch('/api/whop/verify-membership', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: user.email }),
+        body: JSON.stringify({ email: user.email, userId: user.id }),
       });
 
       if (!response.ok) {
@@ -122,14 +129,27 @@ export const WhopProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       const data = await response.json();
       
+      // Check if user has access via any method:
+      // 1. Active Whop membership
+      // 2. Has Titans Discord role
+      // 3. Email found in Whop (covered by hasAccess)
+      const hasTitansRole = data.hasTitansDiscordRole || false;
+      const hasWhopMembership = data.hasWhopMembership || data.hasAccess || false;
+      
+      // Full access if they have Whop OR Discord role
+      const hasFullAccess = hasWhopMembership || hasTitansRole;
+      
       setWhopAccess({
-        hasAccess: data.hasAccess || false,
-        hasCourseAccess: data.hasCourseAccess || false,
-        hasToolAccess: data.hasToolAccess || false,
-        tier: data.tier || null,
-        auditLimit: data.auditLimit || 3,
+        hasAccess: hasFullAccess,
+        hasCourseAccess: hasFullAccess || data.hasCourseAccess || false,
+        hasToolAccess: hasFullAccess || data.hasToolAccess || false,
+        tier: hasFullAccess ? (data.tier || 'member') : null,
+        auditLimit: hasFullAccess ? 999 : (data.auditLimit || 3),
         isAdmin: data.isAdmin || false,
         activeProducts: data.activeProducts || [],
+        hasTitansDiscordRole: hasTitansRole,
+        hasWhopMembership: hasWhopMembership,
+        authMethod: data.authMethod || null,
       });
     } catch (err) {
       console.error('[Whop] Error checking membership:', err);
@@ -138,7 +158,7 @@ export const WhopProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } finally {
       setLoading(false);
     }
-  }, [user?.email]);
+  }, [user?.email, user?.id]);
 
   // Check Whop status when user changes
   useEffect(() => {

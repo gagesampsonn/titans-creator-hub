@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../lib/AuthContext';
-import { Loader2 } from 'lucide-react';
+import { Loader2, X } from 'lucide-react';
 
 interface AuthProps {
   mode: 'login' | 'signup';
@@ -149,39 +149,52 @@ const Auth: React.FC<AuthProps> = ({ mode }) => {
   }
 
   return (
-    <div className="min-h-screen bg-titan-bg flex flex-col items-center justify-center p-6 relative overflow-hidden">
-      {/* Background Elements */}
-      <div className="absolute top-1/4 left-1/4 w-[400px] h-[400px] bg-accent-teal/5 rounded-full blur-[120px] pointer-events-none"></div>
-      <div className="absolute bottom-1/4 right-1/4 w-[300px] h-[300px] bg-accent-fuchsia/5 rounded-full blur-[120px] pointer-events-none"></div>
-
-      {/* Header */}
-      <div className="mb-8 text-center relative z-10">
-        <Link to="/" className="inline-flex items-center gap-2 mb-8">
-          <img src="/titans-logo.png" alt="Titans" className="w-9 h-9 object-contain" />
-          <span className="text-base font-semibold text-text-primary tracking-tight">TITANS</span>
-        </Link>
-        <h1 className="text-2xl font-semibold text-text-primary tracking-tight">
-          {mode === 'login' ? 'Welcome back' : 'Create your account'}
-        </h1>
-        <p className="text-sm text-text-muted mt-2">
-          {mode === 'login' 
-            ? 'Sign in to access your dashboard' 
-            : 'Start scaling your TikTok Shop revenue'}
-        </p>
+    <div className="min-h-screen bg-titan-bg flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Background gradient mesh */}
+      <div className="absolute inset-0">
+        <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-gradient-to-br from-accent-teal/10 to-transparent rounded-full blur-[100px]"></div>
+        <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-gradient-to-tl from-accent-fuchsia/10 to-transparent rounded-full blur-[100px]"></div>
       </div>
 
-      {/* Form Card */}
-      <div className="glass-panel p-8 rounded w-full max-w-sm relative z-10">
+      {/* Modal Card - Dark theme */}
+      <div className="bg-titan-surface/95 backdrop-blur-xl rounded-2xl shadow-2xl shadow-black/40 w-full max-w-md relative z-10 overflow-hidden border border-titan-border">
+        {/* Close button (links to home) */}
+        <Link to="/" className="absolute top-5 right-5 w-8 h-8 flex items-center justify-center text-text-muted hover:text-text-primary hover:bg-titan-elevated rounded-full transition-colors">
+          <X size={18} />
+        </Link>
+
+        {/* Logo */}
+        <div className="flex justify-center pt-8 pb-2">
+          <Link to="/" className="flex items-center gap-2">
+            <img src="/titans-logo.png" alt="Titans" className="w-10 h-10 object-contain" />
+            <span className="text-xl font-bold text-text-primary tracking-tight">TITANS</span>
+          </Link>
+        </div>
+
+        {/* Header */}
+        <div className="text-center px-8 pt-2 pb-6">
+          <h1 className="text-2xl font-bold text-text-primary">
+            {mode === 'login' ? 'Welcome Back' : 'Get Started'}
+          </h1>
+          <p className="text-text-secondary text-sm mt-2">
+            {mode === 'login' 
+              ? 'Sign in to access your creator dashboard' 
+              : 'Create your account to start scaling'}
+          </p>
+        </div>
+
+        {/* Form Content */}
+        <div className="px-8 pb-8">
         {/* Signup Success - Check Email */}
         {signupSuccess ? (
           <div className="text-center">
-            <div className="w-16 h-16 bg-accent-teal/10 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="w-16 h-16 bg-accent-teal/20 rounded-full flex items-center justify-center mx-auto mb-4">
               <svg className="w-8 h-8 text-accent-teal" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
               </svg>
             </div>
-            <h2 className="text-xl font-semibold text-text-primary mb-2">Check your email!</h2>
-            <p className="text-sm text-text-muted mb-4">
+            <h2 className="text-xl font-bold text-text-primary mb-2">Check your email!</h2>
+            <p className="text-sm text-text-secondary mb-4">
               We sent a verification link to<br />
               <span className="text-text-primary font-medium">{email}</span>
             </p>
@@ -192,7 +205,7 @@ const Auth: React.FC<AuthProps> = ({ mode }) => {
               <button
                 onClick={handleResendConfirmation}
                 disabled={loading}
-                className="w-full py-2.5 border border-titan-border rounded text-sm text-text-secondary hover:text-text-primary hover:border-titan-border-light transition-colors flex items-center justify-center gap-2"
+                className="w-full py-3 border border-titan-border rounded-xl text-sm text-text-secondary hover:text-text-primary hover:border-titan-border-light transition-colors flex items-center justify-center gap-2"
               >
                 {loading ? (
                   <>
@@ -205,26 +218,26 @@ const Auth: React.FC<AuthProps> = ({ mode }) => {
               </button>
               <Link 
                 to="/login" 
-                className="block w-full py-2.5 bg-text-primary hover:bg-white text-titan-bg font-semibold rounded text-sm text-center transition-colors"
+                className="block w-full py-3 bg-text-primary hover:bg-white text-titan-bg font-semibold rounded-xl text-sm text-center transition-all"
               >
                 Go to Login
               </Link>
             </div>
             {resendSuccess && (
-              <p className="mt-4 text-xs text-accent-teal">✓ Email sent! Check your inbox.</p>
+              <p className="mt-4 text-sm text-accent-teal font-medium">✓ Email sent! Check your inbox.</p>
             )}
           </div>
         ) : (
         <>
         {error && (
-          <div className="mb-5 p-3 bg-accent-fuchsia/10 border border-accent-fuchsia/20 rounded text-accent-fuchsia text-xs">
+          <div className="mb-5 p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 text-sm">
             <p>{error}</p>
             {showResendConfirmation && (
               <button
                 type="button"
                 onClick={handleResendConfirmation}
                 disabled={loading}
-                className="mt-2 text-accent-teal hover:underline flex items-center gap-1"
+                className="mt-2 text-accent-teal hover:underline flex items-center gap-1 font-medium"
               >
                 {loading ? (
                   <>
@@ -240,51 +253,44 @@ const Auth: React.FC<AuthProps> = ({ mode }) => {
         )}
         
         {resendSuccess && (
-          <div className="mb-5 p-3 bg-accent-teal/10 border border-accent-teal/20 rounded text-accent-teal text-xs">
+          <div className="mb-5 p-3 bg-accent-teal/10 border border-accent-teal/30 rounded-xl text-accent-teal text-sm">
             ✓ Confirmation email sent! Check your inbox (and spam folder).
           </div>
         )}
 
+        {/* Email Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
           {mode === 'signup' && (
             <div>
-              <label className="block text-xs font-medium text-text-secondary mb-1.5">Full Name</label>
               <input 
                 type="text" 
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                className="w-full px-3 py-2.5 rounded bg-titan-bg border border-titan-border text-text-primary text-sm focus:border-accent-teal focus:outline-none transition-colors placeholder-text-muted" 
-                placeholder="Your name" 
+                className="w-full px-4 py-3 rounded-xl bg-titan-bg border border-titan-border text-text-primary text-sm focus:border-accent-teal focus:ring-2 focus:ring-accent-teal/20 focus:outline-none transition-all placeholder-text-muted" 
+                placeholder="Full name" 
                 required 
               />
             </div>
           )}
           
           <div>
-            <label className="block text-xs font-medium text-text-secondary mb-1.5">Email</label>
             <input 
               type="email" 
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-3 py-2.5 rounded bg-titan-bg border border-titan-border text-text-primary text-sm focus:border-accent-teal focus:outline-none transition-colors placeholder-text-muted" 
-              placeholder="you@example.com" 
+              className="w-full px-4 py-3 rounded-xl bg-titan-bg border border-titan-border text-text-primary text-sm focus:border-accent-teal focus:ring-2 focus:ring-accent-teal/20 focus:outline-none transition-all placeholder-text-muted" 
+              placeholder="Email address" 
               required 
             />
           </div>
 
           <div>
-            <div className="flex justify-between mb-1.5">
-              <label className="block text-xs font-medium text-text-secondary">Password</label>
-              {mode === 'login' && (
-                <a href="#" className="text-xs text-accent-teal hover:text-text-primary transition-colors">Forgot?</a>
-              )}
-            </div>
             <input 
               type="password" 
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-3 py-2.5 rounded bg-titan-bg border border-titan-border text-text-primary text-sm focus:border-accent-teal focus:outline-none transition-colors placeholder-text-muted" 
-              placeholder="••••••••" 
+              className="w-full px-4 py-3 rounded-xl bg-titan-bg border border-titan-border text-text-primary text-sm focus:border-accent-teal focus:ring-2 focus:ring-accent-teal/20 focus:outline-none transition-all placeholder-text-muted" 
+              placeholder="Password" 
               required 
               minLength={6}
             />
@@ -293,31 +299,41 @@ const Auth: React.FC<AuthProps> = ({ mode }) => {
           <button 
             type="submit" 
             disabled={loading}
-            className="w-full bg-text-primary hover:bg-white disabled:bg-text-primary/50 text-titan-bg font-semibold py-2.5 rounded text-sm transition-colors flex items-center justify-center gap-2"
+            className="w-full bg-text-primary hover:bg-white disabled:opacity-50 text-titan-bg font-semibold py-3.5 rounded-xl text-sm transition-all flex items-center justify-center gap-2"
           >
-            {loading && <Loader2 size={14} className="animate-spin" />}
+            {loading && <Loader2 size={16} className="animate-spin" />}
             {mode === 'login' ? 'Sign In' : 'Create Account'}
           </button>
         </form>
 
-        <div className="mt-6 text-center text-xs text-text-muted">
+        {/* Switch mode link */}
+        <div className="mt-6 text-center text-sm text-text-muted">
           {mode === 'login' ? (
-            <>Don't have an account? <Link to="/signup" className="text-accent-teal hover:text-text-primary transition-colors">Sign up</Link></>
+            <>Don't have an account? <Link to="/signup" className="text-accent-teal hover:text-text-primary font-medium">Sign up</Link></>
           ) : (
-            <>Already have an account? <Link to="/login" className="text-accent-teal hover:text-text-primary transition-colors">Sign in</Link></>
+            <>Already have an account? <Link to="/login" className="text-accent-teal hover:text-text-primary font-medium">Sign in</Link></>
           )}
         </div>
         </>
         )}
-      </div>
 
-      {/* Footer */}
-      <p className="mt-8 text-xs text-text-muted relative z-10">
-        By continuing, you agree to our{' '}
-        <Link to="/terms" className="text-accent-teal hover:underline">Terms of Service</Link>
-        {' '}and{' '}
-        <Link to="/privacy" className="text-accent-teal hover:underline">Privacy Policy</Link>
-      </p>
+        {/* Footer */}
+        <div className="mt-6 pt-6 border-t border-titan-border">
+          <div className="flex items-center justify-center gap-2 text-xs text-text-muted">
+            <svg className="w-4 h-4 text-accent-teal" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+            </svg>
+            Secure & encrypted
+          </div>
+          <p className="text-center text-xs text-text-muted mt-3">
+            By continuing, you agree to our{' '}
+            <Link to="/terms" className="text-text-secondary hover:text-text-primary underline">Terms</Link>
+            {' & '}
+            <Link to="/privacy" className="text-text-secondary hover:text-text-primary underline">Privacy</Link>
+          </p>
+        </div>
+        </div>
+      </div>
     </div>
   );
 };

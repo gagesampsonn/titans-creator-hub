@@ -4,6 +4,10 @@
  */
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { createClient } from '@supabase/supabase-js';
+
+const SUPABASE_URL = process.env.SUPABASE_URL || 'https://myylgglbtroabqclzvvn.supabase.co';
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 
 // Inline rate limiting
 const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
@@ -92,10 +96,47 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Rate limit: 10 requests per 15 min
   if (applyRateLimit(req, res, 'whop-verify')) return;
 
-  const { email } = req.body;
+  const { email, userId } = req.body;
 
   if (!email) {
     return res.status(400).json({ error: 'Email is required' });
+  }
+
+  // Check for Discord role in profile (for Discord OAuth users)
+  let hasTitansDiscordRole = false;
+  let hasWhopMembership = false;
+  let authMethod: 'whop' | 'discord' | 'email' | null = null;
+
+  if (SUPABASE_SERVICE_KEY && userId) {
+    try {
+      const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
+        auth: { autoRefreshToken: false, persistSession: false },
+      });
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('has_titans_role, has_whop_membership, discord_id, whop_id')
+        .eq('id', userId)
+        .single();
+
+      if (profile) {
+        hasTitansDiscordRole = profile.has_titans_role === true;
+        hasWhopMembership = profile.has_whop_membership === true;
+        
+        // Determine auth method
+        if (profile.whop_id) {
+          authMethod = 'whop';
+        } else if (profile.discord_id) {
+          authMethod = 'discord';
+        } else {
+          authMethod = 'email';
+        }
+
+        console.log('[Whop] Profile check:', { hasTitansDiscordRole, hasWhopMembership, authMethod });
+      }
+    } catch (err) {
+      console.error('[Whop] Error checking profile:', err);
+    }
   }
 
   // Admin bypass - always grant access to admin emails
@@ -201,14 +242,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       activeProducts: activeProducts.length,
     });
 
+    // Final access check: Whop membership OR Discord role
+    const finalHasAccess = hasAccess || hasTitansDiscordRole;
+    
     return res.status(200).json({
-      hasAccess,
-      hasCourseAccess,
-      hasToolAccess,
-      tier: bestTier,
-      auditLimit: auditLimit || 3, // Free users get 3 audits to try
+      hasAccess: finalHasAccess,
+      hasCourseAccess: hasCourseAccess || hasTitansDiscordRole,
+      hasToolAccess: hasToolAccess || hasTitansDiscordRole,
+      tier: bestTier || (hasTitansDiscordRole ? 'discord-member' : null),
+      auditLimit: finalHasAccess ? (auditLimit || 999) : 3,
       activeProducts,
       membershipCount: data.data?.length ?? 0,
+      // Multi-auth info
+      hasTitansDiscordRole,
+      hasWhopMembership: hasAccess || hasWhopMembership,
+      authMethod,
     });
   } catch (error) {
     console.error('[Whop] Verification error:', error);
