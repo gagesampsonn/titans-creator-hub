@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Search, ChevronDown, ChevronUp, Smartphone, ExternalLink, Package, Zap, Lock } from 'lucide-react';
 import { PRODUCT_SAMPLES, ProductSample, getGmvMaxProducts, getNonGmvMaxProducts } from '../data/product-samples';
 import { useAuth } from '../lib/AuthContext';
+import { useWhop } from '../lib/WhopContext';
 
 // Check if on mobile
 const useIsMobile = () => {
@@ -98,6 +99,7 @@ const TITANS_WHOP_URL = 'https://whop.com/tiktokshopaffiliate/';
 
 const ProductLibrary = () => {
   const { user } = useAuth();
+  const { whopAccess } = useWhop();
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [showGmvMax, setShowGmvMax] = useState(true);
@@ -119,23 +121,19 @@ const ProductLibrary = () => {
     }
 
     if (!user) {
-      // Not logged in - show login modal
+      // Not logged in - show login/join modal
       setPendingLink(tiktokLink);
       setShowLoginModal(true);
       return;
     }
 
-    // User is logged in - check if they're a Titans member
-    // For now, we'll redirect to Whop if they don't have access
-    // TODO: Check actual membership status via WhopContext
-    // For launch, assume logged in users need to join Titans
-    window.open(TITANS_WHOP_URL, '_blank');
-  };
-
-  // Handle after login - open the pending link
-  const handleContinueToWhop = () => {
-    setShowLoginModal(false);
-    window.open(TITANS_WHOP_URL, '_blank');
+    if (whopAccess?.hasAccess) {
+      // Logged in Titans member - open the actual product link
+      window.open(tiktokLink, '_blank');
+    } else {
+      // Logged in but not a Titans member - send to Whop to join
+      window.open(TITANS_WHOP_URL, '_blank');
+    }
   };
   
   // Filter by search
