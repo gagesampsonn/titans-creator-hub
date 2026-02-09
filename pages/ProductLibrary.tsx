@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, ChevronDown, ChevronUp, Smartphone, ExternalLink, Package, Zap, Lock } from 'lucide-react';
+import { Search, ChevronDown, ChevronUp, Smartphone, ExternalLink, Package, Zap, Lock, Loader2, Gift } from 'lucide-react';
 import { PRODUCT_SAMPLES, ProductSample, getGmvMaxProducts, getNonGmvMaxProducts } from '../data/product-samples';
 import { useAuth } from '../lib/AuthContext';
 import { useWhop } from '../lib/WhopContext';
@@ -98,8 +98,8 @@ const ProductRow = ({ product, isMobile, isExpanded, onToggle, onRequest }: {
 const TITANS_WHOP_URL = 'https://whop.com/tiktokshopaffiliate/';
 
 const ProductLibrary = () => {
-  const { user } = useAuth();
-  const { whopAccess } = useWhop();
+  const { user, loading: authLoading } = useAuth();
+  const { whopAccess, loading: whopLoading } = useWhop();
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [showGmvMax, setShowGmvMax] = useState(true);
@@ -110,31 +110,106 @@ const ProductLibrary = () => {
   const gmvMaxProducts = getGmvMaxProducts(PRODUCT_SAMPLES);
   const regularProducts = getNonGmvMaxProducts(PRODUCT_SAMPLES);
 
+  const isMember = whopAccess?.hasAccess || false;
+
   // Handle sample request click
   const handleRequestClick = (tiktokLink: string, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     
     if (!isMobile) {
-      // Desktop - just show mobile notice (already handled by button styling)
-      return;
+      return; // Desktop shows mobile notice via button styling
     }
 
     if (!user) {
-      // Not logged in - show login/join modal
       setPendingLink(tiktokLink);
       setShowLoginModal(true);
       return;
     }
 
-    if (whopAccess?.hasAccess) {
-      // Logged in Titans member - open the actual product link
+    if (isMember) {
       window.open(tiktokLink, '_blank');
     } else {
-      // Logged in but not a Titans member - send to Whop to join
       window.open(TITANS_WHOP_URL, '_blank');
     }
   };
+
+  // Loading state
+  if (authLoading || (user && whopLoading)) {
+    return (
+      <div className="min-h-screen bg-titan-bg flex items-center justify-center">
+        <Loader2 size={24} className="animate-spin text-accent-teal" />
+      </div>
+    );
+  }
+
+  // Not logged in → send to signup
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-titan-bg flex items-center justify-center p-4">
+        <div className="max-w-md w-full text-center">
+          <div className="w-16 h-16 bg-gradient-to-br from-orange-500/20 to-red-500/20 rounded-2xl flex items-center justify-center mx-auto mb-6">
+            <Gift size={28} className="text-orange-400" />
+          </div>
+          <h1 className="text-2xl font-bold text-text-primary mb-3">Get Free Samples</h1>
+          <p className="text-text-secondary text-sm mb-8">
+            Create a free account to browse and request product samples from top TikTok Shop brands.
+          </p>
+          <div className="flex flex-col gap-3">
+            <Link
+              to="/signup?redirect=products"
+              className="px-6 py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white font-semibold rounded-xl hover:from-orange-600 hover:to-red-600 transition-all"
+            >
+              Sign Up Free
+            </Link>
+            <Link
+              to="/login?redirect=products"
+              className="px-6 py-2.5 bg-titan-surface border border-titan-border text-text-primary font-medium rounded-xl hover:bg-titan-elevated transition-all text-sm"
+            >
+              Already have an account? Log In
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Logged in but NOT a Titans member → show locked page
+  if (!isMember) {
+    return (
+      <div className="min-h-screen bg-titan-bg flex items-center justify-center p-4">
+        <div className="max-w-md w-full text-center">
+          <div className="w-16 h-16 bg-gradient-to-br from-orange-500/20 to-red-500/20 rounded-2xl flex items-center justify-center mx-auto mb-6">
+            <Lock size={28} className="text-orange-400" />
+          </div>
+          <h1 className="text-2xl font-bold text-text-primary mb-3">Titans Members Only</h1>
+          <p className="text-text-secondary text-sm mb-2">
+            Product samples are exclusively available to Titans members.
+          </p>
+          <p className="text-text-muted text-xs mb-8">
+            Join Titans to unlock all samples, GMV Max campaigns, creator tools, and more.
+          </p>
+          <a
+            href={TITANS_WHOP_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-8 py-3.5 bg-gradient-to-r from-orange-500 to-red-500 text-white font-bold rounded-xl hover:from-orange-600 hover:to-red-600 transition-all shadow-lg shadow-orange-500/20"
+          >
+            Join Titans →
+          </a>
+          <p className="mt-4 text-xs text-text-muted">
+            Already a member? It may take a moment to sync.{' '}
+            <button 
+              onClick={() => window.location.reload()} 
+              className="text-accent-teal hover:text-text-primary underline underline-offset-2"
+            >
+              Refresh
+            </button>
+          </p>
+        </div>
+      </div>
+    );
+  }
   
   // Filter by search
   const filteredProducts = React.useMemo(() => {

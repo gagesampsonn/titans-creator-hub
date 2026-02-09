@@ -146,7 +146,7 @@ const Home = () => {
             {/* Primary CTA */}
             <div className="flex flex-col items-center gap-3 mb-6">
               <Link 
-                to="/signup" 
+                to="/samples" 
                 className="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-bold rounded-xl text-base transition-all shadow-lg shadow-orange-500/25 flex items-center justify-center gap-2"
               >
                 <Gift size={18} />
@@ -242,7 +242,7 @@ const Home = () => {
 
             {/* Video Section CTA */}
             <Link 
-              to="/signup" 
+              to="/samples" 
               className="inline-flex items-center gap-2 px-6 py-2.5 bg-titan-surface border border-titan-border text-text-primary font-medium rounded-lg text-sm hover:bg-titan-elevated hover:border-accent-teal/30 transition-all"
             >
               Get Access to These Products
@@ -308,7 +308,7 @@ const Home = () => {
           {/* CTA after steps */}
           <div className="text-center mt-10">
             <Link 
-              to="/signup" 
+              to="/samples" 
               className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-bold rounded-xl text-sm transition-all shadow-lg shadow-orange-500/20"
             >
               <Gift size={16} />
@@ -512,7 +512,7 @@ const Home = () => {
                 ))}
               </ul>
               
-              <Link to="/signup" className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-orange-500 to-red-500 text-white font-semibold rounded-lg text-sm transition-all hover:from-orange-600 hover:to-red-600">
+              <Link to="/samples" className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-orange-500 to-red-500 text-white font-semibold rounded-lg text-sm transition-all hover:from-orange-600 hover:to-red-600">
                 <Gift size={14} />
                 Get Free Samples
               </Link>
@@ -553,7 +553,7 @@ const Home = () => {
           <h2 className="text-2xl sm:text-3xl font-bold text-text-primary tracking-tight mb-3">Ready to start earning?</h2>
           <p className="text-text-secondary text-sm mb-8">Join 3,600+ creators getting free samples and earning commission on TikTok Shop.</p>
           <Link 
-            to="/signup" 
+            to="/samples" 
             className="inline-flex items-center gap-2 px-8 py-3.5 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-bold rounded-xl text-base transition-all shadow-lg shadow-orange-500/25"
           >
             <Gift size={18} />
@@ -567,7 +567,7 @@ const Home = () => {
       {isMobile && (
         <div className="fixed bottom-0 left-0 right-0 z-50 p-3 bg-titan-bg/95 backdrop-blur-lg border-t border-titan-border">
           <Link 
-            to="/signup" 
+            to="/samples" 
             className="flex items-center justify-center gap-2 w-full py-3.5 bg-gradient-to-r from-orange-500 to-red-500 text-white font-bold rounded-xl text-sm shadow-lg shadow-orange-500/30"
           >
             <Gift size={16} />

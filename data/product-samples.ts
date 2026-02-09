@@ -82,6 +82,10 @@ export const PRODUCT_SAMPLES: ProductSample[] = [
 
   // ===== SINGLE PRODUCTS =====
   { id: 'bucked-up', brand: 'Bucked Up', title: 'Ready-to-Drink Lightly-Carbonated', tiktokLink: 'https://affiliate-us.tiktok.com/api/v1/share/AJE1tkBbM2yr' },
+  // ===== FEATURED INSTANT SAMPLES =====
+  { id: 'goli', brand: 'Goli Nutrition', title: '3 Bottles Best Seller Bundle — Ashwagandha, ACV & Matcha Mind', tiktokLink: 'https://affiliate-us.tiktok.com/api/v1/share/AJB5Ljr3LF8b', productCount: 3, bundleProducts: ['Ashwagandha Gummies', 'Apple Cider Vinegar Gummies', 'Matcha Mind Gummies'] },
+
+  // ===== INDIVIDUAL SAMPLES =====
   { id: 'vyhthy', brand: 'VYHTHY', title: 'Creatine Monohydrate Gummies', tiktokLink: 'https://affiliate-us.tiktok.com/api/v1/share/AJHbXlJq2ETB' },
   { id: 'yerba-magic', brand: 'Yerba Magic', title: 'Yerba Magic Capsules', tiktokLink: 'https://affiliate-us.tiktok.com/api/v1/share/AJHbKNAjtIY6' },
   { id: 'biohealth', brand: 'BIOHEALTH', title: 'Probioderm 3D Lifting Cream Mist', tiktokLink: 'https://affiliate-us.tiktok.com/api/v1/share/AJH7HL4sXyPJ' },

@@ -20,6 +20,7 @@ import Onboarding from './pages/Onboarding';
 import Course from './pages/Course';
 import CourseLogin from './pages/CourseLogin';
 import BrandPitch from './pages/BrandPitch';
+import SamplePicker from './pages/SamplePicker';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -106,10 +107,10 @@ const Navbar = () => {
                   Log In
                 </Link>
                 <Link 
-                  to="/signup" 
-                  className="bg-text-primary hover:bg-white text-titan-bg px-4 py-1.5 rounded text-sm font-medium transition-colors"
+                  to="/samples" 
+                  className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white px-4 py-1.5 rounded text-sm font-semibold transition-colors"
                 >
-                  Get Started
+                  Get Free Samples
                 </Link>
               </>
             )}
@@ -198,11 +199,11 @@ const Navbar = () => {
                     Log In
                   </Link>
                   <Link 
-                    to="/signup" 
+                    to="/samples" 
                     onClick={() => setIsOpen(false)} 
-                    className="w-full text-center py-2 text-sm bg-text-primary text-titan-bg rounded font-medium"
+                    className="w-full text-center py-2 text-sm bg-gradient-to-r from-orange-500 to-red-500 text-white rounded font-semibold"
                   >
-                    Get Started
+                    Get Free Samples
                   </Link>
                 </div>
               )}
@@ -282,6 +283,7 @@ const App = () => {
             <main className="flex-grow">
               <Routes>
                 <Route path="/" element={<Home />} />
+                <Route path="/samples" element={<SamplePicker />} />
                 <Route path="/products" element={<ProductLibrary />} />
                 <Route path="/products/:id" element={<ProductDetail />} />
                 <Route path="/trends" element={<TrendPulse />} />

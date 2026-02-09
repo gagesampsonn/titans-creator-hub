@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../lib/AuthContext';
 import { Loader2, X } from 'lucide-react';
@@ -10,7 +10,11 @@ interface AuthProps {
 
 const Auth: React.FC<AuthProps> = ({ mode }) => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user, loading: authLoading } = useAuth();
+  
+  // Where to go after auth (default: dashboard, from samples flow: products)
+  const redirectTo = searchParams.get('redirect') || 'dashboard';
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -52,10 +56,10 @@ const Auth: React.FC<AuthProps> = ({ mode }) => {
   // Redirect if already logged in
   useEffect(() => {
     if (!authLoading && user) {
-      console.log('[Auth] User already logged in, redirecting to dashboard');
-      navigate('/dashboard');
+      console.log('[Auth] User already logged in, redirecting to', redirectTo);
+      navigate(`/${redirectTo}`);
     }
-  }, [user, authLoading, navigate]);
+  }, [user, authLoading, navigate, redirectTo]);
 
   // Reset state when mode changes (login <-> signup)
   useEffect(() => {
@@ -111,7 +115,7 @@ const Auth: React.FC<AuthProps> = ({ mode }) => {
         if (data.user) {
           console.log('[Auth] Sign in successful, user:', data.user.id.slice(0, 8));
           // Small delay to let AuthContext pick up the session
-          setTimeout(() => navigate('/dashboard'), 100);
+          setTimeout(() => navigate(`/${redirectTo}`), 100);
         }
       }
     } catch (err: any) {
@@ -174,12 +178,16 @@ const Auth: React.FC<AuthProps> = ({ mode }) => {
         {/* Header */}
         <div className="text-center px-8 pt-2 pb-6">
           <h1 className="text-2xl font-bold text-text-primary">
-            {mode === 'login' ? 'Welcome Back' : 'Get Started'}
+            {redirectTo === 'products'
+              ? (mode === 'login' ? 'Log in to claim samples' : 'Sign up to get your sample')
+              : (mode === 'login' ? 'Welcome Back' : 'Get Started')}
           </h1>
           <p className="text-text-secondary text-sm mt-2">
-            {mode === 'login' 
-              ? 'Sign in to access your creator dashboard' 
-              : 'Create your account to start scaling'}
+            {redirectTo === 'products'
+              ? 'Create a free account — takes 30 seconds'
+              : (mode === 'login' 
+                ? 'Sign in to access your creator dashboard' 
+                : 'Create your account to start scaling')}
           </p>
         </div>
 
@@ -309,9 +317,9 @@ const Auth: React.FC<AuthProps> = ({ mode }) => {
         {/* Switch mode link */}
         <div className="mt-6 text-center text-sm text-text-muted">
           {mode === 'login' ? (
-            <>Don't have an account? <Link to="/signup" className="text-accent-teal hover:text-text-primary font-medium">Sign up</Link></>
+            <>Don't have an account? <Link to={`/signup${redirectTo !== 'dashboard' ? `?redirect=${redirectTo}` : ''}`} className="text-accent-teal hover:text-text-primary font-medium">Sign up</Link></>
           ) : (
-            <>Already have an account? <Link to="/login" className="text-accent-teal hover:text-text-primary font-medium">Sign in</Link></>
+            <>Already have an account? <Link to={`/login${redirectTo !== 'dashboard' ? `?redirect=${redirectTo}` : ''}`} className="text-accent-teal hover:text-text-primary font-medium">Sign in</Link></>
           )}
         </div>
         </>
