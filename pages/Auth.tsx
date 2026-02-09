@@ -33,11 +33,13 @@ const Auth: React.FC<AuthProps> = ({ mode }) => {
     
     setLoading(true);
     try {
+      const siteUrl = 'https://www.titansagency.co';
+      const emailRedirect = `${siteUrl}/#/${redirectTo}`;
       const { error } = await supabase.auth.resend({
         type: 'signup',
         email: email,
         options: {
-          emailRedirectTo: 'https://titans-creator-hub.vercel.app/dashboard',
+          emailRedirectTo: emailRedirect,
         }
       });
       
@@ -77,6 +79,10 @@ const Auth: React.FC<AuthProps> = ({ mode }) => {
     try {
       if (mode === 'signup') {
         console.log('[Auth] Signing up...');
+        // Use the correct redirect URL based on where the user came from
+        const siteUrl = 'https://www.titansagency.co';
+        const emailRedirect = `${siteUrl}/#/${redirectTo}`;
+        
         const { data, error: signUpError } = await supabase.auth.signUp({
           email,
           password,
@@ -84,22 +90,28 @@ const Auth: React.FC<AuthProps> = ({ mode }) => {
             data: {
               full_name: fullName,
             },
-            emailRedirectTo: 'https://titans-creator-hub.vercel.app/dashboard',
+            emailRedirectTo: emailRedirect,
           }
         });
 
         if (signUpError) throw signUpError;
 
         if (data.user) {
-          console.log('[Auth] Signup successful, user needs to verify email');
-          
           // Check if email confirmation is required
           if (data.user.identities && data.user.identities.length === 0) {
             // User already exists
             throw new Error('This email is already registered. Try logging in instead.');
           }
           
-          // Show success message - user needs to verify email
+          // Check if user was auto-confirmed (session exists = no email verification needed)
+          if (data.session) {
+            console.log('[Auth] Signup auto-confirmed, redirecting to', redirectTo);
+            setTimeout(() => navigate(`/${redirectTo}`), 100);
+            return;
+          }
+          
+          // Email confirmation required — show check-email screen
+          console.log('[Auth] Signup successful, user needs to verify email');
           setSignupSuccess(true);
           setError(null);
         }
@@ -207,7 +219,8 @@ const Auth: React.FC<AuthProps> = ({ mode }) => {
               <span className="text-text-primary font-medium">{email}</span>
             </p>
             <p className="text-xs text-text-muted mb-6">
-              Click the link in the email to verify your account and start using Titans.
+              Click the link in the email to verify your account.{' '}
+              {redirectTo === 'products' && "You'll be taken straight to your free samples."}
             </p>
             <div className="space-y-3">
               <button
@@ -225,7 +238,7 @@ const Auth: React.FC<AuthProps> = ({ mode }) => {
                 )}
               </button>
               <Link 
-                to="/login" 
+                to={`/login${redirectTo !== 'dashboard' ? `?redirect=${redirectTo}` : ''}`}
                 className="block w-full py-3 bg-text-primary hover:bg-white text-titan-bg font-semibold rounded-xl text-sm text-center transition-all"
               >
                 Go to Login
