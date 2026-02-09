@@ -17,7 +17,7 @@ const FEATURED_SAMPLES = [
     accentColor: 'text-red-400',
     bgAccent: 'bg-red-500/10',
     link: 'https://affiliate-us.tiktok.com/api/v1/share/AJB5Ljr3LF8b',
-    emoji: '🍎',
+    image: '/samples/goli.png',
     tags: ['Gluten-Free', 'Vegan', 'Non-GMO'],
   },
   {
@@ -33,7 +33,7 @@ const FEATURED_SAMPLES = [
     accentColor: 'text-blue-400',
     bgAccent: 'bg-blue-500/10',
     link: 'https://affiliate-us.tiktok.com/api/v1/share/AJAXuMmscNYh',
-    emoji: '💊',
+    image: '/samples/selerb.png',
     tags: ['Made in USA', '14-in-1 Formula'],
   },
   {
@@ -49,7 +49,7 @@ const FEATURED_SAMPLES = [
     accentColor: 'text-teal-400',
     bgAccent: 'bg-teal-500/10',
     link: 'https://affiliate-us.tiktok.com/api/v1/share/AJHEC6cWt82f',
-    emoji: '🍋',
+    image: '/samples/nello.png',
     tags: ['Free Shipping', '20 Packets'],
   },
 ];
@@ -84,10 +84,19 @@ const SamplePicker = () => {
               to={`/signup?redirect=products&sample=${sample.id}`}
               className={`group relative bg-titan-surface border ${sample.borderColor} rounded-2xl overflow-hidden hover:scale-[1.02] transition-all duration-300 hover:shadow-lg hover:shadow-black/20`}
             >
-              {/* Product Visual */}
-              <div className={`bg-gradient-to-br ${sample.color} p-6 sm:p-8 text-center`}>
-                <span className="text-5xl sm:text-6xl block mb-2">{sample.emoji}</span>
-                <p className="text-xs text-text-muted font-medium uppercase tracking-wider">{sample.brand}</p>
+              {/* Free Sample Badge */}
+              <div className="absolute top-3 left-3 z-10 flex items-center gap-1 px-2.5 py-1 bg-pink-500/90 backdrop-blur-sm text-white text-xs font-bold rounded-full shadow-lg">
+                <Gift size={12} />
+                Free sample
+              </div>
+
+              {/* Product Image */}
+              <div className={`bg-gradient-to-br ${sample.color} p-3 sm:p-4 flex items-center justify-center overflow-hidden`}>
+                <img 
+                  src={sample.image} 
+                  alt={`${sample.brand} products`}
+                  className="w-full h-44 sm:h-48 object-cover object-top rounded-lg"
+                />
               </div>
 
               {/* Info */}
