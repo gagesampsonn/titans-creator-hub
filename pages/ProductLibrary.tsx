@@ -1,9 +1,16 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Link } from 'react-router-dom';
-import { Search, ChevronDown, ChevronUp, Smartphone, ExternalLink, Package, Zap, Lock, Loader2, Gift, Crown, X } from 'lucide-react';
+import { Link, useSearchParams } from 'react-router-dom';
+import { Search, ChevronDown, ChevronUp, Smartphone, ExternalLink, Package, Zap, Lock, Loader2, Gift, Crown, X, ArrowRight, Sparkles } from 'lucide-react';
 import { PRODUCT_SAMPLES, ProductSample, getGmvMaxProducts, getNonGmvMaxProducts } from '../data/product-samples';
 import { useAuth } from '../lib/AuthContext';
 import { useWhop } from '../lib/WhopContext';
+
+// Map sample IDs from SamplePicker to their TikTok links & names
+const FEATURED_SAMPLE_MAP: Record<string, { brand: string; title: string; link: string }> = {
+  goli: { brand: 'Goli Nutrition', title: '3 Bottles Best Seller Bundle', link: 'https://affiliate-us.tiktok.com/api/v1/share/AJB5Ljr3LF8b' },
+  selerb: { brand: 'Selerb', title: 'NAD+ Supplement for Men', link: 'https://affiliate-us.tiktok.com/api/v1/share/AJAXuMmscNYh' },
+  nello: { brand: 'Nello', title: 'SuperCalm Calming Drink Mix', link: 'https://affiliate-us.tiktok.com/api/v1/share/AJHEC6cWt82f' },
+};
 
 // ------- Free sample tracking -------
 const FREE_SAMPLE_KEY = 'titans_free_samples';
@@ -120,11 +127,14 @@ const TITANS_WHOP_URL = 'https://whop.com/tiktokshopaffiliate/';
 const ProductLibrary = () => {
   const { user, loading: authLoading } = useAuth();
   const { whopAccess, loading: whopLoading } = useWhop();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [showGmvMax, setShowGmvMax] = useState(true);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showUpsellModal, setShowUpsellModal] = useState(false);
+  const [showClaimModal, setShowClaimModal] = useState(false);
+  const [claimedSample, setClaimedSample] = useState<{ brand: string; title: string; link: string } | null>(null);
   const [freeSamples, setFreeSamples] = useState<FreeSampleUsage>({ count: 0, requestedLinks: [] });
   const isMobile = useIsMobile();
   
@@ -137,6 +147,29 @@ const ProductLibrary = () => {
   useEffect(() => {
     setFreeSamples(getFreeSampleUsage());
   }, []);
+
+  // Detect ?sample= param and show claim modal
+  useEffect(() => {
+    const sampleId = searchParams.get('sample');
+    if (sampleId && user && FEATURED_SAMPLE_MAP[sampleId]) {
+      const sample = FEATURED_SAMPLE_MAP[sampleId];
+      setClaimedSample(sample);
+      setShowClaimModal(true);
+
+      // Record as free sample for non-members
+      if (!isMember) {
+        const usage = getFreeSampleUsage();
+        if (!usage.requestedLinks.includes(sample.link)) {
+          const updated = recordFreeSample(sample.link);
+          setFreeSamples(updated);
+        }
+      }
+
+      // Clear the param from URL so it doesn't re-trigger
+      searchParams.delete('sample');
+      setSearchParams(searchParams, { replace: true });
+    }
+  }, [searchParams, user, isMember]);
 
   const hasUsedFreeSample = freeSamples.count >= FREE_SAMPLE_LIMIT;
 
@@ -396,6 +429,56 @@ const ProductLibrary = () => {
                   </Link>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========== CLAIM MODAL (user just signed up and picked a sample) ========== */}
+      {showClaimModal && claimedSample && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-titan-surface border border-titan-border rounded-2xl max-w-md w-full p-6 relative overflow-hidden">
+            {/* Decorative gradient */}
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-green-500 via-emerald-500 to-teal-500"></div>
+
+            <div className="text-center pt-2">
+              <div className="w-16 h-16 bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <Sparkles size={28} className="text-green-400" />
+              </div>
+              <h2 className="text-xl font-bold text-text-primary mb-1">
+                Your free sample is ready!
+              </h2>
+              <p className="text-text-secondary text-sm mb-1">
+                <span className="text-text-primary font-semibold">{claimedSample.brand}</span>
+              </p>
+              <p className="text-text-muted text-xs mb-6">{claimedSample.title}</p>
+
+              <a
+                href={claimedSample.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2 w-full px-6 py-3.5 bg-gradient-to-r from-green-500 to-emerald-500 text-white font-bold rounded-xl hover:from-green-600 hover:to-emerald-600 transition-all shadow-lg shadow-green-500/20 mb-3"
+              >
+                🎁 Claim Your Free Sample
+                <ArrowRight size={16} />
+              </a>
+              
+              <button
+                onClick={() => setShowClaimModal(false)}
+                className="flex items-center justify-center gap-1.5 w-full px-6 py-3 bg-titan-elevated border border-titan-border text-text-secondary font-medium rounded-xl hover:bg-titan-bg hover:text-text-primary transition-all text-sm"
+              >
+                Browse all samples instead
+                <ArrowRight size={14} />
+              </button>
+
+              {!isMember && (
+                <p className="mt-4 text-xs text-text-muted">
+                  Want unlimited samples?{' '}
+                  <a href={TITANS_WHOP_URL} target="_blank" rel="noopener noreferrer" className="text-orange-400 font-semibold underline underline-offset-2 hover:text-orange-300">
+                    Join Titans
+                  </a>
+                </p>
+              )}
             </div>
           </div>
         </div>

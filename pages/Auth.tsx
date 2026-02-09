@@ -15,6 +15,7 @@ const Auth: React.FC<AuthProps> = ({ mode }) => {
   
   // Where to go after auth (default: dashboard, from samples flow: products)
   const redirectTo = searchParams.get('redirect') || 'dashboard';
+  const sampleId = searchParams.get('sample') || '';
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -55,13 +56,16 @@ const Auth: React.FC<AuthProps> = ({ mode }) => {
     }
   };
 
+  // Build full redirect path with sample param if present
+  const fullRedirectPath = `/${redirectTo}${sampleId ? `?sample=${sampleId}` : ''}`;
+
   // Redirect if already logged in
   useEffect(() => {
     if (!authLoading && user) {
-      console.log('[Auth] User already logged in, redirecting to', redirectTo);
-      navigate(`/${redirectTo}`);
+      console.log('[Auth] User already logged in, redirecting to', fullRedirectPath);
+      navigate(fullRedirectPath);
     }
-  }, [user, authLoading, navigate, redirectTo]);
+  }, [user, authLoading, navigate, fullRedirectPath]);
 
   // Reset state when mode changes (login <-> signup)
   useEffect(() => {
@@ -81,7 +85,7 @@ const Auth: React.FC<AuthProps> = ({ mode }) => {
         console.log('[Auth] Signing up...');
         // Use the correct redirect URL based on where the user came from
         const siteUrl = 'https://www.titansagency.co';
-        const emailRedirect = `${siteUrl}/#/${redirectTo}`;
+        const emailRedirect = `${siteUrl}/#/${redirectTo}${sampleId ? `?sample=${sampleId}` : ''}`;
         
         const { data, error: signUpError } = await supabase.auth.signUp({
           email,
@@ -105,8 +109,8 @@ const Auth: React.FC<AuthProps> = ({ mode }) => {
           
           // Check if user was auto-confirmed (session exists = no email verification needed)
           if (data.session) {
-            console.log('[Auth] Signup auto-confirmed, redirecting to', redirectTo);
-            setTimeout(() => navigate(`/${redirectTo}`), 100);
+            console.log('[Auth] Signup auto-confirmed, redirecting to', fullRedirectPath);
+            setTimeout(() => navigate(fullRedirectPath), 100);
             return;
           }
           
@@ -127,7 +131,7 @@ const Auth: React.FC<AuthProps> = ({ mode }) => {
         if (data.user) {
           console.log('[Auth] Sign in successful, user:', data.user.id.slice(0, 8));
           // Small delay to let AuthContext pick up the session
-          setTimeout(() => navigate(`/${redirectTo}`), 100);
+          setTimeout(() => navigate(fullRedirectPath), 100);
         }
       }
     } catch (err: any) {
@@ -330,9 +334,9 @@ const Auth: React.FC<AuthProps> = ({ mode }) => {
         {/* Switch mode link */}
         <div className="mt-6 text-center text-sm text-text-muted">
           {mode === 'login' ? (
-            <>Don't have an account? <Link to={`/signup${redirectTo !== 'dashboard' ? `?redirect=${redirectTo}` : ''}`} className="text-accent-teal hover:text-text-primary font-medium">Sign up</Link></>
+            <>Don't have an account? <Link to={`/signup${redirectTo !== 'dashboard' ? `?redirect=${redirectTo}${sampleId ? `&sample=${sampleId}` : ''}` : ''}`} className="text-accent-teal hover:text-text-primary font-medium">Sign up</Link></>
           ) : (
-            <>Already have an account? <Link to={`/login${redirectTo !== 'dashboard' ? `?redirect=${redirectTo}` : ''}`} className="text-accent-teal hover:text-text-primary font-medium">Sign in</Link></>
+            <>Already have an account? <Link to={`/login${redirectTo !== 'dashboard' ? `?redirect=${redirectTo}${sampleId ? `&sample=${sampleId}` : ''}` : ''}`} className="text-accent-teal hover:text-text-primary font-medium">Sign in</Link></>
           )}
         </div>
         </>
