@@ -80,6 +80,23 @@ export const PRODUCT_SAMPLES: ProductSample[] = [
     ],
   },
 
+  {
+    id: 'bellavita-x-titans',
+    brand: 'BellaVitaShop x Titans',
+    title: '13 Products Bundle — Luxury Perfumes & Gift Sets',
+    tiktokLink: 'https://affiliate-us.tiktok.com/api/v1/share/AJI3mP8RPkhZ',
+    productCount: 13,
+    bundleProducts: [
+      'Bellavita Luxury Women\'s Valentine Gift Set | Premium Perfume',
+      'Bellavita Luxury Men\'s Valentine Gift Set | Premium Perfume',
+      'BellaVita Luxury\'s Too Sweet Too Sexy | 2x100ml Perfumes',
+      'Bellavita Luxury Him N More Valentine Gift Set | Men\'s Perfume',
+      'Bellavita Luxury Her N More Valentine Gift Set | Women\'s Perfume',
+      'Bellavita Luxury Mega Collection Valentine Gift Set',
+      'BellaVita Luxury\'s G.O.A.T. Man - 20ML EDP',
+    ],
+  },
+
   // ===== SINGLE PRODUCTS =====
   { id: 'bucked-up', brand: 'Bucked Up', title: 'Ready-to-Drink Lightly-Carbonated', tiktokLink: 'https://affiliate-us.tiktok.com/api/v1/share/AJE1tkBbM2yr' },
   // ===== FEATURED INSTANT SAMPLES =====

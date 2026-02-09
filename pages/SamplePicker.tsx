@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Gift, Star, TrendingUp, ShieldCheck, Clock, Package, ArrowRight } from 'lucide-react';
+import { Gift, Star, TrendingUp, ShieldCheck, Package, ArrowRight } from 'lucide-react';
 
 // The 3 featured instant samples
 // imageClip: CSS object-position to crop to the product area of each screenshot
@@ -79,16 +79,18 @@ const SamplePicker = () => {
             Pick your free sample
           </h1>
           <p className="text-text-secondary text-sm sm:text-base max-w-xl mx-auto">
-            Choose a product, create your account, and get it shipped to your door — free.
+            Choose a product below and get it shipped to your door — free.
           </p>
         </div>
 
         {/* Product Cards — Mobile: horizontal cards, Desktop: 3-col grid */}
         <div className="flex flex-col sm:grid sm:grid-cols-3 gap-3 sm:gap-5 mb-8 sm:mb-12">
           {FEATURED_SAMPLES.map((sample) => (
-            <Link
+            <a
               key={sample.id}
-              to={`/signup?redirect=products&sample=${sample.id}`}
+              href={sample.link}
+              target="_blank"
+              rel="noopener noreferrer"
               className={`group relative bg-titan-surface border ${sample.borderColor} rounded-2xl overflow-hidden hover:scale-[1.01] sm:hover:scale-[1.02] transition-all duration-300 active:scale-[0.99]`}
             >
               {/* --- MOBILE LAYOUT: horizontal card --- */}
@@ -186,7 +188,7 @@ const SamplePicker = () => {
                   </div>
                 </div>
               </div>
-            </Link>
+            </a>
           ))}
         </div>
 
@@ -198,19 +200,15 @@ const SamplePicker = () => {
               <span>100% free — no credit card</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <Clock size={13} className="text-accent-teal" />
-              <span>Account setup in 30 seconds</span>
-            </div>
-            <div className="flex items-center gap-1.5">
               <Package size={13} className="text-accent-teal" />
               <span>Products ship direct to you</span>
             </div>
           </div>
 
           <p className="text-text-muted text-xs">
-            Already have an account?{' '}
-            <Link to="/login?redirect=products" className="text-accent-teal hover:text-text-primary font-medium underline underline-offset-2">
-              Log in
+            Want unlimited samples?{' '}
+            <Link to="/products" className="text-accent-teal hover:text-text-primary font-medium underline underline-offset-2">
+              Browse all products
             </Link>
           </p>
         </div>
