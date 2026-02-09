@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Search, Check, TrendingUp, BarChart3, Video, ChevronLeft, ChevronRight, Quote } from 'lucide-react';
+import { ArrowRight, Check, TrendingUp, BarChart3, Video, ChevronLeft, ChevronRight, Quote, Gift, Zap, Package, Clock, ShieldCheck, Users } from 'lucide-react';
 
 // Testimonials data
 const TESTIMONIALS = [
@@ -78,8 +78,21 @@ const TESTIMONIALS = [
   }
 ];
 
+// Check if mobile
+const useIsMobile = () => {
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768 || /iPhone|iPad|iPod|Android/i.test(navigator.userAgent));
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
+  return isMobile;
+};
+
 const Home = () => {
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
+  const isMobile = useIsMobile();
 
   const nextTestimonial = () => {
     setCurrentTestimonial((prev) => (prev + 1) % TESTIMONIALS.length);
@@ -91,13 +104,13 @@ const Home = () => {
 
   return (
     <div className="flex flex-col bg-titan-bg overflow-hidden">
-      {/* Hero Section - Cinematic */}
-      <section className="relative pt-12 sm:pt-16 md:pt-20 pb-16 sm:pb-24 md:pb-32 overflow-hidden">
+      {/* Hero Section */}
+      <section className="relative pt-10 sm:pt-16 md:pt-20 pb-16 sm:pb-24 overflow-hidden">
         {/* Gradient Orbs */}
         <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-accent-teal/5 rounded-full blur-[120px] pointer-events-none"></div>
         <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-accent-fuchsia/5 rounded-full blur-[120px] pointer-events-none"></div>
         
-        {/* Grid Pattern Overlay */}
+        {/* Grid Pattern */}
         <div className="absolute inset-0 opacity-[0.02]" style={{
           backgroundImage: `linear-gradient(rgba(245,245,245,0.1) 1px, transparent 1px),
                            linear-gradient(90deg, rgba(245,245,245,0.1) 1px, transparent 1px)`,
@@ -106,11 +119,16 @@ const Home = () => {
         
         <div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
           <div className="max-w-4xl mx-auto text-center">
-            {/* Badge */}
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded bg-titan-surface border border-titan-border text-text-secondary text-[11px] sm:text-xs font-medium tracking-wide mb-6 sm:mb-8">
-              <span className="w-1.5 h-1.5 bg-accent-teal rounded-full animate-pulse"></span>
-              Now accepting creators
+            {/* FOMO Badge */}
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-orange-500/10 border border-orange-500/30 text-orange-400 text-[11px] sm:text-xs font-medium tracking-wide mb-6">
+              <span className="w-1.5 h-1.5 bg-orange-400 rounded-full animate-pulse"></span>
+              Limited creator slots open this week
             </div>
+
+            {/* Urgency Line */}
+            <p className="text-sm text-accent-teal font-medium mb-4">
+              Creators inside are requesting samples in under 60 seconds
+            </p>
             
             {/* Main Headline */}
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-bold tracking-tight leading-[1.15] mb-4 sm:mb-6">
@@ -120,38 +138,54 @@ const Home = () => {
               <span className="text-gradient-teal">TikTok Shop</span>
             </h1>
             
+            {/* Outcome-Focused Subtext */}
             <p className="text-base sm:text-lg text-text-secondary mb-8 sm:mb-10 max-w-2xl mx-auto leading-relaxed px-2">
-              Access high-GMV products, request samples instantly, and get data-driven insights to scale your affiliate revenue.
+              Get products shipped to you, promote viral items, and earn commission — all from one dashboard.
             </p>
             
-            {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row items-center gap-3 justify-center mb-16">
+            {/* Primary CTA */}
+            <div className="flex flex-col items-center gap-3 mb-6">
               <Link 
                 to="/signup" 
-                className="w-full sm:w-auto px-6 py-2.5 bg-text-primary hover:bg-white text-titan-bg font-semibold rounded text-sm transition-colors"
+                className="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-bold rounded-xl text-base transition-all shadow-lg shadow-orange-500/25 flex items-center justify-center gap-2"
               >
-                Get Started
+                <Gift size={18} />
+                Get Free Samples
               </Link>
-              <Link 
-                to="/products" 
-                className="w-full sm:w-auto px-6 py-2.5 bg-titan-surface border border-titan-border text-text-primary font-medium rounded text-sm hover:bg-titan-elevated hover:border-titan-border-light transition-all flex items-center justify-center gap-2"
-              >
-                View Products
-                <ArrowRight size={14} />
-              </Link>
+              <p className="text-sm text-text-muted">
+                Already have an account? <Link to="/login" className="text-accent-teal hover:text-text-primary font-medium underline underline-offset-2">Log in</Link>
+              </p>
+            </div>
+
+            {/* Proof Strip */}
+            <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-text-muted mb-16">
+              <div className="flex items-center gap-1.5">
+                <ShieldCheck size={14} className="text-accent-teal" />
+                <span>Free to join</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <Clock size={14} className="text-accent-teal" />
+                <span>Access in 30 seconds</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <Package size={14} className="text-accent-teal" />
+                <span>Products ship to you</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <Users size={14} className="text-accent-teal" />
+                <span>3,600+ creators</span>
+              </div>
             </div>
 
             {/* Phone Mockups with Embedded Videos */}
-            <div className="mb-14">
-              <p className="text-xs text-text-muted uppercase tracking-wider mb-6">Creators & Affiliates</p>
+            <div className="mb-10">
+              <p className="text-xs text-text-muted uppercase tracking-wider mb-6">Real creators using products from inside the platform</p>
               <div className="flex justify-center items-end gap-2 sm:gap-4 md:gap-6">
-                {/* Phone 1 - Hidden on very small screens, show on sm+ */}
+                {/* Phone 1 */}
                 <div className="hidden sm:block w-[100px] sm:w-[130px] md:w-[150px] lg:w-[170px]">
                   <div className="relative bg-titan-elevated rounded-[20px] md:rounded-[26px] p-[3px] border border-titan-border shadow-card">
                     <div className="relative bg-titan-bg rounded-[18px] md:rounded-[24px] overflow-hidden" style={{ aspectRatio: '9/16' }}>
-                      {/* Phone notch */}
                       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/3 h-4 md:h-5 bg-titan-elevated rounded-b-xl z-10"></div>
-                      {/* Video embed - non-clickable */}
                       <div className="absolute inset-0 pointer-events-none">
                         <iframe
                           loading="lazy"
@@ -166,13 +200,11 @@ const Home = () => {
                   </div>
                 </div>
                 
-                {/* Phone 2 - Center (larger, always visible) */}
+                {/* Phone 2 - Center */}
                 <div className="w-[160px] sm:w-[150px] md:w-[170px] lg:w-[190px]">
                   <div className="relative bg-titan-elevated rounded-[26px] md:rounded-[32px] p-[3px] border border-accent-teal/30 shadow-glow-teal">
                     <div className="relative bg-titan-bg rounded-[24px] md:rounded-[30px] overflow-hidden" style={{ aspectRatio: '9/16' }}>
-                      {/* Phone notch */}
                       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/3 h-5 md:h-6 bg-titan-elevated rounded-b-xl z-10"></div>
-                      {/* Video embed - non-clickable */}
                       <div className="absolute inset-0 pointer-events-none">
                         <iframe
                           loading="lazy"
@@ -187,13 +219,11 @@ const Home = () => {
                   </div>
                 </div>
                 
-                {/* Phone 3 - Hidden on very small screens, show on sm+ */}
+                {/* Phone 3 */}
                 <div className="hidden sm:block w-[100px] sm:w-[130px] md:w-[150px] lg:w-[170px]">
                   <div className="relative bg-titan-elevated rounded-[20px] md:rounded-[26px] p-[3px] border border-titan-border shadow-card">
                     <div className="relative bg-titan-bg rounded-[18px] md:rounded-[24px] overflow-hidden" style={{ aspectRatio: '9/16' }}>
-                      {/* Phone notch */}
                       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/3 h-4 md:h-5 bg-titan-elevated rounded-b-xl z-10"></div>
-                      {/* Video embed - non-clickable */}
                       <div className="absolute inset-0 pointer-events-none">
                         <iframe
                           loading="lazy"
@@ -209,9 +239,18 @@ const Home = () => {
                 </div>
               </div>
             </div>
+
+            {/* Video Section CTA */}
+            <Link 
+              to="/signup" 
+              className="inline-flex items-center gap-2 px-6 py-2.5 bg-titan-surface border border-titan-border text-text-primary font-medium rounded-lg text-sm hover:bg-titan-elevated hover:border-accent-teal/30 transition-all"
+            >
+              Get Access to These Products
+              <ArrowRight size={14} />
+            </Link>
             
-            {/* Social Proof */}
-            <div className="mt-10 sm:mt-14 grid grid-cols-2 sm:flex sm:flex-wrap items-center justify-center gap-4 sm:gap-x-8 sm:gap-y-4 text-xs sm:text-sm text-text-muted">
+            {/* Stats */}
+            <div className="mt-12 grid grid-cols-2 sm:flex sm:flex-wrap items-center justify-center gap-4 sm:gap-x-8 sm:gap-y-4 text-xs sm:text-sm text-text-muted">
               <div className="flex items-center gap-2 justify-center">
                 <span className="text-text-primary font-semibold">$5.2M+</span>
                 <span>GMV</span>
@@ -233,87 +272,78 @@ const Home = () => {
               </div>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* 3-Step Section */}
+      <section className="py-16 sm:py-20 bg-titan-surface border-t border-titan-border">
+        <div className="max-w-4xl mx-auto px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-2xl sm:text-3xl font-bold text-text-primary tracking-tight mb-3">Start earning in 3 steps</h2>
+            <p className="text-text-secondary text-sm">No applications. No approval delays. Start immediately.</p>
+          </div>
           
-          {/* Dashboard Preview */}
-          <div className="mt-20 relative">
-            <div className="glass-panel rounded-lg p-1 max-w-5xl mx-auto">
-              <div className="bg-titan-bg rounded border border-titan-border overflow-hidden">
-                {/* Browser Chrome */}
-                <div className="flex items-center gap-2 px-4 py-3 border-b border-titan-border bg-titan-surface">
-                  <div className="flex gap-1.5">
-                    <div className="w-2.5 h-2.5 rounded-full bg-titan-border"></div>
-                    <div className="w-2.5 h-2.5 rounded-full bg-titan-border"></div>
-                    <div className="w-2.5 h-2.5 rounded-full bg-titan-border"></div>
-                  </div>
-                  <div className="flex-1 mx-4">
-                    <div className="h-6 bg-titan-elevated rounded px-3 flex items-center">
-                      <span className="text-xs text-text-muted">titans.co/dashboard</span>
-                    </div>
-                  </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+            {[
+              { step: '1', icon: Users, title: 'Create account', desc: 'Sign up free in 30 seconds. No credit card required.', color: 'teal' },
+              { step: '2', icon: Package, title: 'Pick products', desc: 'Browse high-GMV products and request free samples.', color: 'fuchsia' },
+              { step: '3', icon: Video, title: 'Post & earn', desc: 'Create content, post with your link, and earn commission.', color: 'teal' },
+            ].map((item) => (
+              <div key={item.step} className="relative text-center p-6">
+                {/* Step number */}
+                <div className={`w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-4 ${
+                  item.color === 'teal' ? 'bg-accent-teal/10' : 'bg-accent-fuchsia/10'
+                }`}>
+                  <item.icon size={22} className={item.color === 'teal' ? 'text-accent-teal' : 'text-accent-fuchsia'} />
                 </div>
-                
-                {/* Dashboard Content */}
-                <div className="p-6 grid grid-cols-4 gap-4">
-                  {/* Metric Cards */}
-                  {[
-                    { label: 'Weekly GMV', value: '$12,450', trend: '+24%', color: 'teal' },
-                    { label: 'Commission', value: '$1,867', trend: '+18%', color: 'fuchsia' },
-                    { label: 'Orders', value: '342', trend: '+32%', color: 'teal' },
-                    { label: 'Conversion', value: '4.2%', trend: '+0.8%', color: 'fuchsia' },
-                  ].map((metric, i) => (
-                    <div key={i} className="bg-titan-surface rounded p-4 border border-titan-border relative overflow-hidden">
-                      <div className={`absolute top-0 left-0 w-0.5 h-full ${metric.color === 'teal' ? 'bg-accent-teal' : 'bg-accent-fuchsia'}`}></div>
-                      <p className="text-xs text-text-muted mb-1">{metric.label}</p>
-                      <p className="text-xl font-bold text-text-primary">{metric.value}</p>
-                      <p className={`text-xs mt-1 ${metric.color === 'teal' ? 'text-accent-teal' : 'text-accent-fuchsia'}`}>{metric.trend}</p>
-                    </div>
-                  ))}
-                </div>
+                <div className={`text-xs font-bold mb-2 ${
+                  item.color === 'teal' ? 'text-accent-teal' : 'text-accent-fuchsia'
+                }`}>STEP {item.step}</div>
+                <h3 className="text-lg font-semibold text-text-primary mb-2">{item.title}</h3>
+                <p className="text-sm text-text-muted">{item.desc}</p>
               </div>
-            </div>
-            
-            {/* Floating Card */}
-            <div className="absolute -left-4 bottom-24 glass-panel rounded p-4 hidden lg:block">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded bg-accent-teal/10 flex items-center justify-center">
-                  <TrendingUp size={14} className="text-accent-teal" />
-                </div>
-                <div>
-                  <p className="text-xs text-text-muted">New viral product</p>
-                  <p className="text-sm font-semibold text-text-primary">+340% GMV</p>
-                </div>
-              </div>
-            </div>
+            ))}
+          </div>
+
+          {/* CTA after steps */}
+          <div className="text-center mt-10">
+            <Link 
+              to="/signup" 
+              className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-bold rounded-xl text-sm transition-all shadow-lg shadow-orange-500/20"
+            >
+              <Gift size={16} />
+              Request Your First Sample
+            </Link>
           </div>
         </div>
       </section>
 
       {/* Features Section */}
-      <section className="py-24 bg-titan-bg border-t border-titan-border">
+      <section className="py-20 bg-titan-bg border-t border-titan-border">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
-          <div className="max-w-2xl mb-16">
-            <h2 className="text-3xl font-bold text-text-primary tracking-tight mb-4">Built for performance</h2>
-            <p className="text-text-secondary">Everything you need to find products, create content, and maximize your affiliate revenue.</p>
+          <div className="max-w-2xl mb-12">
+            <h2 className="text-2xl sm:text-3xl font-bold text-text-primary tracking-tight mb-3">Everything you need to earn</h2>
+            <p className="text-text-secondary text-sm">Products, tools, and data — all in one place.</p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
               { 
-                icon: Search, 
-                title: "Product Discovery", 
-                desc: "Filter by real-time GMV, commission rates, and trending niches. Find what's actually selling.",
+                icon: Package, 
+                title: "Free Product Samples", 
+                desc: "Request samples from top brands. Products ship direct to you. Promote what you love.",
                 accent: 'teal'
               },
               { 
                 icon: Video, 
                 title: "Video Audit", 
-                desc: "AI-powered analysis of your content. Get actionable feedback to improve conversion.",
+                desc: "AI-powered feedback on your content. Know exactly what to fix to get more sales.",
                 accent: 'fuchsia'
               },
               { 
                 icon: BarChart3, 
-                title: "Trend Pulse", 
-                desc: "Real-time market intelligence. See what's trending before it peaks.",
+                title: "Creator Dashboard", 
+                desc: "Track your GMV, commissions, and performance. See what's working in real time.",
                 accent: 'teal'
               }
             ].map((feature, idx) => (
@@ -336,36 +366,32 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Success Stories / Testimonials Section */}
-      <section className="py-24 bg-titan-surface border-t border-titan-border relative overflow-hidden">
-        {/* Background accent */}
+      {/* Success Stories */}
+      <section className="py-20 bg-titan-surface border-t border-titan-border relative overflow-hidden">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] bg-accent-teal/3 rounded-full blur-[150px] pointer-events-none"></div>
         
         <div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
-          {/* Section Header */}
-          <div className="text-center mb-16">
+          <div className="text-center mb-12">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded bg-titan-bg border border-titan-border text-text-secondary text-xs font-medium tracking-wide mb-4">
               <span className="w-1.5 h-1.5 bg-accent-fuchsia rounded-full"></span>
               Success Stories
             </div>
-            <h2 className="text-3xl font-bold text-text-primary tracking-tight mb-4">Real creators. Real results.</h2>
-            <p className="text-text-secondary max-w-xl mx-auto">See how Titans members are scaling their TikTok Shop income with our tools and community.</p>
+            <h2 className="text-2xl sm:text-3xl font-bold text-text-primary tracking-tight mb-3">Real creators. Real results.</h2>
+            <p className="text-text-secondary text-sm max-w-xl mx-auto">See how Titans members are scaling their TikTok Shop income.</p>
           </div>
 
           {/* Featured Testimonial */}
-          <div className="max-w-4xl mx-auto mb-12">
-            <div className="bg-titan-bg rounded border border-titan-border p-8 md:p-10 relative overflow-hidden">
-              {/* Accent line */}
+          <div className="max-w-4xl mx-auto mb-10">
+            <div className="bg-titan-bg rounded border border-titan-border p-6 sm:p-8 relative overflow-hidden">
               <div className={`absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r ${
                 TESTIMONIALS[currentTestimonial].accent === 'teal' 
                   ? 'from-accent-teal to-accent-teal/20' 
                   : 'from-accent-fuchsia to-accent-fuchsia/20'
               }`}></div>
               
-              <div className="flex flex-col md:flex-row gap-8">
-                {/* Avatar placeholder */}
+              <div className="flex flex-col md:flex-row gap-6">
                 <div className="flex-shrink-0">
-                  <div className={`w-20 h-20 rounded-lg flex items-center justify-center text-2xl font-bold ${
+                  <div className={`w-16 h-16 rounded-lg flex items-center justify-center text-xl font-bold ${
                     TESTIMONIALS[currentTestimonial].accent === 'teal'
                       ? 'bg-accent-teal/10 text-accent-teal'
                       : 'bg-accent-fuchsia/10 text-accent-fuchsia'
@@ -374,27 +400,25 @@ const Home = () => {
                   </div>
                 </div>
                 
-                {/* Content */}
                 <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <h3 className="text-lg font-semibold text-text-primary">{TESTIMONIALS[currentTestimonial].name}</h3>
+                  <div className="flex items-center gap-2 mb-1">
+                    <h3 className="text-base font-semibold text-text-primary">{TESTIMONIALS[currentTestimonial].name}</h3>
                     <span className="text-xs text-text-muted">•</span>
                     <span className={`text-xs font-medium ${
                       TESTIMONIALS[currentTestimonial].accent === 'teal' ? 'text-accent-teal' : 'text-accent-fuchsia'
                     }`}>{TESTIMONIALS[currentTestimonial].role}</span>
                   </div>
                   
-                  <p className="text-sm text-text-muted mb-4">{TESTIMONIALS[currentTestimonial].headline}</p>
+                  <p className="text-sm text-text-muted mb-3">{TESTIMONIALS[currentTestimonial].headline}</p>
                   
-                  <div className="relative mb-6">
-                    <Quote size={24} className="absolute -left-2 -top-2 text-titan-border opacity-50" />
-                    <p className="text-text-secondary leading-relaxed pl-6">
+                  <div className="relative mb-4">
+                    <Quote size={20} className="absolute -left-1 -top-1 text-titan-border opacity-50" />
+                    <p className="text-sm text-text-secondary leading-relaxed pl-5">
                       "{TESTIMONIALS[currentTestimonial].quote}"
                     </p>
                   </div>
                   
-                  {/* Stat badge */}
-                  <div className={`inline-flex items-center gap-2 px-3 py-2 rounded text-xs font-medium ${
+                  <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded text-xs font-medium ${
                     TESTIMONIALS[currentTestimonial].accent === 'teal'
                       ? 'bg-accent-teal/10 text-accent-teal border border-accent-teal/20'
                       : 'bg-accent-fuchsia/10 text-accent-fuchsia border border-accent-fuchsia/20'
@@ -408,39 +432,34 @@ const Home = () => {
           </div>
 
           {/* Navigation */}
-          <div className="flex items-center justify-center gap-4">
+          <div className="flex items-center justify-center gap-4 mb-12">
             <button 
               onClick={prevTestimonial}
-              className="w-10 h-10 rounded border border-titan-border bg-titan-bg flex items-center justify-center text-text-muted hover:text-text-primary hover:border-titan-border-light transition-colors"
+              className="w-9 h-9 rounded border border-titan-border bg-titan-bg flex items-center justify-center text-text-muted hover:text-text-primary transition-colors"
             >
-              <ChevronLeft size={18} />
+              <ChevronLeft size={16} />
             </button>
-            
-            {/* Dots */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5">
               {TESTIMONIALS.map((_, idx) => (
                 <button
                   key={idx}
                   onClick={() => setCurrentTestimonial(idx)}
-                  className={`w-2 h-2 rounded-full transition-all ${
-                    idx === currentTestimonial 
-                      ? 'bg-accent-teal w-6' 
-                      : 'bg-titan-border hover:bg-text-muted'
+                  className={`w-1.5 h-1.5 rounded-full transition-all ${
+                    idx === currentTestimonial ? 'bg-accent-teal w-5' : 'bg-titan-border hover:bg-text-muted'
                   }`}
                 />
               ))}
             </div>
-            
             <button 
               onClick={nextTestimonial}
-              className="w-10 h-10 rounded border border-titan-border bg-titan-bg flex items-center justify-center text-text-muted hover:text-text-primary hover:border-titan-border-light transition-colors"
+              className="w-9 h-9 rounded border border-titan-border bg-titan-bg flex items-center justify-center text-text-muted hover:text-text-primary transition-colors"
             >
-              <ChevronRight size={18} />
+              <ChevronRight size={16} />
             </button>
           </div>
 
           {/* Mini testimonial grid */}
-          <div className="mt-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {TESTIMONIALS.slice(0, 6).map((t, idx) => (
               <button
                 key={idx}
@@ -452,7 +471,7 @@ const Home = () => {
                 }`}
               >
                 <div className="flex items-center gap-3 mb-2">
-                  <div className={`w-8 h-8 rounded flex items-center justify-center text-xs font-bold ${
+                  <div className={`w-7 h-7 rounded flex items-center justify-center text-xs font-bold ${
                     t.accent === 'teal' ? 'bg-accent-teal/10 text-accent-teal' : 'bg-accent-fuchsia/10 text-accent-fuchsia'
                   }`}>
                     {t.name.charAt(0)}
@@ -470,22 +489,22 @@ const Home = () => {
       </section>
 
       {/* Two Column Section */}
-      <section className="py-24 bg-titan-bg border-t border-titan-border">
+      <section className="py-20 bg-titan-bg border-t border-titan-border">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* For Creators */}
-            <div className="bg-titan-surface p-8 rounded border border-titan-border">
+            <div className="bg-titan-surface p-6 sm:p-8 rounded border border-titan-border">
               <div className="flex items-center gap-2 text-accent-teal text-xs font-medium uppercase tracking-wider mb-4">
                 <span className="w-1 h-1 bg-accent-teal rounded-full"></span>
                 For Creators
               </div>
-              <h3 className="text-2xl font-bold text-text-primary mb-3">Scale your affiliate income</h3>
-              <p className="text-text-secondary mb-8 text-sm leading-relaxed">Access the same tools and data that top TikTok Shop affiliates use to generate six figures.</p>
+              <h3 className="text-xl sm:text-2xl font-bold text-text-primary mb-3">Get free products & earn</h3>
+              <p className="text-text-secondary mb-6 text-sm leading-relaxed">Request samples, promote on TikTok, and keep earning commission on every sale.</p>
               
-              <ul className="space-y-3 mb-8">
-                {['Exclusive high-ticket product offers', 'Fast-track sample approval', 'AI-generated hooks and scripts', 'Real-time performance analytics'].map((item, i) => (
+              <ul className="space-y-3 mb-6">
+                {['Free product samples shipped to you', 'No approval delays — request instantly', 'Earn commission on every sale', 'Creator dashboard to track earnings'].map((item, i) => (
                   <li key={i} className="flex items-center gap-3 text-text-primary text-sm">
-                    <div className="w-4 h-4 rounded bg-accent-teal/10 flex items-center justify-center">
+                    <div className="w-4 h-4 rounded bg-accent-teal/10 flex items-center justify-center flex-shrink-0">
                       <Check size={10} className="text-accent-teal" />
                     </div>
                     {item}
@@ -493,25 +512,25 @@ const Home = () => {
                 ))}
               </ul>
               
-              <Link to="/signup" className="inline-flex items-center gap-2 text-sm font-medium text-accent-teal hover:text-text-primary transition-colors">
-                Start creating
-                <ArrowRight size={14} />
+              <Link to="/signup" className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-orange-500 to-red-500 text-white font-semibold rounded-lg text-sm transition-all hover:from-orange-600 hover:to-red-600">
+                <Gift size={14} />
+                Get Free Samples
               </Link>
             </div>
 
             {/* For Brands */}
-            <div className="bg-titan-surface p-8 rounded border border-titan-border">
+            <div className="bg-titan-surface p-6 sm:p-8 rounded border border-titan-border">
               <div className="flex items-center gap-2 text-accent-fuchsia text-xs font-medium uppercase tracking-wider mb-4">
                 <span className="w-1 h-1 bg-accent-fuchsia rounded-full"></span>
                 For Brands
               </div>
-              <h3 className="text-2xl font-bold text-text-primary mb-3">Drive authentic sales</h3>
-              <p className="text-text-secondary mb-8 text-sm leading-relaxed">Connect with vetted creators who understand your product and can drive real conversions.</p>
+              <h3 className="text-xl sm:text-2xl font-bold text-text-primary mb-3">Drive authentic sales</h3>
+              <p className="text-text-secondary mb-6 text-sm leading-relaxed">Connect with creators who can actually sell your product on TikTok Shop.</p>
               
-              <ul className="space-y-3 mb-8">
-                {['Access to 5,000+ verified creators', 'Performance-based partnerships', 'Automated sample management', 'Full analytics dashboard'].map((item, i) => (
+              <ul className="space-y-3 mb-6">
+                {['Access to 3,600+ active creators', 'Performance-based partnerships', 'GMV Max campaign support', 'Full analytics dashboard'].map((item, i) => (
                   <li key={i} className="flex items-center gap-3 text-text-primary text-sm">
-                    <div className="w-4 h-4 rounded bg-accent-fuchsia/10 flex items-center justify-center">
+                    <div className="w-4 h-4 rounded bg-accent-fuchsia/10 flex items-center justify-center flex-shrink-0">
                       <Check size={10} className="text-accent-fuchsia" />
                     </div>
                     {item}
@@ -528,27 +547,37 @@ const Home = () => {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-24 bg-titan-surface border-t border-titan-border">
+      {/* Final CTA */}
+      <section className="py-20 bg-titan-surface border-t border-titan-border">
         <div className="max-w-3xl mx-auto px-6 text-center">
-          <h2 className="text-3xl font-bold text-text-primary tracking-tight mb-4">Ready to scale?</h2>
-          <p className="text-text-secondary mb-8">Join thousands of creators already using Titans to grow their TikTok Shop revenue.</p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-            <Link 
-              to="/signup" 
-              className="px-6 py-2.5 bg-text-primary hover:bg-white text-titan-bg font-semibold rounded text-sm transition-colors"
-            >
-              Get Started Free
-            </Link>
-            <Link 
-              to="/products" 
-              className="px-6 py-2.5 text-text-secondary hover:text-text-primary text-sm transition-colors"
-            >
-              Browse Products →
-            </Link>
-          </div>
+          <h2 className="text-2xl sm:text-3xl font-bold text-text-primary tracking-tight mb-3">Ready to start earning?</h2>
+          <p className="text-text-secondary text-sm mb-8">Join 3,600+ creators getting free samples and earning commission on TikTok Shop.</p>
+          <Link 
+            to="/signup" 
+            className="inline-flex items-center gap-2 px-8 py-3.5 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-bold rounded-xl text-base transition-all shadow-lg shadow-orange-500/25"
+          >
+            <Gift size={18} />
+            Get Free Samples
+          </Link>
+          <p className="mt-4 text-xs text-text-muted">Free to join • No application review • Start immediately</p>
         </div>
       </section>
+
+      {/* Floating Mobile CTA */}
+      {isMobile && (
+        <div className="fixed bottom-0 left-0 right-0 z-50 p-3 bg-titan-bg/95 backdrop-blur-lg border-t border-titan-border">
+          <Link 
+            to="/signup" 
+            className="flex items-center justify-center gap-2 w-full py-3.5 bg-gradient-to-r from-orange-500 to-red-500 text-white font-bold rounded-xl text-sm shadow-lg shadow-orange-500/30"
+          >
+            <Gift size={16} />
+            Get Free Samples
+          </Link>
+        </div>
+      )}
+
+      {/* Bottom padding for floating CTA on mobile */}
+      {isMobile && <div className="h-20"></div>}
     </div>
   );
 };
