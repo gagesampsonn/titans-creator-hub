@@ -29,8 +29,9 @@ function applyRateLimit(req: VercelRequest, res: VercelResponse, prefix: string)
   return false;
 }
 
-const supabaseUrl = process.env.VITE_SUPABASE_URL || 'https://myylgglbtroabqclzvvn.supabase.co';
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY!;
+const SUPABASE_URL = process.env.SUPABASE_URL || 'https://myylgglbtroabqclzvvn.supabase.co';
+const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im15eWxnZ2xidHJvYWJxY2x6dnZuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU2NTk5MTQsImV4cCI6MjA4MTIzNTkxNH0.W2WEETRhflBK_MeZbnoRc-NXRH4BV_u8Zk_aPqOoraA';
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY || '';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -54,19 +55,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const token = authHeader.split(' ')[1];
 
     // Initialize Supabase clients
-    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
-    const supabaseUser = createClient(supabaseUrl, process.env.VITE_SUPABASE_ANON_KEY!, {
-      global: { headers: { Authorization: `Bearer ${token}` } }
-    });
-
-    // Get user
-    const { data: { user }, error: userError } = await supabaseUser.auth.getUser();
+    const anonClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const { data: { user }, error: userError } = await anonClient.auth.getUser(token);
     if (userError || !user) {
       return res.status(401).json({ error: 'Invalid token' });
     }
 
+    const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+
     // Get user's profile to find their TikTok handle
-    const { data: profile } = await supabaseAdmin
+    const { data: profile } = await admin
       .from('profiles')
       .select('tiktok_handle')
       .eq('id', user.id)
@@ -79,7 +77,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const handle = profile.tiktok_handle.toLowerCase().replace(/^@/, '');
 
     // Check if this creator is linked
-    const { data: linked } = await supabaseAdmin
+    const { data: linked } = await admin
       .from('linked_creators')
       .select('id')
       .eq('tiktok_handle', handle)
@@ -90,7 +88,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     // Get their livestream data (top 10 by revenue)
-    const { data: livestreams, error: livestreamError } = await supabaseAdmin
+    const { data: livestreams, error: livestreamError } = await admin
       .from('creator_livestreams')
       .select('*')
       .eq('tiktok_handle', handle)
