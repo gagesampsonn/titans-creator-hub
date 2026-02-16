@@ -52,16 +52,28 @@ async function importTopVideos() {
   const filename = path.basename(EXCEL_FILE);
   console.log(`📁 Reading: ${filename}`);
 
-  const buffer = fs.readFileSync(EXCEL_FILE);
-  const workbook = XLSX.read(buffer, { type: 'buffer' });
-  const sheetName = workbook.SheetNames[0];
-  const sheet = workbook.Sheets[sheetName];
-  const rows = XLSX.utils.sheet_to_json(sheet);
-  
-  console.log(`   ✅ Found ${rows.length} video records\n`);
+  let rows: any[];
+  try {
+    const buffer = fs.readFileSync(EXCEL_FILE);
+    console.log(`   ✅ File read (${(buffer.length / 1024 / 1024).toFixed(2)} MB)`);
+    
+    const workbook = XLSX.read(buffer, { type: 'buffer' });
+    console.log(`   ✅ Excel parsed, sheets: ${workbook.SheetNames.join(', ')}`);
+    
+    const sheetName = workbook.SheetNames[0];
+    const sheet = workbook.Sheets[sheetName];
+    rows = XLSX.utils.sheet_to_json(sheet);
+    
+    console.log(`   ✅ Found ${rows.length} video records\n`);
+  } catch (err) {
+    console.error('❌ Error reading Excel file:', err);
+    process.exit(1);
+  }
 
   // Initialize Supabase
+  console.log('🔌 Connecting to Supabase...');
   const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+  console.log('   ✅ Connected\n');
 
   // Clear existing data for this period
   console.log('🗑️  Clearing existing data for this period...');

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Check, TrendingUp, BarChart3, Video, ChevronLeft, ChevronRight, Quote, Gift, Zap, Package, Clock, ShieldCheck, Users, ExternalLink, Trophy } from 'lucide-react';
+import { ArrowRight, Check, TrendingUp, BarChart3, Video, ChevronLeft, ChevronRight, Quote, Gift, Zap, Package, Clock, ShieldCheck, Users, ExternalLink } from 'lucide-react';
 
 // Testimonials data
 const TESTIMONIALS = [
@@ -326,7 +326,7 @@ const Home = () => {
             <p className="text-text-secondary text-sm">Products, tools, and data — all in one place.</p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
               { 
                 icon: Package, 
@@ -345,34 +345,23 @@ const Home = () => {
                 title: "Creator Dashboard", 
                 desc: "Track your GMV, commissions, and performance. See what's working in real time.",
                 accent: 'teal'
-              },
-              { 
-                icon: Trophy, 
-                title: "Top Videos Billboard", 
-                desc: "See the top 20 videos of 2026. An exclusive honor for the highest-performing creators.",
-                accent: 'yellow',
-                link: '/top-videos'
               }
-            ].map((feature, idx) => {
-              const Component = feature.link ? Link : 'div';
-              const props = feature.link ? { to: feature.link, className: 'group bg-titan-surface p-6 rounded border border-titan-border hover:border-titan-border-light transition-all duration-300 cursor-pointer' } : { className: 'group bg-titan-surface p-6 rounded border border-titan-border hover:border-titan-border-light transition-all duration-300' };
-              
-              return (
-                <Component key={idx} {...props}>
-                  <div className={`w-10 h-10 rounded flex items-center justify-center mb-5 ${
-                    feature.accent === 'teal' 
-                      ? 'bg-accent-teal/10 text-accent-teal' 
-                      : feature.accent === 'fuchsia'
-                      ? 'bg-accent-fuchsia/10 text-accent-fuchsia'
-                      : 'bg-yellow-500/10 text-yellow-400'
-                  }`}>
-                    <feature.icon size={18} strokeWidth={1.5} />
-                  </div>
-                  <h3 className="text-base font-semibold text-text-primary mb-2">{feature.title}</h3>
-                  <p className="text-sm text-text-muted leading-relaxed">{feature.desc}</p>
-                </Component>
-              );
-            })}
+            ].map((feature, idx) => (
+              <div 
+                key={idx} 
+                className="group bg-titan-surface p-6 rounded border border-titan-border hover:border-titan-border-light transition-all duration-300"
+              >
+                <div className={`w-10 h-10 rounded flex items-center justify-center mb-5 ${
+                  feature.accent === 'teal' 
+                    ? 'bg-accent-teal/10 text-accent-teal' 
+                    : 'bg-accent-fuchsia/10 text-accent-fuchsia'
+                }`}>
+                  <feature.icon size={18} strokeWidth={1.5} />
+                </div>
+                <h3 className="text-base font-semibold text-text-primary mb-2">{feature.title}</h3>
+                <p className="text-sm text-text-muted leading-relaxed">{feature.desc}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>

@@ -21,7 +21,6 @@ import Course from './pages/Course';
 import CourseLogin from './pages/CourseLogin';
 import BrandPitch from './pages/BrandPitch';
 import SamplePicker from './pages/SamplePicker';
-import TopVideosBillboard from './pages/TopVideosBillboard';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -62,10 +61,6 @@ const Navbar = () => {
             <Link to="/course" className={`${isActive('/course')} flex items-center gap-1.5`}>
               <GraduationCap size={14} />
               Course
-            </Link>
-            <Link to="/top-videos" className={`${isActive('/top-videos')} flex items-center gap-1.5 text-yellow-400 hover:text-yellow-300`}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-              Top Videos
             </Link>
             <Link to="/brands" className={isActive('/brands')}>For Brands</Link>
             <a 
@@ -173,17 +168,6 @@ const Navbar = () => {
               <ChevronRight size={14} />
             </Link>
             <Link 
-              to="/top-videos" 
-              onClick={() => setIsOpen(false)} 
-              className="flex items-center justify-between px-3 py-2.5 text-sm text-yellow-400 hover:text-yellow-300 hover:bg-titan-elevated rounded transition-colors"
-            >
-              <span className="flex items-center gap-2">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-                Top Videos
-              </span>
-              <ChevronRight size={14} />
-            </Link>
-            <Link 
               to="/brands" 
               onClick={() => setIsOpen(false)} 
               className="flex items-center justify-between px-3 py-2.5 text-sm text-text-secondary hover:text-text-primary hover:bg-titan-elevated rounded transition-colors"
@@ -274,7 +258,6 @@ const Footer = () => (
           <h4 className="text-xs font-semibold text-text-primary uppercase tracking-wider mb-4">Platform</h4>
           <ul className="space-y-2.5 text-sm text-text-muted">
             <li><Link to="/products" className="hover:text-text-secondary transition-colors">Products</Link></li>
-            <li><Link to="/top-videos" className="hover:text-yellow-400 transition-colors">Top Videos</Link></li>
             <li><Link to="/trends" className="hover:text-text-secondary transition-colors">Trend Pulse</Link></li>
             <li><Link to="/creatortools" className="hover:text-text-secondary transition-colors">Creator Tools</Link></li>
           </ul>
@@ -337,7 +320,6 @@ const App = () => {
               <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/samples" element={<SamplePicker />} />
-                <Route path="/top-videos" element={<TopVideosBillboard />} />
                 <Route path="/products" element={<ProductLibrary />} />
                 <Route path="/products/:id" element={<ProductDetail />} />
                 <Route path="/trends" element={<TrendPulse />} />
