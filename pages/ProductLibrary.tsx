@@ -95,7 +95,7 @@ const ProductRow = ({ product, isMobile, isExpanded, onToggle, onRequest }: {
 };
 
 // Titans Whop membership URL
-const TITANS_WHOP_URL = 'https://whop.com/tiktokshopaffiliate/';
+const TITANS_WHOP_URL = 'https://whop.com/tiktoktitansagency';
 
 const ProductLibrary = () => {
   const { user } = useAuth();

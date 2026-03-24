@@ -503,7 +503,7 @@ const BrandPortal = () => {
               </button>
               
               <a
-                href="https://whop.com/checkout/plan_rBAHh3s9NPXZR"
+                href="https://whop.com/tiktoktitansagency"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-gradient-to-r from-fuchsia-500 to-cyan-500 text-white rounded-xl font-semibold hover:opacity-90 transition-opacity"

@@ -132,7 +132,7 @@ const CourseLogin: React.FC = () => {
                 Don't have a membership yet?
               </p>
               <a 
-                href="https://whop.com/tiktokshopaffiliate/"
+                href="https://whop.com/tiktoktitansagency"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 text-sm text-accent-teal hover:text-text-primary transition-colors"
@@ -200,7 +200,7 @@ const CourseLogin: React.FC = () => {
                 Try a different email
               </button>
               <a 
-                href="https://whop.com/tiktokshopaffiliate/"
+                href="https://whop.com/tiktoktitansagency"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="block w-full py-2.5 bg-gradient-to-r from-accent-fuchsia to-accent-teal text-white font-semibold rounded-xl text-sm text-center hover:opacity-90 transition-opacity"

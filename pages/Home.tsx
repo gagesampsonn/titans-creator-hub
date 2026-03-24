@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Search, Check, TrendingUp, BarChart3, Video, ChevronLeft, ChevronRight, Quote } from 'lucide-react';
 
+const WHOP_URL = 'https://whop.com/tiktoktitansagency';
+
 // Testimonials data
 const TESTIMONIALS = [
   {
@@ -126,17 +128,19 @@ const Home = () => {
             
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row items-center gap-3 justify-center mb-16">
-              <Link 
-                to="/signup" 
+              <a
+                href={WHOP_URL}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="w-full sm:w-auto px-6 py-2.5 bg-text-primary hover:bg-white text-titan-bg font-semibold rounded text-sm transition-colors"
               >
-                Get Started
-              </Link>
-              <Link 
-                to="/products" 
+                Join on Whop
+              </a>
+              <Link
+                to="/login"
                 className="w-full sm:w-auto px-6 py-2.5 bg-titan-surface border border-titan-border text-text-primary font-medium rounded text-sm hover:bg-titan-elevated hover:border-titan-border-light transition-all flex items-center justify-center gap-2"
               >
-                View Products
+                Member Login
                 <ArrowRight size={14} />
               </Link>
             </div>
@@ -493,10 +497,10 @@ const Home = () => {
                 ))}
               </ul>
               
-              <Link to="/signup" className="inline-flex items-center gap-2 text-sm font-medium text-accent-teal hover:text-text-primary transition-colors">
-                Start creating
+              <a href={WHOP_URL} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-sm font-medium text-accent-teal hover:text-text-primary transition-colors">
+                Join on Whop
                 <ArrowRight size={14} />
-              </Link>
+              </a>
             </div>
 
             {/* For Brands */}
@@ -519,10 +523,10 @@ const Home = () => {
                 ))}
               </ul>
               
-              <Link to="/brands" className="inline-flex items-center gap-2 text-sm font-medium text-accent-fuchsia hover:text-text-primary transition-colors">
-                Partner with us
+              <a href={WHOP_URL} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-sm font-medium text-accent-fuchsia hover:text-text-primary transition-colors">
+                Join on Whop
                 <ArrowRight size={14} />
-              </Link>
+              </a>
             </div>
           </div>
         </div>
@@ -534,17 +538,19 @@ const Home = () => {
           <h2 className="text-3xl font-bold text-text-primary tracking-tight mb-4">Ready to scale?</h2>
           <p className="text-text-secondary mb-8">Join thousands of creators already using Titans to grow their TikTok Shop revenue.</p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-            <Link 
-              to="/signup" 
+            <a
+              href={WHOP_URL}
+              target="_blank"
+              rel="noopener noreferrer"
               className="px-6 py-2.5 bg-text-primary hover:bg-white text-titan-bg font-semibold rounded text-sm transition-colors"
             >
-              Get Started Free
-            </Link>
-            <Link 
-              to="/products" 
+              Join on Whop
+            </a>
+            <Link
+              to="/login"
               className="px-6 py-2.5 text-text-secondary hover:text-text-primary text-sm transition-colors"
             >
-              Browse Products →
+              Member Login →
             </Link>
           </div>
         </div>

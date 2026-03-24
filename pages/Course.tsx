@@ -229,7 +229,7 @@ const Course: React.FC = () => {
             <p className="text-text-muted text-sm mt-4">
               Don't have a membership yet?{' '}
               <a 
-                href="https://whop.com/tiktokshopaffiliate/" 
+                href="https://whop.com/tiktoktitansagency" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="text-accent-teal hover:underline"
@@ -283,7 +283,7 @@ const Course: React.FC = () => {
               Logged in as: {user.email}
             </p>
             <a
-              href="https://whop.com/tiktokshopaffiliate/"
+              href="https://whop.com/tiktoktitansagency"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-accent-fuchsia to-accent-teal text-white font-medium rounded-xl hover:opacity-90 transition-opacity"
