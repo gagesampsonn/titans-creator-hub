@@ -292,44 +292,76 @@ function CampaignHeader({ config, userData, onSwitchUser, onBack, showBack }) {
 
 function CalendarGrid({ config, userData, campaignDays, onToggleDay }) {
   const today = getTodayISO();
+  const campaignSet = useMemo(() => new Set(campaignDays), [campaignDays]);
+
+  // Build month grids spanning the campaign
+  const months = useMemo(() => {
+    const start = parseDate(config.startDate);
+    const end = parseDate(config.endDate);
+    const result = [];
+    let cur = new Date(start.getFullYear(), start.getMonth(), 1);
+    while (cur <= end) {
+      const year = cur.getFullYear();
+      const month = cur.getMonth();
+      const firstDow = cur.getDay();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      const label = cur.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+      const days = [];
+      for (let d = 1; d <= daysInMonth; d++) {
+        const iso = `${year}-${String(month + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+        days.push({ day: d, iso });
+      }
+      result.push({ label, firstDow, days });
+      cur = new Date(year, month + 1, 1);
+    }
+    return result;
+  }, [config.startDate, config.endDate]);
 
   return (
     <div className="bg-surface-raised border border-border rounded-xl p-5 mb-3">
       <h3 className="text-[14px] font-semibold text-primary mb-4">Calendar</h3>
 
-      <div className="grid grid-cols-7 gap-1.5 mb-2">
-        {["S","M","T","W","T","F","S"].map((d, i) => (
-          <div key={i} className="text-center text-[10px] text-label-faint font-semibold uppercase">{d}</div>
-        ))}
-      </div>
+      {months.map((m) => (
+        <div key={m.label} className="mb-5 last:mb-0">
+          <div className="text-[12px] font-semibold text-label mb-2">{m.label}</div>
+          <div className="grid grid-cols-7 gap-1 mb-1">
+            {["S","M","T","W","T","F","S"].map((d, i) => (
+              <div key={i} className="text-center text-[9px] text-label-faint font-semibold uppercase">{d}</div>
+            ))}
+          </div>
+          <div className="grid grid-cols-7 gap-1">
+            {Array.from({ length: m.firstDow }, (_, i) => <div key={"b-" + i} />)}
+            {m.days.map(({ day, iso }) => {
+              const inCampaign = campaignSet.has(iso);
+              if (!inCampaign) {
+                return (
+                  <div key={iso} className="flex items-center justify-center rounded min-h-[36px] aspect-square text-[11px] text-label-faint/30 font-medium">
+                    {day}
+                  </div>
+                );
+              }
 
-      {(() => {
-        const startDow = parseDate(config.startDate).getDay();
-        const blanks = Array.from({ length: startDow }, (_, i) => <div key={"b-" + i} />);
+              const dayData = userData.days[iso] || { posted: false };
+              const isToday = iso === today;
+              const isPast = iso < today;
+              const isFuture = iso > today;
+              const isPosted = dayData.posted;
 
-        const cells = campaignDays.map((dateStr, idx) => {
-          const dayData = userData.days[dateStr] || { posted: false };
-          const isToday = dateStr === today;
-          const isPast = dateStr < today;
-          const isFuture = dateStr > today;
-          const isPosted = dayData.posted;
+              let cls = "bg-surface border-border";
+              if (isPosted) cls = "bg-emerald-500/10 border-emerald-500/30";
+              else if (isToday) cls = "bg-surface border-primary/40";
 
-          let cls = "bg-surface border-border";
-          if (isPosted) cls = "bg-emerald-500/10 border-emerald-500/30";
-          else if (isToday) cls = "bg-surface border-primary/40";
-          else if (isPast) cls = "bg-surface border-border";
-
-          return (
-            <button key={dateStr} onClick={() => onToggleDay(dateStr)} disabled={isFuture}
-              className={`day-cell relative flex flex-col items-center justify-center rounded-lg border min-h-[40px] aspect-square text-[11px] font-semibold transition-all ${cls} ${isFuture ? "opacity-30 cursor-not-allowed" : "cursor-pointer hover:border-label-dim"}`}>
-              <span className={isPosted ? "text-emerald-400" : isPast ? "text-label-faint" : "text-primary"}>{idx + 1}</span>
-              {isPosted && <span className="text-emerald-400 text-[8px] leading-none mt-0.5">Done</span>}
-            </button>
-          );
-        });
-
-        return <div className="grid grid-cols-7 gap-1.5">{blanks}{cells}</div>;
-      })()}
+              return (
+                <button key={iso} onClick={() => onToggleDay(iso)} disabled={isFuture}
+                  className={`day-cell relative flex flex-col items-center justify-center rounded border min-h-[36px] aspect-square text-[11px] font-semibold transition-all ${cls} ${isFuture ? "opacity-30 cursor-not-allowed" : "cursor-pointer hover:border-label-dim"}`}>
+                  <span className={isPosted ? "text-emerald-400" : isPast ? "text-label-faint" : "text-primary"}>{day}</span>
+                  {isPosted && <span className="text-emerald-400 text-[7px] leading-none mt-0.5">Done</span>}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      ))}
 
       <div className="flex items-center gap-4 mt-4 text-[11px] text-label-faint">
         <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded border border-emerald-500/30 bg-emerald-500/10 inline-block" /> Posted</span>
