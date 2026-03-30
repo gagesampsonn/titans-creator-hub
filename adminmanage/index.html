@@ -27,6 +27,7 @@
   </script>
 
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -47,7 +48,9 @@
     const { useState, useEffect, useRef, useCallback, useMemo } = React;
 
     const ADMIN_PIN = "424342";
-    const STORAGE_KEY = "retainers_campaigns";
+    const SUPABASE_URL = "https://luegkjhpmmdflyksmmnb.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_k0UnSsbi8ftmyvzK6Fxznw_CcpaOqMm";
+    const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     const TIER_PRESETS = [
       { value: 5, label: "5 Creators", videos: 120 },
@@ -55,11 +58,46 @@
       { value: 15, label: "15 Creators", videos: 325 },
     ];
 
-    function loadCampaigns() {
-      try { const raw = localStorage.getItem(STORAGE_KEY); return raw ? JSON.parse(raw) : []; }
-      catch { return []; }
+    // ─── Supabase helpers ──────────────────────────────────────
+    function toDbCampaign(c) {
+      return {
+        id: c.id, brand_name: c.brandName, product_name: c.productName || null,
+        slug: c.slug, tier: c.tier, rate_per_video: c.ratePerVideo,
+        total_videos: c.totalVideos, total_videos_admin: c.totalVideosAdmin || null,
+        start_date: c.startDate, end_date: c.endDate,
+        brief_link: c.briefLink || null, showcase_link: c.showcaseLink || null,
+        onboarding_days: c.onboardingDays, phase1: c.phase1, phase2: c.phase2,
+        creators: c.creators || [], phase2_creators: c.phase2Creators || [],
+        updated_at: new Date().toISOString(),
+      };
     }
-    function saveCampaigns(campaigns) { localStorage.setItem(STORAGE_KEY, JSON.stringify(campaigns)); }
+    function fromDbCampaign(r) {
+      return {
+        id: r.id, brandName: r.brand_name, productName: r.product_name || "",
+        slug: r.slug, tier: r.tier, ratePerVideo: r.rate_per_video,
+        totalVideos: r.total_videos, totalVideosAdmin: r.total_videos_admin,
+        startDate: r.start_date, endDate: r.end_date,
+        briefLink: r.brief_link || "", showcaseLink: r.showcase_link || "",
+        onboardingDays: r.onboarding_days, phase1: r.phase1, phase2: r.phase2,
+        creators: r.creators || [], phase2Creators: r.phase2_creators || [],
+      };
+    }
+
+    async function dbLoadCampaigns() {
+      const { data, error } = await sb.from("campaigns").select("*").order("created_at", { ascending: false });
+      if (error) { console.error("Load campaigns error:", error); return []; }
+      return data.map(fromDbCampaign);
+    }
+    async function dbSaveCampaign(campaign) {
+      const row = toDbCampaign(campaign);
+      const { error } = await sb.from("campaigns").upsert(row, { onConflict: "id" });
+      if (error) console.error("Save campaign error:", error);
+    }
+    async function dbDeleteCampaign(id) {
+      const { error } = await sb.from("campaigns").delete().eq("id", id);
+      if (error) console.error("Delete campaign error:", error);
+    }
+
     function generateId() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
     function addDaysToDate(dateStr, days) {
       if (!dateStr) return "";
@@ -545,22 +583,24 @@
 
     // ─── Admin Dashboard ───────────────────────────────────────
     function AdminDashboard() {
-      const [campaigns, setCampaigns] = useState(loadCampaigns());
+      const [campaigns, setCampaigns] = useState([]);
       const [view, setView] = useState("list");
       const [editingCampaign, setEditingCampaign] = useState(null);
+      const [loading, setLoading] = useState(true);
 
-      const handleSave = (campaign) => {
-        setCampaigns((prev) => {
-          const exists = prev.find((c) => c.id === campaign.id);
-          const updated = exists ? prev.map((c) => (c.id === campaign.id ? campaign : c)) : [...prev, campaign];
-          saveCampaigns(updated); return updated;
-        });
+      useEffect(() => { dbLoadCampaigns().then((c) => { setCampaigns(c); setLoading(false); }); }, []);
+
+      const handleSave = async (campaign) => {
+        await dbSaveCampaign(campaign);
+        const updated = await dbLoadCampaigns();
+        setCampaigns(updated);
         setView("list"); setEditingCampaign(null);
       };
       const handleEdit = (c) => { setEditingCampaign(c); setView("edit"); };
-      const handleDelete = (id) => {
+      const handleDelete = async (id) => {
         if (!confirm("Delete this campaign? This cannot be undone.")) return;
-        setCampaigns((prev) => { const u = prev.filter((c) => c.id !== id); saveCampaigns(u); return u; });
+        await dbDeleteCampaign(id);
+        setCampaigns((prev) => prev.filter((c) => c.id !== id));
       };
       const handleLogout = () => { sessionStorage.removeItem("admin_unlocked"); window.location.reload(); };
 
@@ -575,7 +615,9 @@
             <button onClick={handleLogout} className="text-[13px] text-label-faint hover:text-primary transition-colors">Sign out</button>
           </div>
 
-          {view === "list" && (
+          {loading && <div className="text-center py-20 text-label-dim text-[14px]">Loading campaigns...</div>}
+
+          {!loading && view === "list" && (
             <>
               <button onClick={() => { setEditingCampaign(null); setView("create"); }}
                 className={`w-full ${btnPrimary} py-3.5 mb-6 text-[14px]`}>

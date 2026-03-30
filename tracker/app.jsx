@@ -1,42 +1,81 @@
 const { useState, useEffect, useRef, useMemo } = React;
 
 // ============================================================
-// FALLBACK CONFIG
+// SUPABASE CLIENT
 // ============================================================
-const FALLBACK_CONFIG = {
-  id: "legacy", brandName: "Natural Stacks", productName: "Dopamine Brain Food",
-  ratePerVideo: 25, totalVideos: 15, startDate: "2026-03-25", endDate: "2026-04-24",
-  briefLink: "", showcaseLink: "", tier: 10, creators: [],
-};
+const SUPABASE_URL = "https://luegkjhpmmdflyksmmnb.supabase.co";
+const SUPABASE_KEY = "sb_publishable_k0UnSsbi8ftmyvzK6Fxznw_CcpaOqMm";
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // ============================================================
-// STORAGE HELPERS
+// DB HELPERS
 // ============================================================
-const STORAGE_PREFIX = "retainers_";
-function storageGet(key) { try { const v = localStorage.getItem(STORAGE_PREFIX + key); return v ? JSON.parse(v) : null; } catch { return null; } }
-function storageSet(key, value) { try { if (value == null) { localStorage.removeItem(STORAGE_PREFIX + key); return; } localStorage.setItem(STORAGE_PREFIX + key, JSON.stringify(value)); } catch (e) { console.error("Storage write failed:", e); } }
-
-function loadCampaigns() { try { const r = localStorage.getItem("retainers_campaigns"); return r ? JSON.parse(r) : []; } catch { return []; } }
-function getCampaignsForUser(username) {
-  const campaigns = loadCampaigns();
-  if (campaigns.length === 0) return [FALLBACK_CONFIG];
-  return campaigns.filter(c => c.creators?.some(h => h.toLowerCase() === username.toLowerCase()));
+function fromDbCampaign(r) {
+  return {
+    id: r.id, brandName: r.brand_name, productName: r.product_name || "",
+    slug: r.slug, tier: r.tier, ratePerVideo: r.rate_per_video,
+    totalVideos: r.total_videos, totalVideosAdmin: r.total_videos_admin,
+    startDate: r.start_date, endDate: r.end_date,
+    briefLink: r.brief_link || "", showcaseLink: r.showcase_link || "",
+    onboardingDays: r.onboarding_days, phase1: r.phase1, phase2: r.phase2,
+    creators: r.creators || [], phase2Creators: r.phase2_creators || [],
+  };
 }
-function getCampaignBySlug(slug) { return loadCampaigns().find(c => c.slug?.toLowerCase() === slug.toLowerCase()) || null; }
+
+async function dbLoadCampaigns() {
+  const { data, error } = await sb.from("campaigns").select("*");
+  if (error) { console.error("Load campaigns:", error); return []; }
+  return data.map(fromDbCampaign);
+}
+
+async function dbGetCampaignsForUser(username) {
+  const all = await dbLoadCampaigns();
+  return all.filter(c => c.creators?.some(h => h.toLowerCase() === username.toLowerCase()));
+}
+
+async function dbGetCampaignBySlug(slug) {
+  const { data, error } = await sb.from("campaigns").select("*").ilike("slug", slug).limit(1).single();
+  if (error || !data) return null;
+  return fromDbCampaign(data);
+}
+
 function getSlugFromURL() { const p = window.location.pathname.replace(/^\/|\/$/g, ""); if (!p || p === "tracker" || p === "adminmanage") return null; return p; }
 
-function loadUserData(username, campaignId) { return storageGet("user_" + campaignId + "_" + username); }
-function saveUserData(username, campaignId, data) { storageSet("user_" + campaignId + "_" + username, data); }
+// User tracking data
+async function dbLoadUserData(username, campaignId) {
+  const { data } = await sb.from("user_tracking").select("*").eq("username", username).eq("campaign_id", campaignId).limit(1).single();
+  return data ? data.days : null;
+}
 
-// PIN Auth
-function getAllPinAccounts() { return storageGet("pin_accounts") || {}; }
-function savePinAccounts(a) { storageSet("pin_accounts", a); }
-function registerPin(username, pin) { const a = getAllPinAccounts(); a[pin] = username; savePinAccounts(a); }
-function lookupPin(pin) { return getAllPinAccounts()[pin] || null; }
-function usernameHasPin(username) { return Object.values(getAllPinAccounts()).some(u => u.toLowerCase() === username.toLowerCase()); }
-function getLoggedInUser() { return storageGet("logged_in_user"); }
-function setLoggedInUser(u) { storageSet("logged_in_user", u); }
-function clearLoggedInUser() { storageSet("logged_in_user", null); }
+async function dbSaveUserDays(username, campaignId, days) {
+  const { error } = await sb.from("user_tracking").upsert(
+    { username, campaign_id: campaignId, days, updated_at: new Date().toISOString() },
+    { onConflict: "username,campaign_id" }
+  );
+  if (error) console.error("Save user data:", error);
+}
+
+// PIN Auth (Supabase-backed)
+async function dbLookupPin(pin) {
+  const { data } = await sb.from("pin_accounts").select("username").eq("pin", pin).limit(1).single();
+  return data ? data.username : null;
+}
+
+async function dbUsernameHasPin(username) {
+  const { data } = await sb.from("pin_accounts").select("pin").ilike("username", username).limit(1);
+  return data && data.length > 0;
+}
+
+async function dbRegisterPin(username, pin) {
+  const { error } = await sb.from("pin_accounts").insert({ pin, username });
+  if (error) { console.error("Register PIN:", error); return false; }
+  return true;
+}
+
+// Session (localStorage is fine for this - it's just "who's logged in on this device")
+function getLoggedInUser() { try { return JSON.parse(localStorage.getItem("titans_logged_in")); } catch { return null; } }
+function setLoggedInUser(u) { localStorage.setItem("titans_logged_in", JSON.stringify(u)); }
+function clearLoggedInUser() { localStorage.removeItem("titans_logged_in"); }
 
 // ============================================================
 // DATE UTILITIES
@@ -66,11 +105,11 @@ function PinLoginScreen({ onLogin, onGoToSetup }) {
   const ref = useRef(null);
   useEffect(() => { if (ref.current) ref.current.focus(); }, []);
 
-  const handleChange = (val) => {
+  const handleChange = async (val) => {
     const digits = val.replace(/\D/g, "").slice(0, 4);
     setPin(digits); setError("");
     if (digits.length === 4) {
-      const u = lookupPin(digits);
+      const u = await dbLookupPin(digits);
       if (u) { setLoggedInUser(u); onLogin(u); }
       else { setError("PIN not recognized"); setTimeout(() => { setPin(""); setError(""); }, 1500); }
     }
@@ -118,25 +157,25 @@ function SetupScreen({ onComplete, onBack }) {
   useEffect(() => { if (step === 2 && pinRef.current) pinRef.current.focus(); }, [step]);
   useEffect(() => { if (step === 3 && confirmRef.current) confirmRef.current.focus(); }, [step]);
 
-  const handleHandleSubmit = (e) => {
+  const handleHandleSubmit = async (e) => {
     e.preventDefault();
     const name = handle.trim(); if (!name) return;
     const username = name.startsWith("@") ? name : "@" + name;
     setHandle(username);
-    if (usernameHasPin(username)) { setError("This handle already has a PIN. Use PIN login instead."); return; }
-    const campaigns = getCampaignsForUser(username);
+    if (await dbUsernameHasPin(username)) { setError("This handle already has a PIN. Use PIN login instead."); return; }
+    const campaigns = await dbGetCampaignsForUser(username);
     if (campaigns.length === 0) { setError("No campaigns found for this handle."); return; }
     setError(""); setStep(2);
   };
 
-  const handlePinInput = (val) => {
+  const handlePinInput = async (val) => {
     const d = val.replace(/\D/g, "").slice(0, 4); setPin(d); setError("");
-    if (d.length === 4) { if (lookupPin(d)) { setError("PIN taken. Choose another."); setTimeout(() => { setPin(""); setError(""); }, 1500); return; } setStep(3); }
+    if (d.length === 4) { if (await dbLookupPin(d)) { setError("PIN taken. Choose another."); setTimeout(() => { setPin(""); setError(""); }, 1500); return; } setStep(3); }
   };
 
-  const handleConfirmInput = (val) => {
+  const handleConfirmInput = async (val) => {
     const d = val.replace(/\D/g, "").slice(0, 4); setConfirmPin(d); setError("");
-    if (d.length === 4) { if (d !== pin) { setError("PINs don't match."); setTimeout(() => { setConfirmPin(""); setError(""); }, 1500); return; } registerPin(handle, pin); setLoggedInUser(handle); onComplete(handle); }
+    if (d.length === 4) { if (d !== pin) { setError("PINs don't match."); setTimeout(() => { setConfirmPin(""); setError(""); }, 1500); return; } await dbRegisterPin(handle, pin); setLoggedInUser(handle); onComplete(handle); }
   };
 
   const PinInput = ({ value, inputRef: r }) => (
@@ -438,25 +477,39 @@ function StatsBar({ config, userData, campaignDays }) {
 
 function CampaignView({ config, user, onSwitchUser, onBack, showBack }) {
   const campaignId = config.id || "legacy";
-  const [userData, setUserData] = useState(() => {
-    let data = loadUserData(user, campaignId);
-    if (!data) { data = buildDefaultUserData(user, config); saveUserData(user, campaignId, data); }
-    return data;
-  });
+  const [userData, setUserData] = useState(null);
+  const [loadingData, setLoadingData] = useState(true);
   const campaignDays = useMemo(() => getCampaignDays(config), [config]);
+
+  useEffect(() => {
+    (async () => {
+      let days = await dbLoadUserData(user, campaignId);
+      if (!days) {
+        const defaultData = buildDefaultUserData(user, config);
+        days = defaultData.days;
+        await dbSaveUserDays(user, campaignId, days);
+      }
+      setUserData({ username: user, days });
+      setLoadingData(false);
+    })();
+  }, [user, campaignId]);
 
   const handleToggleDay = (dateStr) => {
     setUserData(prev => {
-      const u = { ...prev, days: { ...prev.days, [dateStr]: { ...prev.days[dateStr], posted: !prev.days[dateStr]?.posted } } };
-      saveUserData(user, campaignId, u); return u;
+      const newDays = { ...prev.days, [dateStr]: { ...prev.days[dateStr], posted: !prev.days[dateStr]?.posted } };
+      dbSaveUserDays(user, campaignId, newDays);
+      return { ...prev, days: newDays };
     });
   };
   const handleUpdateLink = (dateStr, link) => {
     setUserData(prev => {
-      const u = { ...prev, days: { ...prev.days, [dateStr]: { ...prev.days[dateStr], link } } };
-      saveUserData(user, campaignId, u); return u;
+      const newDays = { ...prev.days, [dateStr]: { ...prev.days[dateStr], link } };
+      dbSaveUserDays(user, campaignId, newDays);
+      return { ...prev, days: newDays };
     });
   };
+
+  if (loadingData || !userData) return <div className="min-h-screen flex items-center justify-center"><div className="text-label-dim text-[14px]">Loading...</div></div>;
 
   return (
     <div className="max-w-lg mx-auto px-4 pt-4 pb-24">
@@ -477,34 +530,36 @@ function App() {
   const [urlSlug, setUrlSlug] = useState(null);
 
   useEffect(() => {
-    const slug = getSlugFromURL(); setUrlSlug(slug);
-    let slugCampaign = null;
-    if (slug) { slugCampaign = getCampaignBySlug(slug); if (!slugCampaign) { setScreen("not-found"); setLoaded(true); return; } }
+    (async () => {
+      const slug = getSlugFromURL(); setUrlSlug(slug);
+      let slugCampaign = null;
+      if (slug) { slugCampaign = await dbGetCampaignBySlug(slug); if (!slugCampaign) { setScreen("not-found"); setLoaded(true); return; } }
 
-    const loggedIn = getLoggedInUser();
-    if (loggedIn) {
-      if (slugCampaign) {
-        const ok = slugCampaign.creators?.some(h => h.toLowerCase() === loggedIn.toLowerCase());
-        if (ok) { setUser(loggedIn); setCampaigns([slugCampaign]); setSelectedCampaign(slugCampaign); setScreen("app"); }
-        else setScreen("pin");
-      } else {
-        const uc = getCampaignsForUser(loggedIn);
-        if (uc.length > 0) { setUser(loggedIn); setCampaigns(uc); if (uc.length === 1) setSelectedCampaign(uc[0]); setScreen("app"); }
-        else setScreen("pin");
-      }
-    } else setScreen("pin");
-    setLoaded(true);
+      const loggedIn = getLoggedInUser();
+      if (loggedIn) {
+        if (slugCampaign) {
+          const ok = slugCampaign.creators?.some(h => h.toLowerCase() === loggedIn.toLowerCase());
+          if (ok) { setUser(loggedIn); setCampaigns([slugCampaign]); setSelectedCampaign(slugCampaign); setScreen("app"); }
+          else setScreen("pin");
+        } else {
+          const uc = await dbGetCampaignsForUser(loggedIn);
+          if (uc.length > 0) { setUser(loggedIn); setCampaigns(uc); if (uc.length === 1) setSelectedCampaign(uc[0]); setScreen("app"); }
+          else setScreen("pin");
+        }
+      } else setScreen("pin");
+      setLoaded(true);
+    })();
   }, []);
 
-  const loginAs = (username) => {
+  const loginAs = async (username) => {
     if (urlSlug) {
-      const sc = getCampaignBySlug(urlSlug);
+      const sc = await dbGetCampaignBySlug(urlSlug);
       if (sc?.creators?.some(h => h.toLowerCase() === username.toLowerCase())) {
         setUser(username); setCampaigns([sc]); setSelectedCampaign(sc); setScreen("app"); return;
       }
       setUser(username); setCampaigns([]); setScreen("no-campaigns"); return;
     }
-    const uc = getCampaignsForUser(username); setUser(username); setCampaigns(uc);
+    const uc = await dbGetCampaignsForUser(username); setUser(username); setCampaigns(uc);
     if (uc.length === 1) setSelectedCampaign(uc[0]); else setSelectedCampaign(null);
     setScreen(uc.length === 0 ? "no-campaigns" : "app");
   };
