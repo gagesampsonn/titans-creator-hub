@@ -61,6 +61,20 @@
     }
     function saveCampaigns(campaigns) { localStorage.setItem(STORAGE_KEY, JSON.stringify(campaigns)); }
     function generateId() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+    function addDaysToDate(dateStr, days) {
+      if (!dateStr) return "";
+      const d = new Date(dateStr + "T00:00:00");
+      d.setDate(d.getDate() + days);
+      return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+    }
+
+    function addDaysISO(dateStr, days) {
+      if (!dateStr) return "";
+      const d = new Date(dateStr + "T00:00:00");
+      d.setDate(d.getDate() + days);
+      return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+    }
+
     function slugify(str) { return str.toLowerCase().replace(/[^a-z0-9]+/g, "").replace(/^-+|-+$/g, ""); }
 
     // ─── Shared UI Primitives ──────────────────────────────────
@@ -300,26 +314,47 @@
               </div>
 
               <SectionLabel>Phase Structure</SectionLabel>
-              <div className="space-y-2">
-                {[
-                  { key: "onboarding", label: "Onboarding", value: form.onboardingDays, onChange: (v) => set("onboardingDays", v), desc: "Source creators, ship samples, set up Spark Ads" },
-                  { key: "phase1", label: form.phase1.name, value: form.phase1.days, onChange: (v) => set("phase1", { ...form.phase1, days: v }), desc: form.phase1.description },
-                  { key: "phase2", label: form.phase2.name, value: form.phase2.days, onChange: (v) => set("phase2", { ...form.phase2, days: v }), desc: form.phase2.description },
-                ].map((p) => (
-                  <div key={p.key} className="flex items-center justify-between bg-surface-overlay border border-border rounded-lg px-4 py-3">
-                    <div>
-                      <div className="text-[13px] font-medium text-primary">{p.label}</div>
-                      <div className="text-[11px] text-label-faint">{p.desc}</div>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <input type="number" min="1" max="60" value={p.value}
-                        onChange={(e) => p.onChange(parseInt(e.target.value) || 1)}
-                        className="w-14 bg-surface border border-border rounded px-2 py-1 text-[13px] text-primary text-center focus:outline-none focus:border-label-dim" />
-                      <span className="text-[11px] text-label-faint">days</span>
-                    </div>
+              {(() => {
+                const ob = form.onboardingDays || 14;
+                const p1 = form.phase1?.days || 15;
+                const p2 = form.phase2?.days || 15;
+                const obStart = form.startDate;
+                const obEnd = obStart ? addDaysISO(obStart, ob - 1) : "";
+                const p1Start = obStart ? addDaysISO(obStart, ob) : "";
+                const p1End = obStart ? addDaysISO(obStart, ob + p1 - 1) : "";
+                const p2Start = obStart ? addDaysISO(obStart, ob + p1) : "";
+                const p2End = obStart ? addDaysISO(obStart, ob + p1 + p2 - 1) : "";
+
+                const phases = [
+                  { key: "onboarding", label: "Onboarding", value: ob, onChange: (v) => set("onboardingDays", v), desc: "Source creators, ship samples, set up Spark Ads", dateRange: obStart ? `${addDaysToDate(obStart, 0)} \u2013 ${addDaysToDate(obStart, ob - 1)}` : "" },
+                  { key: "phase1", label: "Phase 1 \u2014 Launch", value: p1, onChange: (v) => set("phase1", { ...form.phase1, days: v }), desc: "All creators post daily", dateRange: p1Start ? `${addDaysToDate(p1Start, 0)} \u2013 ${addDaysToDate(obStart, ob + p1 - 1)}` : "" },
+                  { key: "phase2", label: "Phase 2 \u2014 Scale", value: p2, onChange: (v) => set("phase2", { ...form.phase2, days: v }), desc: "Top performers continue", dateRange: p2Start ? `${addDaysToDate(p2Start, 0)} \u2013 ${addDaysToDate(obStart, ob + p1 + p2 - 1)}` : "" },
+                ];
+
+                return (
+                  <div className="space-y-2">
+                    {phases.map((p) => (
+                      <div key={p.key} className="bg-surface-overlay border border-border rounded-lg px-4 py-3">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <div className="text-[13px] font-medium text-primary">{p.label}</div>
+                            <div className="text-[11px] text-label-faint">{p.desc}</div>
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <input type="number" min="1" max="60" value={p.value}
+                              onChange={(e) => p.onChange(parseInt(e.target.value) || 1)}
+                              className="w-14 bg-surface border border-border rounded px-2 py-1 text-[13px] text-primary text-center focus:outline-none focus:border-label-dim" />
+                            <span className="text-[11px] text-label-faint">days</span>
+                          </div>
+                        </div>
+                        {p.dateRange && (
+                          <div className="mt-2 text-[11px] text-label-dim font-mono">{p.dateRange}</div>
+                        )}
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
+                );
+              })()}
             </div>
 
             {/* Pay */}
@@ -354,10 +389,10 @@
               </div>
             </div>
 
-            {/* Creators */}
+            {/* Phase 1 Creators */}
             <div className="bg-surface-raised border border-border rounded-xl p-6">
-              <SectionLabel>Assigned Creators</SectionLabel>
-              <p className="text-[12px] text-label-faint mb-3">Only these creators will see this campaign when they log in.</p>
+              <SectionLabel>Phase 1 Creators</SectionLabel>
+              <p className="text-[12px] text-label-faint mb-3">All creators assigned to the campaign. They will see this campaign when they log in.</p>
 
               <div className="flex gap-2 mb-4">
                 <input value={creatorInput} onChange={(e) => setCreatorInput(e.target.value)}
@@ -379,6 +414,35 @@
                 </div>
               )}
               <div className="mt-2 text-[11px] text-label-faint">{form.creators.length} / {form.tier} slots filled</div>
+            </div>
+
+            {/* Phase 2 Creators */}
+            <div className="bg-surface-raised border border-border rounded-xl p-6">
+              <SectionLabel>Phase 2 Creators</SectionLabel>
+              <p className="text-[12px] text-label-faint mb-3">Top performers who continue into Phase 2. Select from your Phase 1 creators. You can set this later.</p>
+
+              {form.creators.length === 0 ? (
+                <p className="text-label-faint text-[13px] text-center py-3">Add Phase 1 creators first</p>
+              ) : (
+                <div className="space-y-1.5">
+                  {form.creators.map((h) => {
+                    const selected = (form.phase2Creators || []).includes(h);
+                    return (
+                      <button key={h} type="button" onClick={() => {
+                        const current = form.phase2Creators || [];
+                        set("phase2Creators", selected ? current.filter(c => c !== h) : [...current, h]);
+                      }}
+                        className={`w-full flex items-center justify-between px-4 py-2.5 rounded-lg border transition-all text-left ${selected ? "border-primary/30 bg-surface-overlay" : "border-border bg-surface hover:border-border-light"}`}>
+                        <span className="text-[13px] text-primary">{h}</span>
+                        <span className={`text-[11px] font-medium ${selected ? "text-emerald-400" : "text-label-faint"}`}>
+                          {selected ? "Selected" : "Not selected"}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+              <div className="mt-2 text-[11px] text-label-faint">{(form.phase2Creators || []).length} / {form.creators.length} selected for Phase 2</div>
             </div>
 
             {/* Actions */}

@@ -85,18 +85,12 @@ function PinLoginScreen({ onLogin, onGoToSetup }) {
         </div>
 
         <div>
-          <div className="flex justify-center gap-3 mb-3">
-            {[0,1,2,3].map(i => (
-              <div key={i} className={`w-12 h-12 rounded-lg border flex items-center justify-center text-[18px] font-bold transition-all ${pin.length > i ? "border-label-dim bg-surface-overlay text-primary" : "border-border bg-surface text-label-faint"}`}>
-                {pin[i] ? "\u2022" : ""}
-              </div>
-            ))}
-          </div>
           <input ref={ref} type="tel" inputMode="numeric" maxLength={4} value={pin}
-            onChange={(e) => handleChange(e.target.value)} className="absolute opacity-0 w-0 h-0" autoFocus />
-          <button type="button" onClick={() => ref.current?.focus()} className="w-full py-2 text-center text-[13px] text-label-faint">
-            {error ? <span className="text-red-400">{error}</span> : "Tap to enter PIN"}
-          </button>
+            onChange={(e) => handleChange(e.target.value)}
+            placeholder="0000"
+            className="w-full bg-surface-overlay border border-border rounded-lg px-4 py-4 text-center text-[24px] font-bold tracking-[0.5em] text-primary placeholder-label-faint focus:outline-none focus:border-label-dim transition-colors"
+            autoFocus />
+          {error && <p className="text-red-400 text-[12px] text-center mt-2">{error}</p>}
         </div>
 
         <div className="mt-6 pt-6 border-t border-border text-center">
@@ -145,21 +139,14 @@ function SetupScreen({ onComplete, onBack }) {
     if (d.length === 4) { if (d !== pin) { setError("PINs don't match."); setTimeout(() => { setConfirmPin(""); setError(""); }, 1500); return; } registerPin(handle, pin); setLoggedInUser(handle); onComplete(handle); }
   };
 
-  const PinDots = ({ value, inputRef: r }) => (
+  const PinInput = ({ value, inputRef: r }) => (
     <div>
-      <div className="flex justify-center gap-3 mb-3">
-        {[0,1,2,3].map(i => (
-          <div key={i} className={`w-12 h-12 rounded-lg border flex items-center justify-center text-[18px] font-bold transition-all ${value.length > i ? "border-label-dim bg-surface-overlay text-primary" : "border-border bg-surface text-label-faint"}`}>
-            {value[i] ? "\u2022" : ""}
-          </div>
-        ))}
-      </div>
       <input ref={r} type="tel" inputMode="numeric" maxLength={4} value={value}
         onChange={(e) => step === 2 ? handlePinInput(e.target.value) : handleConfirmInput(e.target.value)}
-        className="absolute opacity-0 w-0 h-0" autoFocus />
-      <button type="button" onClick={() => r.current?.focus()} className="w-full py-2 text-center text-[13px] text-label-faint">
-        {error ? <span className="text-red-400">{error}</span> : "Tap to enter"}
-      </button>
+        placeholder="0000"
+        className="w-full bg-surface-overlay border border-border rounded-lg px-4 py-4 text-center text-[24px] font-bold tracking-[0.5em] text-primary placeholder-label-faint focus:outline-none focus:border-label-dim transition-colors"
+        autoFocus />
+      {error && <p className="text-red-400 text-[12px] text-center mt-2">{error}</p>}
     </div>
   );
 
@@ -190,11 +177,11 @@ function SetupScreen({ onComplete, onBack }) {
         {step === 2 && (
           <div>
             <p className="text-center text-[13px] text-label mb-4">Setting up as <span className="text-primary font-semibold">{handle}</span></p>
-            <PinDots value={pin} inputRef={pinRef} />
+            <PinInput value={pin} inputRef={pinRef} />
           </div>
         )}
 
-        {step === 3 && <PinDots value={confirmPin} inputRef={confirmRef} />}
+        {step === 3 && <PinInput value={confirmPin} inputRef={confirmRef} />}
 
         <div className="mt-6 text-center">
           <button onClick={step === 1 ? onBack : () => { setStep(step - 1); setPin(""); setConfirmPin(""); setError(""); }}
