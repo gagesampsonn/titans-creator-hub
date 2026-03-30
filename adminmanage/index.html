@@ -68,6 +68,10 @@
       return Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
     }
 
+    function slugify(str) {
+      return str.toLowerCase().replace(/[^a-z0-9]+/g, "").replace(/^-+|-+$/g, "");
+    }
+
     // ─── PIN Gate ──────────────────────────────────────────────
     function PinGate({ onUnlock }) {
       const [pin, setPin] = useState("");
@@ -123,6 +127,7 @@
         id: generateId(),
         brandName: "",
         productName: "",
+        slug: "",
         tier: 10,
         ratePerVideo: 25,
         totalVideos: 225,
@@ -136,8 +141,19 @@
         creators: [],
       });
       const [creatorInput, setCreatorInput] = useState("");
+      const [slugManual, setSlugManual] = useState(!!campaign?.slug);
 
       const set = (key, val) => setForm((prev) => ({ ...prev, [key]: val }));
+
+      const handleBrandChange = (val) => {
+        set("brandName", val);
+        if (!slugManual) set("slug", slugify(val));
+      };
+
+      const handleSlugChange = (val) => {
+        setSlugManual(true);
+        set("slug", val.toLowerCase().replace(/[^a-z0-9]/g, ""));
+      };
 
       const handleTierChange = (tierVal) => {
         const tier = TIER_OPTIONS.find((t) => t.value === tierVal);
@@ -161,7 +177,7 @@
 
       const handleSubmit = (e) => {
         e.preventDefault();
-        if (!form.brandName || !form.startDate || !form.endDate) return;
+        if (!form.brandName || !form.slug || !form.startDate || !form.endDate) return;
         onSave(form);
       };
 
@@ -172,7 +188,7 @@
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm text-muted mb-1">Brand Name *</label>
-                <input value={form.brandName} onChange={(e) => set("brandName", e.target.value)} required
+                <input value={form.brandName} onChange={(e) => handleBrandChange(e.target.value)} required
                   className="w-full bg-dark-input border border-muted rounded-xl px-4 py-3 text-white focus:outline-none focus:border-accent" placeholder="e.g. Natural Stacks" />
               </div>
               <div>
@@ -180,6 +196,17 @@
                 <input value={form.productName} onChange={(e) => set("productName", e.target.value)}
                   className="w-full bg-dark-input border border-muted rounded-xl px-4 py-3 text-white focus:outline-none focus:border-accent" placeholder="e.g. Dopamine Brain Food" />
               </div>
+            </div>
+
+            {/* URL Slug */}
+            <div className="mt-4">
+              <label className="block text-sm text-muted mb-1">Campaign URL *</label>
+              <div className="flex items-center bg-dark-input border border-muted rounded-xl overflow-hidden focus-within:border-accent transition-colors">
+                <span className="text-muted text-sm pl-4 whitespace-nowrap">titansagency.co/</span>
+                <input value={form.slug} onChange={(e) => handleSlugChange(e.target.value)} required
+                  className="flex-1 bg-transparent px-1 py-3 text-white focus:outline-none" placeholder="naturalstacks" />
+              </div>
+              <p className="text-xs text-muted mt-1">This is the link creators will use to access their tracker.</p>
             </div>
           </div>
 
@@ -348,13 +375,20 @@
 
       return (
         <div className="bg-dark-card rounded-2xl p-6 border border-muted/10 hover:border-muted/30 transition-all">
-          <div className="flex items-start justify-between mb-4">
+          <div className="flex items-start justify-between mb-2">
             <div>
               <h3 className="text-xl font-bold">{campaign.brandName}</h3>
               {campaign.productName && <p className="text-sm text-muted">{campaign.productName}</p>}
             </div>
             <span className="bg-accent/10 text-accent text-xs font-bold px-3 py-1 rounded-full">{tierLabel}</span>
           </div>
+          {campaign.slug && (
+            <div className="mb-4 bg-dark-input rounded-lg px-3 py-2 flex items-center justify-between">
+              <span className="text-xs text-muted">titansagency.co/<span className="text-white font-semibold">{campaign.slug}</span></span>
+              <button type="button" onClick={() => { navigator.clipboard.writeText("https://titansagency.co/" + campaign.slug); }}
+                className="text-xs text-accent hover:text-accent-hover transition-colors">Copy</button>
+            </div>
+          )}
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
             <div className="bg-dark-input rounded-xl p-3">
@@ -460,7 +494,6 @@
               <p className="text-muted text-sm mt-1">Manage campaigns & creators</p>
             </div>
             <div className="flex items-center gap-3">
-              <a href="/tracker/" className="text-sm text-muted hover:text-white transition-colors">Tracker →</a>
               <button onClick={handleLogout} className="text-sm text-muted hover:text-danger transition-colors">Logout</button>
             </div>
           </div>

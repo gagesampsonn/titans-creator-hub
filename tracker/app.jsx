@@ -59,6 +59,17 @@ function getCampaignsForUser(username) {
   return matched;
 }
 
+function getCampaignBySlug(slug) {
+  const campaigns = loadCampaigns();
+  return campaigns.find((c) => c.slug && c.slug.toLowerCase() === slug.toLowerCase()) || null;
+}
+
+function getSlugFromURL() {
+  const path = window.location.pathname.replace(/^\/|\/$/g, "");
+  if (!path || path === "tracker" || path === "adminmanage") return null;
+  return path;
+}
+
 function loadUserData(username, campaignId) {
   return storageGet("user_" + campaignId + "_" + username);
 }
@@ -749,26 +760,68 @@ function CampaignView({ config, user, onSwitchUser, onBack, showBack }) {
   );
 }
 
+function CampaignNotFound({ slug }) {
+  return (
+    <div className="min-h-screen flex items-center justify-center p-4">
+      <div className="bg-dark-card rounded-2xl p-8 w-full max-w-sm shadow-2xl text-center">
+        <div className="text-4xl mb-4">🔍</div>
+        <h2 className="text-xl font-bold mb-2">Campaign Not Found</h2>
+        <p className="text-muted text-sm mb-6">
+          No campaign exists at <span className="text-white font-semibold">/{slug}</span>. Check the URL and try again.
+        </p>
+      </div>
+    </div>
+  );
+}
+
 function App() {
   const [user, setUser] = useState(null);
   const [campaigns, setCampaigns] = useState([]);
   const [selectedCampaign, setSelectedCampaign] = useState(null);
-  const [screen, setScreen] = useState("loading"); // loading | pin | setup | app
+  const [screen, setScreen] = useState("loading"); // loading | pin | setup | app | not-found
   const [loaded, setLoaded] = useState(false);
+  const [urlSlug, setUrlSlug] = useState(null);
 
   useEffect(() => {
+    const slug = getSlugFromURL();
+    setUrlSlug(slug);
+
+    // If there's a slug in the URL, lock to that campaign
+    let slugCampaign = null;
+    if (slug) {
+      slugCampaign = getCampaignBySlug(slug);
+      if (!slugCampaign) {
+        setScreen("not-found");
+        setLoaded(true);
+        return;
+      }
+    }
+
     const loggedIn = getLoggedInUser();
     if (loggedIn) {
-      const userCampaigns = getCampaignsForUser(loggedIn);
-      if (userCampaigns.length > 0) {
-        setUser(loggedIn);
-        setCampaigns(userCampaigns);
-        if (userCampaigns.length === 1) {
-          setSelectedCampaign(userCampaigns[0]);
+      if (slugCampaign) {
+        // Check user is assigned to this campaign
+        const isAssigned = slugCampaign.creators && slugCampaign.creators.some((h) => h.toLowerCase() === loggedIn.toLowerCase());
+        if (isAssigned) {
+          setUser(loggedIn);
+          setCampaigns([slugCampaign]);
+          setSelectedCampaign(slugCampaign);
+          setScreen("app");
+        } else {
+          setScreen("pin");
         }
-        setScreen("app");
       } else {
-        setScreen("pin");
+        const userCampaigns = getCampaignsForUser(loggedIn);
+        if (userCampaigns.length > 0) {
+          setUser(loggedIn);
+          setCampaigns(userCampaigns);
+          if (userCampaigns.length === 1) {
+            setSelectedCampaign(userCampaigns[0]);
+          }
+          setScreen("app");
+        } else {
+          setScreen("pin");
+        }
       }
     } else {
       setScreen("pin");
@@ -777,6 +830,24 @@ function App() {
   }, []);
 
   const loginAs = (username) => {
+    if (urlSlug) {
+      const slugCampaign = getCampaignBySlug(urlSlug);
+      if (slugCampaign) {
+        const isAssigned = slugCampaign.creators && slugCampaign.creators.some((h) => h.toLowerCase() === username.toLowerCase());
+        if (isAssigned) {
+          setUser(username);
+          setCampaigns([slugCampaign]);
+          setSelectedCampaign(slugCampaign);
+          setScreen("app");
+          return;
+        }
+      }
+      setUser(username);
+      setCampaigns([]);
+      setScreen("no-campaigns");
+      return;
+    }
+
     const userCampaigns = getCampaignsForUser(username);
     setUser(username);
     setCampaigns(userCampaigns);
@@ -802,6 +873,10 @@ function App() {
         <div className="text-accent text-xl animate-pulse">Loading...</div>
       </div>
     );
+  }
+
+  if (screen === "not-found") {
+    return <CampaignNotFound slug={urlSlug} />;
   }
 
   if (screen === "pin") {
