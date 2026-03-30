@@ -1,9 +1,10 @@
 const { useState, useEffect, useRef, useMemo } = React;
 
 // ============================================================
-// CAMPAIGN CONFIGURATION — Edit these for each brand/campaign
+// FALLBACK CONFIG — Used if no admin-created campaigns exist
 // ============================================================
-const CAMPAIGN_CONFIG = {
+const FALLBACK_CONFIG = {
+  id: "legacy",
   brandName: "Natural Stacks",
   productName: "Dopamine Brain Food",
   ratePerVideo: 25,
@@ -12,10 +13,12 @@ const CAMPAIGN_CONFIG = {
   endDate: "2026-04-24",
   briefLink: "https://discord.com/channels/...",
   showcaseLink: "https://affiliate-us.tiktok.com/api/v1/share/AJK4Uc0dUuXO",
+  tier: 10,
+  creators: [],
 };
 
 // ============================================================
-// STORAGE HELPERS — Uses localStorage (persistent key-value)
+// STORAGE HELPERS
 // ============================================================
 const STORAGE_PREFIX = "retainers_";
 
@@ -40,12 +43,28 @@ function storageSet(key, value) {
   }
 }
 
-function loadUserData(username) {
-  return storageGet("user_" + username);
+function loadCampaigns() {
+  try {
+    const raw = localStorage.getItem("retainers_campaigns");
+    return raw ? JSON.parse(raw) : [];
+  } catch { return []; }
 }
 
-function saveUserData(username, data) {
-  storageSet("user_" + username, data);
+function getCampaignsForUser(username) {
+  const campaigns = loadCampaigns();
+  if (campaigns.length === 0) return [FALLBACK_CONFIG];
+  const matched = campaigns.filter((c) =>
+    c.creators && c.creators.some((h) => h.toLowerCase() === username.toLowerCase())
+  );
+  return matched;
+}
+
+function loadUserData(username, campaignId) {
+  return storageGet("user_" + campaignId + "_" + username);
+}
+
+function saveUserData(username, campaignId, data) {
+  storageSet("user_" + campaignId + "_" + username, data);
 }
 
 function getLastUser() {
@@ -126,6 +145,7 @@ function buildDefaultUserData(username, config) {
   });
   return {
     username,
+    campaignId: config.id,
     campaign: config.brandName.toLowerCase().replace(/\s+/g, "-"),
     rate: config.ratePerVideo,
     totalVideos: config.totalVideos,
@@ -188,7 +208,55 @@ function LoginScreen({ onLogin }) {
   );
 }
 
-function CampaignHeader({ config, userData, onSwitchUser }) {
+function NoCampaignsScreen({ username, onSwitchUser }) {
+  return (
+    <div className="min-h-screen flex items-center justify-center p-4">
+      <div className="bg-dark-card rounded-2xl p-8 w-full max-w-sm shadow-2xl text-center">
+        <div className="text-4xl mb-4">🔍</div>
+        <h2 className="text-xl font-bold mb-2">No Campaigns Found</h2>
+        <p className="text-muted text-sm mb-6">
+          There are no active campaigns assigned to <span className="text-white font-semibold">{username}</span>. Contact your campaign manager if you believe this is an error.
+        </p>
+        <button onClick={onSwitchUser} className="w-full bg-accent hover:bg-accent-hover text-white font-bold rounded-xl py-3 transition-colors">
+          Try Different Username
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function CampaignPicker({ campaigns, onSelect, username, onSwitchUser }) {
+  return (
+    <div className="max-w-lg mx-auto px-4 pt-8 pb-8">
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-xl font-bold">Your Campaigns</h1>
+          <p className="text-muted text-sm">Logged in as <span className="text-white font-semibold">{username}</span></p>
+        </div>
+        <button onClick={onSwitchUser} className="text-xs text-accent hover:underline">Switch user</button>
+      </div>
+      <div className="space-y-3">
+        {campaigns.map((c) => (
+          <button key={c.id} onClick={() => onSelect(c)}
+            className="w-full bg-dark-card rounded-2xl p-5 text-left border border-muted/10 hover:border-accent/50 transition-all active:scale-[0.98]">
+            <div className="flex items-center justify-between mb-1">
+              <h3 className="text-lg font-bold">{c.brandName}</h3>
+              <span className="text-xs text-accent font-bold">{c.tier || "—"} creators</span>
+            </div>
+            {c.productName && <p className="text-sm text-muted mb-2">{c.productName}</p>}
+            <div className="flex gap-3 text-xs text-muted">
+              <span>{c.startDate} → {c.endDate}</span>
+              <span>${c.ratePerVideo}/video</span>
+              <span>{c.totalVideos} videos</span>
+            </div>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function CampaignHeader({ config, userData, onSwitchUser, onBack, showBack }) {
   const posted = getPostedCount(userData.days);
   const total = config.totalVideos;
   const pct = Math.round((posted / total) * 100);
@@ -203,9 +271,12 @@ function CampaignHeader({ config, userData, onSwitchUser }) {
           Logged in as{" "}
           <span className="text-white font-semibold">{userData.username}</span>
         </span>
-        <button onClick={onSwitchUser} className="text-xs text-accent hover:underline">
-          Switch user
-        </button>
+        <div className="flex items-center gap-3">
+          {showBack && <button onClick={onBack} className="text-xs text-muted hover:text-white">← Campaigns</button>}
+          <button onClick={onSwitchUser} className="text-xs text-accent hover:underline">
+            Switch user
+          </button>
+        </div>
       </div>
 
       <h2 className="text-xl font-bold mb-1">
@@ -421,41 +492,18 @@ function StatsBar({ config, userData, campaignDays }) {
   );
 }
 
-function App() {
-  const [user, setUser] = useState(null);
-  const [userData, setUserData] = useState(null);
-  const [loaded, setLoaded] = useState(false);
-
-  useEffect(() => {
-    const lastUser = getLastUser();
-    if (lastUser) {
-      const data = loadUserData(lastUser);
-      if (data) {
-        setUser(lastUser);
-        setUserData(data);
-      }
-    }
-    setLoaded(true);
-  }, []);
-
-  const campaignDays = useMemo(() => getCampaignDays(CAMPAIGN_CONFIG), []);
-
-  const handleLogin = (username) => {
-    let data = loadUserData(username);
+function CampaignView({ config, user, onSwitchUser, onBack, showBack }) {
+  const campaignId = config.id || "legacy";
+  const [userData, setUserData] = useState(() => {
+    let data = loadUserData(user, campaignId);
     if (!data) {
-      data = buildDefaultUserData(username, CAMPAIGN_CONFIG);
-      saveUserData(username, data);
+      data = buildDefaultUserData(user, config);
+      saveUserData(user, campaignId, data);
     }
-    setLastUser(username);
-    setUser(username);
-    setUserData(data);
-  };
+    return data;
+  });
 
-  const handleSwitchUser = () => {
-    setUser(null);
-    setUserData(null);
-    storageSet("last_user", null);
-  };
+  const campaignDays = useMemo(() => getCampaignDays(config), [config]);
 
   const handleToggleDay = (dateStr) => {
     setUserData((prev) => {
@@ -469,7 +517,7 @@ function App() {
           },
         },
       };
-      saveUserData(user, updated);
+      saveUserData(user, campaignId, updated);
       return updated;
     });
   };
@@ -486,9 +534,59 @@ function App() {
           },
         },
       };
-      saveUserData(user, updated);
+      saveUserData(user, campaignId, updated);
       return updated;
     });
+  };
+
+  return (
+    <div className="max-w-lg mx-auto px-4 pt-4 pb-24">
+      <CampaignHeader config={config} userData={userData} onSwitchUser={onSwitchUser} onBack={onBack} showBack={showBack} />
+      <CalendarGrid config={config} userData={userData} campaignDays={campaignDays} onToggleDay={handleToggleDay} />
+      <VideoLog userData={userData} campaignDays={campaignDays} onUpdateLink={handleUpdateLink} />
+      <StatsBar config={config} userData={userData} campaignDays={campaignDays} />
+    </div>
+  );
+}
+
+function App() {
+  const [user, setUser] = useState(null);
+  const [campaigns, setCampaigns] = useState([]);
+  const [selectedCampaign, setSelectedCampaign] = useState(null);
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    const lastUser = getLastUser();
+    if (lastUser) {
+      const userCampaigns = getCampaignsForUser(lastUser);
+      if (userCampaigns.length > 0) {
+        setUser(lastUser);
+        setCampaigns(userCampaigns);
+        if (userCampaigns.length === 1) {
+          setSelectedCampaign(userCampaigns[0]);
+        }
+      }
+    }
+    setLoaded(true);
+  }, []);
+
+  const handleLogin = (username) => {
+    const userCampaigns = getCampaignsForUser(username);
+    setLastUser(username);
+    setUser(username);
+    setCampaigns(userCampaigns);
+    if (userCampaigns.length === 1) {
+      setSelectedCampaign(userCampaigns[0]);
+    } else {
+      setSelectedCampaign(null);
+    }
+  };
+
+  const handleSwitchUser = () => {
+    setUser(null);
+    setCampaigns([]);
+    setSelectedCampaign(null);
+    storageSet("last_user", null);
   };
 
   if (!loaded) {
@@ -499,25 +597,29 @@ function App() {
     );
   }
 
-  if (!user || !userData) {
+  if (!user) {
     return <LoginScreen onLogin={handleLogin} />;
   }
 
+  if (campaigns.length === 0) {
+    return <NoCampaignsScreen username={user} onSwitchUser={handleSwitchUser} />;
+  }
+
+  if (!selectedCampaign) {
+    return <CampaignPicker campaigns={campaigns} onSelect={setSelectedCampaign} username={user} onSwitchUser={handleSwitchUser} />;
+  }
+
   return (
-    <div className="max-w-lg mx-auto px-4 pt-4 pb-24">
-      <CampaignHeader config={CAMPAIGN_CONFIG} userData={userData} onSwitchUser={handleSwitchUser} />
-      <CalendarGrid
-        config={CAMPAIGN_CONFIG}
-        userData={userData}
-        campaignDays={campaignDays}
-        onToggleDay={handleToggleDay}
-      />
-      <VideoLog userData={userData} campaignDays={campaignDays} onUpdateLink={handleUpdateLink} />
-      <StatsBar config={CAMPAIGN_CONFIG} userData={userData} campaignDays={campaignDays} />
-    </div>
+    <CampaignView
+      key={selectedCampaign.id}
+      config={selectedCampaign}
+      user={user}
+      onSwitchUser={handleSwitchUser}
+      onBack={() => setSelectedCampaign(null)}
+      showBack={campaigns.length > 1}
+    />
   );
 }
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(<App />);
-
