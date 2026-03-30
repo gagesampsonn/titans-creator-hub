@@ -49,7 +49,7 @@
     const ADMIN_PIN = "424342";
     const STORAGE_KEY = "retainers_campaigns";
 
-    const TIER_OPTIONS = [
+    const TIER_PRESETS = [
       { value: 5, label: "5 Creators", videos: 120 },
       { value: 10, label: "10 Creators", videos: 225 },
       { value: 15, label: "15 Creators", videos: 325 },
@@ -205,7 +205,7 @@
     function CampaignForm({ campaign, onSave, onCancel }) {
       const [form, setForm] = useState(campaign || {
         id: generateId(), brandName: "", productName: "", slug: "", tier: 10,
-        ratePerVideo: 25, totalVideos: 225, startDate: "", endDate: "",
+        ratePerVideo: 25, totalVideos: 225, totalVideosAdmin: 225, startDate: "", endDate: "",
         briefLink: "", showcaseLink: "",
         phase1: { name: "Phase 1 \u2014 Launch", days: 15, description: "All creators post daily" },
         phase2: { name: "Phase 2 \u2014 Scale", days: 15, description: "Top performers continue" },
@@ -213,11 +213,12 @@
       });
       const [creatorInput, setCreatorInput] = useState("");
       const [slugManual, setSlugManual] = useState(!!campaign?.slug);
+      const isCustomTier = !TIER_PRESETS.some(t => t.value === form.tier);
 
       const set = (key, val) => setForm((prev) => ({ ...prev, [key]: val }));
       const handleBrandChange = (val) => { set("brandName", val); if (!slugManual) set("slug", slugify(val)); };
       const handleSlugChange = (val) => { setSlugManual(true); set("slug", val.toLowerCase().replace(/[^a-z0-9]/g, "")); };
-      const handleTierChange = (v) => { set("tier", v); set("totalVideos", TIER_OPTIONS.find(t => t.value === v).videos); };
+      const handleTierChange = (v) => { const preset = TIER_PRESETS.find(t => t.value === v); set("tier", v); if (preset) { set("totalVideos", preset.videos); set("totalVideosAdmin", preset.videos); } };
 
       const addCreator = () => {
         const h = creatorInput.trim(); if (!h) return;
@@ -260,15 +261,30 @@
             {/* Size */}
             <div className="bg-surface-raised border border-border rounded-xl p-6">
               <SectionLabel>Campaign Size</SectionLabel>
-              <div className="grid grid-cols-3 gap-2">
-                {TIER_OPTIONS.map((tier) => (
+              <div className="grid grid-cols-4 gap-2">
+                {TIER_PRESETS.map((tier) => (
                   <button key={tier.value} type="button" onClick={() => handleTierChange(tier.value)}
-                    className={`rounded-lg p-3 text-center transition-all border ${form.tier === tier.value ? "border-primary/30 bg-surface-overlay" : "border-border bg-surface hover:border-border-light"}`}>
+                    className={`rounded-lg p-3 text-center transition-all border ${form.tier === tier.value && !isCustomTier ? "border-primary/30 bg-surface-overlay" : "border-border bg-surface hover:border-border-light"}`}>
                     <div className="text-[18px] font-bold text-primary">{tier.value}</div>
                     <div className="text-[11px] text-label-dim mt-0.5">{tier.videos} videos</div>
                   </button>
                 ))}
+                <button type="button" onClick={() => { if (!isCustomTier) { set("tier", 1); set("totalVideos", 0); set("totalVideosAdmin", 0); } }}
+                  className={`rounded-lg p-3 text-center transition-all border ${isCustomTier ? "border-primary/30 bg-surface-overlay" : "border-border bg-surface hover:border-border-light"}`}>
+                  <div className="text-[14px] font-bold text-primary">Custom</div>
+                  <div className="text-[11px] text-label-dim mt-0.5">Set below</div>
+                </button>
               </div>
+              {isCustomTier && (
+                <div className="grid grid-cols-2 gap-3 mt-4">
+                  <InputField label="Number of Creators">
+                    <input type="number" min="1" value={form.tier} onChange={(e) => set("tier", parseInt(e.target.value) || 1)} className={inputClass} />
+                  </InputField>
+                  <InputField label="Total Videos (Campaign)">
+                    <input type="number" min="1" value={form.totalVideosAdmin} onChange={(e) => { const v = parseInt(e.target.value) || 0; set("totalVideosAdmin", v); set("totalVideos", v); }} className={inputClass} />
+                  </InputField>
+                </div>
+              )}
             </div>
 
             {/* Dates + Phases */}
@@ -313,9 +329,15 @@
                 <InputField label="Rate Per Video ($)">
                   <input type="number" min="1" value={form.ratePerVideo} onChange={(e) => set("ratePerVideo", parseInt(e.target.value) || 25)} className={inputClass} />
                 </InputField>
-                <InputField label="Total Videos">
+                <InputField label="Videos Per Creator">
                   <input type="number" min="1" value={form.totalVideos} onChange={(e) => set("totalVideos", parseInt(e.target.value) || 0)} className={inputClass} />
                 </InputField>
+              </div>
+              <div className="mt-4">
+                <InputField label="Total Videos (Campaign-wide)">
+                  <input type="number" min="0" value={form.totalVideosAdmin || ""} onChange={(e) => set("totalVideosAdmin", parseInt(e.target.value) || 0)} className={inputClass} placeholder="Auto-calculated or set manually" />
+                </InputField>
+                <p className="text-[11px] text-label-faint mt-1">Admin-only. Not shown to creators.</p>
               </div>
             </div>
 
@@ -380,7 +402,7 @@
 
     // ─── Campaign Card ─────────────────────────────────────────
     function CampaignCard({ campaign, onEdit, onDelete }) {
-      const tierLabel = TIER_OPTIONS.find((t) => t.value === campaign.tier)?.label || `${campaign.tier} Creators`;
+      const tierLabel = TIER_PRESETS.find((t) => t.value === campaign.tier)?.label || `${campaign.tier} Creator${campaign.tier !== 1 ? "s" : ""}`;
       const totalDays = (campaign.onboardingDays || 14) + (campaign.phase1?.days || 15) + (campaign.phase2?.days || 15);
       const [copied, setCopied] = useState(false);
 
@@ -408,11 +430,12 @@
             </div>
           )}
 
-          <div className="grid grid-cols-4 gap-2 mb-4">
+          <div className="grid grid-cols-5 gap-2 mb-4">
             {[
               { l: "Start", v: campaign.startDate || "\u2014" },
               { l: "End", v: campaign.endDate || "\u2014" },
-              { l: "Videos", v: campaign.totalVideos },
+              { l: "Videos", v: campaign.totalVideosAdmin || campaign.totalVideos },
+              { l: "Per Creator", v: campaign.totalVideos },
               { l: "Rate", v: "$" + campaign.ratePerVideo },
             ].map((s) => (
               <div key={s.l} className="bg-surface border border-border rounded-lg px-3 py-2">
