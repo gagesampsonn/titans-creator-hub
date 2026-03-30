@@ -67,12 +67,44 @@ function saveUserData(username, campaignId, data) {
   storageSet("user_" + campaignId + "_" + username, data);
 }
 
-function getLastUser() {
-  return storageGet("last_user");
+// ============================================================
+// PIN AUTH HELPERS — { pin -> username } registry + session
+// ============================================================
+
+function getAllPinAccounts() {
+  return storageGet("pin_accounts") || {};
 }
 
-function setLastUser(username) {
-  storageSet("last_user", username);
+function savePinAccounts(accounts) {
+  storageSet("pin_accounts", accounts);
+}
+
+function registerPin(username, pin) {
+  const accounts = getAllPinAccounts();
+  accounts[pin] = username;
+  savePinAccounts(accounts);
+}
+
+function lookupPin(pin) {
+  const accounts = getAllPinAccounts();
+  return accounts[pin] || null;
+}
+
+function usernameHasPin(username) {
+  const accounts = getAllPinAccounts();
+  return Object.values(accounts).some((u) => u.toLowerCase() === username.toLowerCase());
+}
+
+function getLoggedInUser() {
+  return storageGet("logged_in_user");
+}
+
+function setLoggedInUser(username) {
+  storageSet("logged_in_user", username);
+}
+
+function clearLoggedInUser() {
+  storageSet("logged_in_user", null);
 }
 
 // ============================================================
@@ -159,20 +191,28 @@ function buildDefaultUserData(username, config) {
 // COMPONENTS
 // ============================================================
 
-function LoginScreen({ onLogin }) {
-  const [input, setInput] = useState("");
+function PinLoginScreen({ onLogin, onGoToSetup }) {
+  const [pin, setPin] = useState("");
+  const [error, setError] = useState("");
   const inputRef = useRef(null);
 
-  useEffect(() => {
-    if (inputRef.current) inputRef.current.focus();
-  }, []);
+  useEffect(() => { if (inputRef.current) inputRef.current.focus(); }, []);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const name = input.trim();
-    if (!name) return;
-    const username = name.startsWith("@") ? name : "@" + name;
-    onLogin(username);
+  const handleChange = (val) => {
+    const digits = val.replace(/\D/g, "").slice(0, 4);
+    setPin(digits);
+    setError("");
+
+    if (digits.length === 4) {
+      const username = lookupPin(digits);
+      if (username) {
+        setLoggedInUser(username);
+        onLogin(username);
+      } else {
+        setError("PIN not recognized");
+        setTimeout(() => { setPin(""); setError(""); }, 1500);
+      }
+    }
   };
 
   return (
@@ -181,28 +221,188 @@ function LoginScreen({ onLogin }) {
         <div className="text-center mb-8">
           <div className="text-4xl font-bold text-accent mb-2">⚡</div>
           <h1 className="text-2xl font-bold mb-1">Campaign Tracker</h1>
-          <p className="text-muted text-sm">Track your retainer progress</p>
+          <p className="text-muted text-sm">Enter your 4-digit PIN</p>
         </div>
 
-        <form onSubmit={handleSubmit}>
-          <label className="block text-sm text-muted mb-2">
-            Enter your Discord username
-          </label>
+        <div>
+          <div className="flex justify-center gap-3 mb-4">
+            {[0, 1, 2, 3].map((i) => (
+              <div key={i} className={`w-14 h-14 rounded-xl border-2 flex items-center justify-center text-2xl font-bold transition-all ${
+                pin.length > i ? "border-accent bg-accent/10 text-white" : "border-muted/30 bg-dark-bg text-muted"
+              }`}>
+                {pin[i] ? "•" : ""}
+              </div>
+            ))}
+          </div>
+
           <input
             ref={inputRef}
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="@janedoe"
-            className="w-full bg-dark-bg border border-muted rounded-xl px-4 py-4 text-lg text-white placeholder-muted focus:outline-none focus:border-accent transition-colors min-h-[48px]"
+            type="tel"
+            inputMode="numeric"
+            maxLength={4}
+            value={pin}
+            onChange={(e) => handleChange(e.target.value)}
+            className="absolute opacity-0 w-0 h-0"
+            autoFocus
           />
-          <button
-            type="submit"
-            className="w-full mt-4 bg-accent hover:bg-accent-hover text-white font-bold text-lg rounded-xl py-4 transition-colors min-h-[48px] active:scale-95"
-          >
-            Start Tracking
+
+          {/* Tap area to refocus hidden input */}
+          <button type="button" onClick={() => inputRef.current?.focus()}
+            className="w-full py-3 text-center text-sm text-muted">
+            {error ? <span className="text-red-400">{error}</span> : "Tap to type your PIN"}
           </button>
-        </form>
+        </div>
+
+        <div className="mt-6 pt-6 border-t border-muted/20 text-center">
+          <p className="text-muted text-xs mb-3">First time here?</p>
+          <button onClick={onGoToSetup}
+            className="w-full bg-dark-bg border border-muted/30 text-white font-semibold rounded-xl py-3 text-sm hover:border-accent transition-colors active:scale-95">
+            Set Up My Account
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SetupScreen({ onComplete, onBack }) {
+  const [step, setStep] = useState(1); // 1 = discord handle, 2 = create pin, 3 = confirm pin
+  const [handle, setHandle] = useState("");
+  const [pin, setPin] = useState("");
+  const [confirmPin, setConfirmPin] = useState("");
+  const [error, setError] = useState("");
+  const handleRef = useRef(null);
+  const pinRef = useRef(null);
+  const confirmRef = useRef(null);
+
+  useEffect(() => { if (handleRef.current) handleRef.current.focus(); }, []);
+  useEffect(() => { if (step === 2 && pinRef.current) pinRef.current.focus(); }, [step]);
+  useEffect(() => { if (step === 3 && confirmRef.current) confirmRef.current.focus(); }, [step]);
+
+  const handleHandleSubmit = (e) => {
+    e.preventDefault();
+    const name = handle.trim();
+    if (!name) return;
+    const username = name.startsWith("@") ? name : "@" + name;
+    setHandle(username);
+
+    if (usernameHasPin(username)) {
+      setError("This Discord handle already has a PIN. Use the PIN login instead.");
+      return;
+    }
+
+    const campaigns = getCampaignsForUser(username);
+    if (campaigns.length === 0) {
+      setError("No campaigns found for this handle. Contact your campaign manager.");
+      return;
+    }
+
+    setError("");
+    setStep(2);
+  };
+
+  const handlePinInput = (val) => {
+    const digits = val.replace(/\D/g, "").slice(0, 4);
+    setPin(digits);
+    setError("");
+    if (digits.length === 4) {
+      if (lookupPin(digits)) {
+        setError("This PIN is already taken. Choose a different one.");
+        setTimeout(() => { setPin(""); setError(""); }, 1500);
+        return;
+      }
+      setStep(3);
+    }
+  };
+
+  const handleConfirmInput = (val) => {
+    const digits = val.replace(/\D/g, "").slice(0, 4);
+    setConfirmPin(digits);
+    setError("");
+    if (digits.length === 4) {
+      if (digits !== pin) {
+        setError("PINs don't match. Try again.");
+        setTimeout(() => { setConfirmPin(""); setError(""); }, 1500);
+        return;
+      }
+      registerPin(handle, pin);
+      setLoggedInUser(handle);
+      onComplete(handle);
+    }
+  };
+
+  const PinDots = ({ value, inputRef: ref }) => (
+    <div>
+      <div className="flex justify-center gap-3 mb-4">
+        {[0, 1, 2, 3].map((i) => (
+          <div key={i} className={`w-14 h-14 rounded-xl border-2 flex items-center justify-center text-2xl font-bold transition-all ${
+            value.length > i ? "border-accent bg-accent/10 text-white" : "border-muted/30 bg-dark-bg text-muted"
+          }`}>
+            {value[i] ? "•" : ""}
+          </div>
+        ))}
+      </div>
+      <input ref={ref} type="tel" inputMode="numeric" maxLength={4} value={value}
+        onChange={(e) => step === 2 ? handlePinInput(e.target.value) : handleConfirmInput(e.target.value)}
+        className="absolute opacity-0 w-0 h-0" autoFocus />
+      <button type="button" onClick={() => ref.current?.focus()}
+        className="w-full py-2 text-center text-sm text-muted">
+        {error ? <span className="text-red-400">{error}</span> : "Tap to type"}
+      </button>
+    </div>
+  );
+
+  return (
+    <div className="min-h-screen flex items-center justify-center p-4">
+      <div className="bg-dark-card rounded-2xl p-8 w-full max-w-sm shadow-2xl">
+        <div className="text-center mb-6">
+          <div className="text-4xl mb-2">⚡</div>
+          <h1 className="text-2xl font-bold mb-1">
+            {step === 1 ? "Link Your Discord" : step === 2 ? "Create a PIN" : "Confirm PIN"}
+          </h1>
+          <p className="text-muted text-sm">
+            {step === 1 ? "Enter your Discord handle to get started" : step === 2 ? "Choose a 4-digit PIN for quick login" : "Enter your PIN one more time"}
+          </p>
+
+          {/* Progress dots */}
+          <div className="flex justify-center gap-2 mt-4">
+            {[1, 2, 3].map((s) => (
+              <div key={s} className={`w-2 h-2 rounded-full transition-all ${step >= s ? "bg-accent" : "bg-muted/30"}`} />
+            ))}
+          </div>
+        </div>
+
+        {step === 1 && (
+          <form onSubmit={handleHandleSubmit}>
+            <input ref={handleRef} type="text" value={handle}
+              onChange={(e) => { setHandle(e.target.value); setError(""); }}
+              placeholder="@yourname"
+              className="w-full bg-dark-bg border border-muted rounded-xl px-4 py-4 text-lg text-white placeholder-muted focus:outline-none focus:border-accent transition-colors" />
+            {error && <p className="text-red-400 text-sm mt-2">{error}</p>}
+            <button type="submit"
+              className="w-full mt-4 bg-accent hover:bg-accent-hover text-white font-bold text-lg rounded-xl py-4 transition-colors active:scale-95">
+              Continue
+            </button>
+          </form>
+        )}
+
+        {step === 2 && (
+          <div>
+            <p className="text-center text-sm text-white mb-4">Setting up as <span className="text-accent font-semibold">{handle}</span></p>
+            <PinDots value={pin} inputRef={pinRef} />
+          </div>
+        )}
+
+        {step === 3 && (
+          <PinDots value={confirmPin} inputRef={confirmRef} />
+        )}
+
+        <div className="mt-6 text-center">
+          <button onClick={step === 1 ? onBack : () => { setStep(step - 1); setPin(""); setConfirmPin(""); setError(""); }}
+            className="text-sm text-muted hover:text-white transition-colors">
+            ← Back
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -218,7 +418,7 @@ function NoCampaignsScreen({ username, onSwitchUser }) {
           There are no active campaigns assigned to <span className="text-white font-semibold">{username}</span>. Contact your campaign manager if you believe this is an error.
         </p>
         <button onClick={onSwitchUser} className="w-full bg-accent hover:bg-accent-hover text-white font-bold rounded-xl py-3 transition-colors">
-          Try Different Username
+          Back to Login
         </button>
       </div>
     </div>
@@ -233,7 +433,7 @@ function CampaignPicker({ campaigns, onSelect, username, onSwitchUser }) {
           <h1 className="text-xl font-bold">Your Campaigns</h1>
           <p className="text-muted text-sm">Logged in as <span className="text-white font-semibold">{username}</span></p>
         </div>
-        <button onClick={onSwitchUser} className="text-xs text-accent hover:underline">Switch user</button>
+        <button onClick={onSwitchUser} className="text-xs text-accent hover:underline">Log out</button>
       </div>
       <div className="space-y-3">
         {campaigns.map((c) => (
@@ -274,7 +474,7 @@ function CampaignHeader({ config, userData, onSwitchUser, onBack, showBack }) {
         <div className="flex items-center gap-3">
           {showBack && <button onClick={onBack} className="text-xs text-muted hover:text-white">← Campaigns</button>}
           <button onClick={onSwitchUser} className="text-xs text-accent hover:underline">
-            Switch user
+            Log out
           </button>
         </div>
       </div>
@@ -553,26 +753,31 @@ function App() {
   const [user, setUser] = useState(null);
   const [campaigns, setCampaigns] = useState([]);
   const [selectedCampaign, setSelectedCampaign] = useState(null);
+  const [screen, setScreen] = useState("loading"); // loading | pin | setup | app
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
-    const lastUser = getLastUser();
-    if (lastUser) {
-      const userCampaigns = getCampaignsForUser(lastUser);
+    const loggedIn = getLoggedInUser();
+    if (loggedIn) {
+      const userCampaigns = getCampaignsForUser(loggedIn);
       if (userCampaigns.length > 0) {
-        setUser(lastUser);
+        setUser(loggedIn);
         setCampaigns(userCampaigns);
         if (userCampaigns.length === 1) {
           setSelectedCampaign(userCampaigns[0]);
         }
+        setScreen("app");
+      } else {
+        setScreen("pin");
       }
+    } else {
+      setScreen("pin");
     }
     setLoaded(true);
   }, []);
 
-  const handleLogin = (username) => {
+  const loginAs = (username) => {
     const userCampaigns = getCampaignsForUser(username);
-    setLastUser(username);
     setUser(username);
     setCampaigns(userCampaigns);
     if (userCampaigns.length === 1) {
@@ -580,13 +785,15 @@ function App() {
     } else {
       setSelectedCampaign(null);
     }
+    setScreen(userCampaigns.length === 0 ? "no-campaigns" : "app");
   };
 
-  const handleSwitchUser = () => {
+  const handleLogout = () => {
+    clearLoggedInUser();
     setUser(null);
     setCampaigns([]);
     setSelectedCampaign(null);
-    storageSet("last_user", null);
+    setScreen("pin");
   };
 
   if (!loaded) {
@@ -597,28 +804,36 @@ function App() {
     );
   }
 
-  if (!user) {
-    return <LoginScreen onLogin={handleLogin} />;
+  if (screen === "pin") {
+    return <PinLoginScreen onLogin={loginAs} onGoToSetup={() => setScreen("setup")} />;
   }
 
-  if (campaigns.length === 0) {
-    return <NoCampaignsScreen username={user} onSwitchUser={handleSwitchUser} />;
+  if (screen === "setup") {
+    return <SetupScreen onComplete={loginAs} onBack={() => setScreen("pin")} />;
   }
 
-  if (!selectedCampaign) {
-    return <CampaignPicker campaigns={campaigns} onSelect={setSelectedCampaign} username={user} onSwitchUser={handleSwitchUser} />;
+  if (screen === "no-campaigns" || (screen === "app" && campaigns.length === 0)) {
+    return <NoCampaignsScreen username={user} onSwitchUser={handleLogout} />;
   }
 
-  return (
-    <CampaignView
-      key={selectedCampaign.id}
-      config={selectedCampaign}
-      user={user}
-      onSwitchUser={handleSwitchUser}
-      onBack={() => setSelectedCampaign(null)}
-      showBack={campaigns.length > 1}
-    />
-  );
+  if (screen === "app" && !selectedCampaign) {
+    return <CampaignPicker campaigns={campaigns} onSelect={setSelectedCampaign} username={user} onSwitchUser={handleLogout} />;
+  }
+
+  if (screen === "app" && selectedCampaign) {
+    return (
+      <CampaignView
+        key={selectedCampaign.id}
+        config={selectedCampaign}
+        user={user}
+        onSwitchUser={handleLogout}
+        onBack={() => setSelectedCampaign(null)}
+        showBack={campaigns.length > 1}
+      />
+    );
+  }
+
+  return null;
 }
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
