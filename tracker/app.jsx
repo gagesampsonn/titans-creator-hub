@@ -1,201 +1,59 @@
 const { useState, useEffect, useRef, useMemo } = React;
 
 // ============================================================
-// FALLBACK CONFIG — Used if no admin-created campaigns exist
+// FALLBACK CONFIG
 // ============================================================
 const FALLBACK_CONFIG = {
-  id: "legacy",
-  brandName: "Natural Stacks",
-  productName: "Dopamine Brain Food",
-  ratePerVideo: 25,
-  totalVideos: 15,
-  startDate: "2026-03-25",
-  endDate: "2026-04-24",
-  briefLink: "https://discord.com/channels/...",
-  showcaseLink: "https://affiliate-us.tiktok.com/api/v1/share/AJK4Uc0dUuXO",
-  tier: 10,
-  creators: [],
+  id: "legacy", brandName: "Natural Stacks", productName: "Dopamine Brain Food",
+  ratePerVideo: 25, totalVideos: 15, startDate: "2026-03-25", endDate: "2026-04-24",
+  briefLink: "", showcaseLink: "", tier: 10, creators: [],
 };
 
 // ============================================================
 // STORAGE HELPERS
 // ============================================================
 const STORAGE_PREFIX = "retainers_";
+function storageGet(key) { try { const v = localStorage.getItem(STORAGE_PREFIX + key); return v ? JSON.parse(v) : null; } catch { return null; } }
+function storageSet(key, value) { try { if (value == null) { localStorage.removeItem(STORAGE_PREFIX + key); return; } localStorage.setItem(STORAGE_PREFIX + key, JSON.stringify(value)); } catch (e) { console.error("Storage write failed:", e); } }
 
-function storageGet(key) {
-  try {
-    const val = window.localStorage.getItem(STORAGE_PREFIX + key);
-    return val ? JSON.parse(val) : null;
-  } catch {
-    return null;
-  }
-}
-
-function storageSet(key, value) {
-  try {
-    if (value === null || typeof value === "undefined") {
-      window.localStorage.removeItem(STORAGE_PREFIX + key);
-      return;
-    }
-    window.localStorage.setItem(STORAGE_PREFIX + key, JSON.stringify(value));
-  } catch (e) {
-    console.error("Storage write failed:", e);
-  }
-}
-
-function loadCampaigns() {
-  try {
-    const raw = localStorage.getItem("retainers_campaigns");
-    return raw ? JSON.parse(raw) : [];
-  } catch { return []; }
-}
-
+function loadCampaigns() { try { const r = localStorage.getItem("retainers_campaigns"); return r ? JSON.parse(r) : []; } catch { return []; } }
 function getCampaignsForUser(username) {
   const campaigns = loadCampaigns();
   if (campaigns.length === 0) return [FALLBACK_CONFIG];
-  const matched = campaigns.filter((c) =>
-    c.creators && c.creators.some((h) => h.toLowerCase() === username.toLowerCase())
-  );
-  return matched;
+  return campaigns.filter(c => c.creators?.some(h => h.toLowerCase() === username.toLowerCase()));
 }
+function getCampaignBySlug(slug) { return loadCampaigns().find(c => c.slug?.toLowerCase() === slug.toLowerCase()) || null; }
+function getSlugFromURL() { const p = window.location.pathname.replace(/^\/|\/$/g, ""); if (!p || p === "tracker" || p === "adminmanage") return null; return p; }
 
-function getCampaignBySlug(slug) {
-  const campaigns = loadCampaigns();
-  return campaigns.find((c) => c.slug && c.slug.toLowerCase() === slug.toLowerCase()) || null;
-}
+function loadUserData(username, campaignId) { return storageGet("user_" + campaignId + "_" + username); }
+function saveUserData(username, campaignId, data) { storageSet("user_" + campaignId + "_" + username, data); }
 
-function getSlugFromURL() {
-  const path = window.location.pathname.replace(/^\/|\/$/g, "");
-  if (!path || path === "tracker" || path === "adminmanage") return null;
-  return path;
-}
-
-function loadUserData(username, campaignId) {
-  return storageGet("user_" + campaignId + "_" + username);
-}
-
-function saveUserData(username, campaignId, data) {
-  storageSet("user_" + campaignId + "_" + username, data);
-}
+// PIN Auth
+function getAllPinAccounts() { return storageGet("pin_accounts") || {}; }
+function savePinAccounts(a) { storageSet("pin_accounts", a); }
+function registerPin(username, pin) { const a = getAllPinAccounts(); a[pin] = username; savePinAccounts(a); }
+function lookupPin(pin) { return getAllPinAccounts()[pin] || null; }
+function usernameHasPin(username) { return Object.values(getAllPinAccounts()).some(u => u.toLowerCase() === username.toLowerCase()); }
+function getLoggedInUser() { return storageGet("logged_in_user"); }
+function setLoggedInUser(u) { storageSet("logged_in_user", u); }
+function clearLoggedInUser() { storageSet("logged_in_user", null); }
 
 // ============================================================
-// PIN AUTH HELPERS — { pin -> username } registry + session
+// DATE UTILITIES
 // ============================================================
-
-function getAllPinAccounts() {
-  return storageGet("pin_accounts") || {};
-}
-
-function savePinAccounts(accounts) {
-  storageSet("pin_accounts", accounts);
-}
-
-function registerPin(username, pin) {
-  const accounts = getAllPinAccounts();
-  accounts[pin] = username;
-  savePinAccounts(accounts);
-}
-
-function lookupPin(pin) {
-  const accounts = getAllPinAccounts();
-  return accounts[pin] || null;
-}
-
-function usernameHasPin(username) {
-  const accounts = getAllPinAccounts();
-  return Object.values(accounts).some((u) => u.toLowerCase() === username.toLowerCase());
-}
-
-function getLoggedInUser() {
-  return storageGet("logged_in_user");
-}
-
-function setLoggedInUser(username) {
-  storageSet("logged_in_user", username);
-}
-
-function clearLoggedInUser() {
-  storageSet("logged_in_user", null);
-}
-
-// ============================================================
-// DATE & CAMPAIGN UTILITIES
-// ============================================================
-
-function parseDate(dateStr) {
-  const [y, m, d] = dateStr.split("-").map(Number);
-  return new Date(y, m - 1, d);
-}
-
-function formatDateShort(date) {
-  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-}
-
-function formatDateISO(date) {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, "0");
-  const d = String(date.getDate()).padStart(2, "0");
-  return `${y}-${m}-${d}`;
-}
-
-function getCampaignDays(config) {
-  const start = parseDate(config.startDate);
-  const end = parseDate(config.endDate);
-  const days = [];
-  const current = new Date(start);
-  while (current <= end) {
-    days.push(formatDateISO(current));
-    current.setDate(current.getDate() + 1);
-  }
-  return days;
-}
-
-function getTodayISO() {
-  return formatDateISO(new Date());
-}
-
-function getDaysRemaining(config) {
-  const end = parseDate(config.endDate);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const diff = Math.ceil((end - today) / (1000 * 60 * 60 * 24));
-  return Math.max(0, diff);
-}
-
-function getPostedCount(days) {
-  return Object.values(days).filter((d) => d.posted).length;
-}
-
-function getCurrentStreak(campaignDays, daysData) {
-  let streak = 0;
-  const today = getTodayISO();
-  for (let i = campaignDays.length - 1; i >= 0; i--) {
-    if (campaignDays[i] > today) continue;
-    if (daysData[campaignDays[i]]?.posted) {
-      streak++;
-    } else {
-      break;
-    }
-  }
-  return streak;
-}
+function parseDate(s) { const [y, m, d] = s.split("-").map(Number); return new Date(y, m - 1, d); }
+function formatDateShort(d) { return d.toLocaleDateString("en-US", { month: "short", day: "numeric" }); }
+function formatDateISO(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; }
+function getCampaignDays(config) { const s = parseDate(config.startDate), e = parseDate(config.endDate), days = [], c = new Date(s); while(c <= e) { days.push(formatDateISO(c)); c.setDate(c.getDate()+1); } return days; }
+function getTodayISO() { return formatDateISO(new Date()); }
+function getDaysRemaining(config) { const e = parseDate(config.endDate), t = new Date(); t.setHours(0,0,0,0); return Math.max(0, Math.ceil((e - t) / 86400000)); }
+function getPostedCount(days) { return Object.values(days).filter(d => d.posted).length; }
+function getCurrentStreak(campaignDays, daysData) { let s = 0; const t = getTodayISO(); for (let i = campaignDays.length - 1; i >= 0; i--) { if (campaignDays[i] > t) continue; if (daysData[campaignDays[i]]?.posted) s++; else break; } return s; }
 
 function buildDefaultUserData(username, config) {
   const campaignDays = getCampaignDays(config);
-  const days = {};
-  campaignDays.forEach((date) => {
-    days[date] = { posted: false, link: "" };
-  });
-  return {
-    username,
-    campaignId: config.id,
-    campaign: config.brandName.toLowerCase().replace(/\s+/g, "-"),
-    rate: config.ratePerVideo,
-    totalVideos: config.totalVideos,
-    startDate: config.startDate,
-    endDate: config.endDate,
-    days,
-  };
+  const days = {}; campaignDays.forEach(d => { days[d] = { posted: false, link: "" }; });
+  return { username, campaignId: config.id, campaign: config.brandName.toLowerCase().replace(/\s+/g, "-"), rate: config.ratePerVideo, totalVideos: config.totalVideos, startDate: config.startDate, endDate: config.endDate, days };
 }
 
 // ============================================================
@@ -205,70 +63,46 @@ function buildDefaultUserData(username, config) {
 function PinLoginScreen({ onLogin, onGoToSetup }) {
   const [pin, setPin] = useState("");
   const [error, setError] = useState("");
-  const inputRef = useRef(null);
-
-  useEffect(() => { if (inputRef.current) inputRef.current.focus(); }, []);
+  const ref = useRef(null);
+  useEffect(() => { if (ref.current) ref.current.focus(); }, []);
 
   const handleChange = (val) => {
     const digits = val.replace(/\D/g, "").slice(0, 4);
-    setPin(digits);
-    setError("");
-
+    setPin(digits); setError("");
     if (digits.length === 4) {
-      const username = lookupPin(digits);
-      if (username) {
-        setLoggedInUser(username);
-        onLogin(username);
-      } else {
-        setError("PIN not recognized");
-        setTimeout(() => { setPin(""); setError(""); }, 1500);
-      }
+      const u = lookupPin(digits);
+      if (u) { setLoggedInUser(u); onLogin(u); }
+      else { setError("PIN not recognized"); setTimeout(() => { setPin(""); setError(""); }, 1500); }
     }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
-      <div className="bg-dark-card rounded-2xl p-8 w-full max-w-sm shadow-2xl">
-        <div className="text-center mb-8">
-          <div className="text-4xl font-bold text-accent mb-2">⚡</div>
-          <h1 className="text-2xl font-bold mb-1">Campaign Tracker</h1>
-          <p className="text-muted text-sm">Enter your 4-digit PIN</p>
+      <div className="bg-surface-raised border border-border rounded-xl p-8 w-full max-w-sm">
+        <div className="mb-8">
+          <h1 className="text-[20px] font-bold text-primary mb-1">Campaign Tracker</h1>
+          <p className="text-[13px] text-label-dim">Enter your 4-digit PIN to continue.</p>
         </div>
 
         <div>
-          <div className="flex justify-center gap-3 mb-4">
-            {[0, 1, 2, 3].map((i) => (
-              <div key={i} className={`w-14 h-14 rounded-xl border-2 flex items-center justify-center text-2xl font-bold transition-all ${
-                pin.length > i ? "border-accent bg-accent/10 text-white" : "border-muted/30 bg-dark-bg text-muted"
-              }`}>
-                {pin[i] ? "•" : ""}
+          <div className="flex justify-center gap-3 mb-3">
+            {[0,1,2,3].map(i => (
+              <div key={i} className={`w-12 h-12 rounded-lg border flex items-center justify-center text-[18px] font-bold transition-all ${pin.length > i ? "border-label-dim bg-surface-overlay text-primary" : "border-border bg-surface text-label-faint"}`}>
+                {pin[i] ? "\u2022" : ""}
               </div>
             ))}
           </div>
-
-          <input
-            ref={inputRef}
-            type="tel"
-            inputMode="numeric"
-            maxLength={4}
-            value={pin}
-            onChange={(e) => handleChange(e.target.value)}
-            className="absolute opacity-0 w-0 h-0"
-            autoFocus
-          />
-
-          {/* Tap area to refocus hidden input */}
-          <button type="button" onClick={() => inputRef.current?.focus()}
-            className="w-full py-3 text-center text-sm text-muted">
-            {error ? <span className="text-red-400">{error}</span> : "Tap to type your PIN"}
+          <input ref={ref} type="tel" inputMode="numeric" maxLength={4} value={pin}
+            onChange={(e) => handleChange(e.target.value)} className="absolute opacity-0 w-0 h-0" autoFocus />
+          <button type="button" onClick={() => ref.current?.focus()} className="w-full py-2 text-center text-[13px] text-label-faint">
+            {error ? <span className="text-red-400">{error}</span> : "Tap to enter PIN"}
           </button>
         </div>
 
-        <div className="mt-6 pt-6 border-t border-muted/20 text-center">
-          <p className="text-muted text-xs mb-3">First time here?</p>
-          <button onClick={onGoToSetup}
-            className="w-full bg-dark-bg border border-muted/30 text-white font-semibold rounded-xl py-3 text-sm hover:border-accent transition-colors active:scale-95">
-            Set Up My Account
+        <div className="mt-6 pt-6 border-t border-border text-center">
+          <p className="text-label-faint text-[12px] mb-3">First time here?</p>
+          <button onClick={onGoToSetup} className="w-full bg-surface-overlay border border-border text-primary font-medium rounded-lg py-2.5 text-[13px] hover:border-border-light transition-colors">
+            Set Up Account
           </button>
         </div>
       </div>
@@ -277,7 +111,7 @@ function PinLoginScreen({ onLogin, onGoToSetup }) {
 }
 
 function SetupScreen({ onComplete, onBack }) {
-  const [step, setStep] = useState(1); // 1 = discord handle, 2 = create pin, 3 = confirm pin
+  const [step, setStep] = useState(1);
   const [handle, setHandle] = useState("");
   const [pin, setPin] = useState("");
   const [confirmPin, setConfirmPin] = useState("");
@@ -292,128 +126,91 @@ function SetupScreen({ onComplete, onBack }) {
 
   const handleHandleSubmit = (e) => {
     e.preventDefault();
-    const name = handle.trim();
-    if (!name) return;
+    const name = handle.trim(); if (!name) return;
     const username = name.startsWith("@") ? name : "@" + name;
     setHandle(username);
-
-    if (usernameHasPin(username)) {
-      setError("This Discord handle already has a PIN. Use the PIN login instead.");
-      return;
-    }
-
+    if (usernameHasPin(username)) { setError("This handle already has a PIN. Use PIN login instead."); return; }
     const campaigns = getCampaignsForUser(username);
-    if (campaigns.length === 0) {
-      setError("No campaigns found for this handle. Contact your campaign manager.");
-      return;
-    }
-
-    setError("");
-    setStep(2);
+    if (campaigns.length === 0) { setError("No campaigns found for this handle."); return; }
+    setError(""); setStep(2);
   };
 
   const handlePinInput = (val) => {
-    const digits = val.replace(/\D/g, "").slice(0, 4);
-    setPin(digits);
-    setError("");
-    if (digits.length === 4) {
-      if (lookupPin(digits)) {
-        setError("This PIN is already taken. Choose a different one.");
-        setTimeout(() => { setPin(""); setError(""); }, 1500);
-        return;
-      }
-      setStep(3);
-    }
+    const d = val.replace(/\D/g, "").slice(0, 4); setPin(d); setError("");
+    if (d.length === 4) { if (lookupPin(d)) { setError("PIN taken. Choose another."); setTimeout(() => { setPin(""); setError(""); }, 1500); return; } setStep(3); }
   };
 
   const handleConfirmInput = (val) => {
-    const digits = val.replace(/\D/g, "").slice(0, 4);
-    setConfirmPin(digits);
-    setError("");
-    if (digits.length === 4) {
-      if (digits !== pin) {
-        setError("PINs don't match. Try again.");
-        setTimeout(() => { setConfirmPin(""); setError(""); }, 1500);
-        return;
-      }
-      registerPin(handle, pin);
-      setLoggedInUser(handle);
-      onComplete(handle);
-    }
+    const d = val.replace(/\D/g, "").slice(0, 4); setConfirmPin(d); setError("");
+    if (d.length === 4) { if (d !== pin) { setError("PINs don't match."); setTimeout(() => { setConfirmPin(""); setError(""); }, 1500); return; } registerPin(handle, pin); setLoggedInUser(handle); onComplete(handle); }
   };
 
-  const PinDots = ({ value, inputRef: ref }) => (
+  const PinDots = ({ value, inputRef: r }) => (
     <div>
-      <div className="flex justify-center gap-3 mb-4">
-        {[0, 1, 2, 3].map((i) => (
-          <div key={i} className={`w-14 h-14 rounded-xl border-2 flex items-center justify-center text-2xl font-bold transition-all ${
-            value.length > i ? "border-accent bg-accent/10 text-white" : "border-muted/30 bg-dark-bg text-muted"
-          }`}>
-            {value[i] ? "•" : ""}
+      <div className="flex justify-center gap-3 mb-3">
+        {[0,1,2,3].map(i => (
+          <div key={i} className={`w-12 h-12 rounded-lg border flex items-center justify-center text-[18px] font-bold transition-all ${value.length > i ? "border-label-dim bg-surface-overlay text-primary" : "border-border bg-surface text-label-faint"}`}>
+            {value[i] ? "\u2022" : ""}
           </div>
         ))}
       </div>
-      <input ref={ref} type="tel" inputMode="numeric" maxLength={4} value={value}
+      <input ref={r} type="tel" inputMode="numeric" maxLength={4} value={value}
         onChange={(e) => step === 2 ? handlePinInput(e.target.value) : handleConfirmInput(e.target.value)}
         className="absolute opacity-0 w-0 h-0" autoFocus />
-      <button type="button" onClick={() => ref.current?.focus()}
-        className="w-full py-2 text-center text-sm text-muted">
-        {error ? <span className="text-red-400">{error}</span> : "Tap to type"}
+      <button type="button" onClick={() => r.current?.focus()} className="w-full py-2 text-center text-[13px] text-label-faint">
+        {error ? <span className="text-red-400">{error}</span> : "Tap to enter"}
       </button>
     </div>
   );
 
+  const titles = ["Link Your Discord", "Create a PIN", "Confirm PIN"];
+  const descs = ["Enter your Discord handle to get started.", "Choose a 4-digit PIN for quick access.", "Enter your PIN one more time to confirm."];
+
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
-      <div className="bg-dark-card rounded-2xl p-8 w-full max-w-sm shadow-2xl">
-        <div className="text-center mb-6">
-          <div className="text-4xl mb-2">⚡</div>
-          <h1 className="text-2xl font-bold mb-1">
-            {step === 1 ? "Link Your Discord" : step === 2 ? "Create a PIN" : "Confirm PIN"}
-          </h1>
-          <p className="text-muted text-sm">
-            {step === 1 ? "Enter your Discord handle to get started" : step === 2 ? "Choose a 4-digit PIN for quick login" : "Enter your PIN one more time"}
-          </p>
-
-          {/* Progress dots */}
-          <div className="flex justify-center gap-2 mt-4">
-            {[1, 2, 3].map((s) => (
-              <div key={s} className={`w-2 h-2 rounded-full transition-all ${step >= s ? "bg-accent" : "bg-muted/30"}`} />
-            ))}
+      <div className="bg-surface-raised border border-border rounded-xl p-8 w-full max-w-sm">
+        <div className="mb-6">
+          <h1 className="text-[20px] font-bold text-primary mb-1">{titles[step - 1]}</h1>
+          <p className="text-[13px] text-label-dim">{descs[step - 1]}</p>
+          <div className="flex gap-1.5 mt-4">
+            {[1,2,3].map(s => <div key={s} className={`h-0.5 flex-1 rounded-full ${step >= s ? "bg-primary" : "bg-border"}`} />)}
           </div>
         </div>
 
         {step === 1 && (
           <form onSubmit={handleHandleSubmit}>
             <input ref={handleRef} type="text" value={handle}
-              onChange={(e) => { setHandle(e.target.value); setError(""); }}
-              placeholder="@yourname"
-              className="w-full bg-dark-bg border border-muted rounded-xl px-4 py-4 text-lg text-white placeholder-muted focus:outline-none focus:border-accent transition-colors" />
-            {error && <p className="text-red-400 text-sm mt-2">{error}</p>}
-            <button type="submit"
-              className="w-full mt-4 bg-accent hover:bg-accent-hover text-white font-bold text-lg rounded-xl py-4 transition-colors active:scale-95">
-              Continue
-            </button>
+              onChange={(e) => { setHandle(e.target.value); setError(""); }} placeholder="@yourname"
+              className="w-full bg-surface-overlay border border-border rounded-lg px-3.5 py-3 text-[15px] text-primary placeholder-label-faint focus:outline-none focus:border-label-dim transition-colors" />
+            {error && <p className="text-red-400 text-[12px] mt-2">{error}</p>}
+            <button type="submit" className="w-full mt-4 bg-primary text-surface font-semibold rounded-lg py-3 text-[14px] hover:bg-accent transition-all">Continue</button>
           </form>
         )}
 
         {step === 2 && (
           <div>
-            <p className="text-center text-sm text-white mb-4">Setting up as <span className="text-accent font-semibold">{handle}</span></p>
+            <p className="text-center text-[13px] text-label mb-4">Setting up as <span className="text-primary font-semibold">{handle}</span></p>
             <PinDots value={pin} inputRef={pinRef} />
           </div>
         )}
 
-        {step === 3 && (
-          <PinDots value={confirmPin} inputRef={confirmRef} />
-        )}
+        {step === 3 && <PinDots value={confirmPin} inputRef={confirmRef} />}
 
         <div className="mt-6 text-center">
           <button onClick={step === 1 ? onBack : () => { setStep(step - 1); setPin(""); setConfirmPin(""); setError(""); }}
-            className="text-sm text-muted hover:text-white transition-colors">
-            ← Back
-          </button>
+            className="text-[13px] text-label-faint hover:text-primary transition-colors">Back</button>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function CampaignNotFound({ slug }) {
+  return (
+    <div className="min-h-screen flex items-center justify-center p-4">
+      <div className="bg-surface-raised border border-border rounded-xl p-8 w-full max-w-sm text-center">
+        <h2 className="text-[18px] font-bold text-primary mb-2">Campaign Not Found</h2>
+        <p className="text-[13px] text-label-dim">No campaign exists at <span className="text-primary font-mono">/{slug}</span></p>
       </div>
     </div>
   );
@@ -422,15 +219,10 @@ function SetupScreen({ onComplete, onBack }) {
 function NoCampaignsScreen({ username, onSwitchUser }) {
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
-      <div className="bg-dark-card rounded-2xl p-8 w-full max-w-sm shadow-2xl text-center">
-        <div className="text-4xl mb-4">🔍</div>
-        <h2 className="text-xl font-bold mb-2">No Campaigns Found</h2>
-        <p className="text-muted text-sm mb-6">
-          There are no active campaigns assigned to <span className="text-white font-semibold">{username}</span>. Contact your campaign manager if you believe this is an error.
-        </p>
-        <button onClick={onSwitchUser} className="w-full bg-accent hover:bg-accent-hover text-white font-bold rounded-xl py-3 transition-colors">
-          Back to Login
-        </button>
+      <div className="bg-surface-raised border border-border rounded-xl p-8 w-full max-w-sm text-center">
+        <h2 className="text-[18px] font-bold text-primary mb-2">No Campaigns Found</h2>
+        <p className="text-[13px] text-label-dim mb-6">No active campaigns assigned to <span className="text-primary font-semibold">{username}</span>.</p>
+        <button onClick={onSwitchUser} className="w-full bg-primary text-surface font-semibold rounded-lg py-2.5 text-[14px] hover:bg-accent transition-all">Back to Login</button>
       </div>
     </div>
   );
@@ -441,24 +233,23 @@ function CampaignPicker({ campaigns, onSelect, username, onSwitchUser }) {
     <div className="max-w-lg mx-auto px-4 pt-8 pb-8">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-xl font-bold">Your Campaigns</h1>
-          <p className="text-muted text-sm">Logged in as <span className="text-white font-semibold">{username}</span></p>
+          <h1 className="text-[18px] font-bold text-primary">Your Campaigns</h1>
+          <p className="text-[13px] text-label-dim">Logged in as <span className="text-primary font-medium">{username}</span></p>
         </div>
-        <button onClick={onSwitchUser} className="text-xs text-accent hover:underline">Log out</button>
+        <button onClick={onSwitchUser} className="text-[12px] text-label-faint hover:text-primary transition-colors">Log out</button>
       </div>
-      <div className="space-y-3">
-        {campaigns.map((c) => (
+      <div className="space-y-2">
+        {campaigns.map(c => (
           <button key={c.id} onClick={() => onSelect(c)}
-            className="w-full bg-dark-card rounded-2xl p-5 text-left border border-muted/10 hover:border-accent/50 transition-all active:scale-[0.98]">
+            className="w-full bg-surface-raised border border-border rounded-xl p-5 text-left hover:border-border-light transition-all">
             <div className="flex items-center justify-between mb-1">
-              <h3 className="text-lg font-bold">{c.brandName}</h3>
-              <span className="text-xs text-accent font-bold">{c.tier || "—"} creators</span>
+              <h3 className="text-[15px] font-bold text-primary">{c.brandName}</h3>
+              <span className="text-[11px] text-label-faint font-medium">{c.tier} creators</span>
             </div>
-            {c.productName && <p className="text-sm text-muted mb-2">{c.productName}</p>}
-            <div className="flex gap-3 text-xs text-muted">
-              <span>{c.startDate} → {c.endDate}</span>
+            {c.productName && <p className="text-[13px] text-label-dim mb-2">{c.productName}</p>}
+            <div className="flex gap-4 text-[12px] text-label-faint">
+              <span>{c.startDate} &rarr; {c.endDate}</span>
               <span>${c.ratePerVideo}/video</span>
-              <span>{c.totalVideos} videos</span>
             </div>
           </button>
         ))}
@@ -470,59 +261,43 @@ function CampaignPicker({ campaigns, onSelect, username, onSwitchUser }) {
 function CampaignHeader({ config, userData, onSwitchUser, onBack, showBack }) {
   const posted = getPostedCount(userData.days);
   const total = config.totalVideos;
-  const pct = Math.round((posted / total) * 100);
+  const pct = total > 0 ? Math.round((posted / total) * 100) : 0;
   const earned = posted * config.ratePerVideo;
-  const totalComp = total * config.ratePerVideo;
   const remaining = getDaysRemaining(config);
 
   return (
-    <div className="bg-dark-card rounded-2xl p-5 mb-4">
+    <div className="bg-surface-raised border border-border rounded-xl p-5 mb-3">
       <div className="flex items-center justify-between mb-4">
-        <span className="text-sm text-muted">
-          Logged in as{" "}
-          <span className="text-white font-semibold">{userData.username}</span>
+        <span className="text-[12px] text-label-dim">
+          Logged in as <span className="text-primary font-medium">{userData.username}</span>
         </span>
         <div className="flex items-center gap-3">
-          {showBack && <button onClick={onBack} className="text-xs text-muted hover:text-white">← Campaigns</button>}
-          <button onClick={onSwitchUser} className="text-xs text-accent hover:underline">
-            Log out
-          </button>
+          {showBack && <button onClick={onBack} className="text-[12px] text-label-faint hover:text-primary transition-colors">All Campaigns</button>}
+          <button onClick={onSwitchUser} className="text-[12px] text-label-faint hover:text-primary transition-colors">Log out</button>
         </div>
       </div>
 
-      <h2 className="text-xl font-bold mb-1">
-        {config.brandName}{" "}
-        <span className="text-muted font-normal">— {config.productName}</span>
+      <h2 className="text-[18px] font-bold text-primary mb-0.5">
+        {config.brandName}
+        {config.productName && <span className="text-label-dim font-normal"> &mdash; {config.productName}</span>}
       </h2>
-
-      <p className="text-sm text-muted mb-4">
-        ${config.ratePerVideo}/video × {total} videos ={" "}
-        <span className="text-white font-semibold">${totalComp} total</span>
+      <p className="text-[13px] text-label-dim mb-4">
+        ${config.ratePerVideo}/video &middot; {total} videos &middot; ${total * config.ratePerVideo} total
       </p>
 
-      <div className="mb-2">
-        <div className="flex justify-between text-sm mb-1">
-          <span>
-            <span className="text-white font-bold">{posted}</span>
-            <span className="text-muted"> / {total} videos posted</span>
-          </span>
-          <span className="text-accent font-bold">{pct}%</span>
+      <div className="mb-3">
+        <div className="flex justify-between text-[13px] mb-1.5">
+          <span className="text-label"><span className="text-primary font-semibold">{posted}</span> / {total} posted</span>
+          <span className="text-label-dim font-semibold">{pct}%</span>
         </div>
-        <div className="w-full bg-dark-bg rounded-full h-3 overflow-hidden">
-          <div
-            className="bg-accent h-full rounded-full transition-all duration-500 ease-out"
-            style={{ width: `${pct}%` }}
-          />
+        <div className="w-full bg-surface rounded h-1.5 overflow-hidden">
+          <div className="bg-primary h-full rounded transition-all duration-500" style={{ width: `${pct}%` }} />
         </div>
       </div>
 
-      <div className="flex items-center gap-2 mt-3">
-        <span className="bg-dark-bg text-accent text-xs font-bold px-3 py-1 rounded-full">
-          {remaining} days remaining
-        </span>
-        <span className="bg-dark-bg text-success text-xs font-bold px-3 py-1 rounded-full">
-          ${earned} earned
-        </span>
+      <div className="flex items-center gap-2">
+        <span className="bg-surface border border-border text-[11px] font-medium text-label-dim px-2.5 py-1 rounded">{remaining} days left</span>
+        <span className="bg-surface border border-border text-[11px] font-medium text-label-dim px-2.5 py-1 rounded">${earned} earned</span>
       </div>
     </div>
   );
@@ -532,75 +307,47 @@ function CalendarGrid({ config, userData, campaignDays, onToggleDay }) {
   const today = getTodayISO();
 
   return (
-    <div className="bg-dark-card rounded-2xl p-5 mb-4">
-      <h3 className="text-lg font-bold mb-4">📅 Calendar</h3>
+    <div className="bg-surface-raised border border-border rounded-xl p-5 mb-3">
+      <h3 className="text-[14px] font-semibold text-primary mb-4">Calendar</h3>
 
-      <div className="grid grid-cols-7 gap-2 mb-2">
-        {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => (
-          <div key={i} className="text-center text-xs text-muted font-semibold">
-            {d}
-          </div>
+      <div className="grid grid-cols-7 gap-1.5 mb-2">
+        {["S","M","T","W","T","F","S"].map((d, i) => (
+          <div key={i} className="text-center text-[10px] text-label-faint font-semibold uppercase">{d}</div>
         ))}
       </div>
 
       {(() => {
         const startDow = parseDate(config.startDate).getDay();
-        const leadingBlanks = Array.from({ length: startDow }, (_, i) => (
-          <div key={"blank-" + i} />
-        ));
+        const blanks = Array.from({ length: startDow }, (_, i) => <div key={"b-" + i} />);
 
-        const dayCells = campaignDays.map((dateStr, idx) => {
-          const dayData = userData.days[dateStr] || { posted: false, link: "" };
+        const cells = campaignDays.map((dateStr, idx) => {
+          const dayData = userData.days[dateStr] || { posted: false };
           const isToday = dateStr === today;
           const isPast = dateStr < today;
           const isFuture = dateStr > today;
           const isPosted = dayData.posted;
-          const dayNum = idx + 1;
 
-          let bgClass = "bg-dark-bg border-dark-bg";
-          if (isPosted) bgClass = "bg-success/20 border-success";
-          else if (isPast) bgClass = "bg-dark-bg border-muted/30";
-          else if (isFuture) bgClass = "bg-dark-bg border-dark-card";
-
-          const todayClass = isToday ? "border-accent pulse-today" : "";
-          const textColor = isPosted ? "text-success" : isPast ? "text-muted" : "text-white";
+          let cls = "bg-surface border-border";
+          if (isPosted) cls = "bg-emerald-500/10 border-emerald-500/30";
+          else if (isToday) cls = "bg-surface border-primary/40";
+          else if (isPast) cls = "bg-surface border-border";
 
           return (
-            <button
-              key={dateStr}
-              onClick={() => onToggleDay(dateStr)}
-              disabled={isFuture}
-              className={`day-cell relative flex flex-col items-center justify-center rounded-xl border-2 min-h-[48px] min-w-[48px] aspect-square ${bgClass} ${todayClass} ${textColor} ${
-                isFuture ? "opacity-40 cursor-not-allowed" : "cursor-pointer hover:border-accent/50"
-              }`}
-            >
-              <span className="text-xs font-bold leading-none">{dayNum}</span>
-              {isPosted && <span className="text-success text-[10px] leading-none mt-0.5">✓</span>}
-              {isToday && !isPosted && (
-                <span className="absolute -top-1 -right-1 w-2 h-2 bg-accent rounded-full" />
-              )}
+            <button key={dateStr} onClick={() => onToggleDay(dateStr)} disabled={isFuture}
+              className={`day-cell relative flex flex-col items-center justify-center rounded-lg border min-h-[40px] aspect-square text-[11px] font-semibold transition-all ${cls} ${isFuture ? "opacity-30 cursor-not-allowed" : "cursor-pointer hover:border-label-dim"}`}>
+              <span className={isPosted ? "text-emerald-400" : isPast ? "text-label-faint" : "text-primary"}>{idx + 1}</span>
+              {isPosted && <span className="text-emerald-400 text-[8px] leading-none mt-0.5">Done</span>}
             </button>
           );
         });
 
-        return (
-          <div className="grid grid-cols-7 gap-2">
-            {leadingBlanks}
-            {dayCells}
-          </div>
-        );
+        return <div className="grid grid-cols-7 gap-1.5">{blanks}{cells}</div>;
       })()}
 
-      <div className="flex items-center gap-4 mt-4 text-xs text-muted">
-        <span className="flex items-center gap-1">
-          <span className="w-3 h-3 rounded bg-success/20 border border-success inline-block" /> Posted
-        </span>
-        <span className="flex items-center gap-1">
-          <span className="w-3 h-3 rounded bg-dark-bg border border-muted/30 inline-block" /> Missed
-        </span>
-        <span className="flex items-center gap-1">
-          <span className="w-3 h-3 rounded border-2 border-accent inline-block" /> Today
-        </span>
+      <div className="flex items-center gap-4 mt-4 text-[11px] text-label-faint">
+        <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded border border-emerald-500/30 bg-emerald-500/10 inline-block" /> Posted</span>
+        <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded border border-border bg-surface inline-block" /> Missed</span>
+        <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded border border-primary/40 bg-surface inline-block" /> Today</span>
       </div>
     </div>
   );
@@ -610,61 +357,32 @@ function VideoLog({ userData, campaignDays, onUpdateLink }) {
   const today = getTodayISO();
 
   return (
-    <div className="bg-dark-card rounded-2xl p-5 mb-4">
-      <h3 className="text-lg font-bold mb-4">📋 Video Log</h3>
-
-      <div className="space-y-2 max-h-[400px] overflow-y-auto pr-1">
+    <div className="bg-surface-raised border border-border rounded-xl p-5 mb-3">
+      <h3 className="text-[14px] font-semibold text-primary mb-4">Video Log</h3>
+      <div className="space-y-1.5 max-h-[400px] overflow-y-auto pr-1">
         {campaignDays.map((dateStr, idx) => {
           const dayData = userData.days[dateStr] || { posted: false, link: "" };
           const isToday = dateStr === today;
           const isPast = dateStr < today;
           const isPosted = dayData.posted;
 
-          let statusIcon, statusText, statusColor;
-          if (isPosted) {
-            statusIcon = "✅";
-            statusText = "Posted";
-            statusColor = "text-success";
-          } else if (isToday) {
-            statusIcon = "⏳";
-            statusText = "Today";
-            statusColor = "text-accent";
-          } else if (isPast) {
-            statusIcon = "❌";
-            statusText = "Missed";
-            statusColor = "text-muted";
-          } else {
-            statusIcon = "⏳";
-            statusText = "Upcoming";
-            statusColor = "text-muted/60";
-          }
-
-          const rowBg = isToday ? "bg-accent/5 border border-accent/20" : "bg-dark-bg";
+          let statusText, statusColor;
+          if (isPosted) { statusText = "Posted"; statusColor = "text-emerald-400"; }
+          else if (isToday) { statusText = "Today"; statusColor = "text-primary"; }
+          else if (isPast) { statusText = "Missed"; statusColor = "text-label-faint"; }
+          else { statusText = "Upcoming"; statusColor = "text-label-faint/50"; }
 
           return (
-            <div
-              key={dateStr}
-              className={`${rowBg} rounded-xl p-3 flex flex-col sm:flex-row sm:items-center gap-2`}
-            >
+            <div key={dateStr} className={`rounded-lg p-3 flex flex-col sm:flex-row sm:items-center gap-2 ${isToday ? "bg-surface-overlay border border-border" : "bg-surface"}`}>
               <div className="flex items-center gap-3 flex-1 min-w-0">
-                <span className="text-xs text-muted font-mono w-8 shrink-0">D{idx + 1}</span>
-                <span className="text-sm text-white w-16 shrink-0">
-                  {formatDateShort(parseDate(dateStr))}
-                </span>
-                <span className={`text-sm ${statusColor} flex items-center gap-1 w-20 shrink-0`}>
-                  <span>{statusIcon}</span>
-                  <span className="text-xs">{statusText}</span>
-                </span>
+                <span className="text-[11px] text-label-faint font-mono w-7 shrink-0">D{idx + 1}</span>
+                <span className="text-[13px] text-primary w-14 shrink-0">{formatDateShort(parseDate(dateStr))}</span>
+                <span className={`text-[12px] ${statusColor} font-medium w-16 shrink-0`}>{statusText}</span>
               </div>
-
               {(isPosted || isToday || isPast) && (
-                <input
-                  type="url"
-                  placeholder="Paste TikTok link..."
-                  value={dayData.link || ""}
+                <input type="url" placeholder="Paste TikTok link..." value={dayData.link || ""}
                   onChange={(e) => onUpdateLink(dateStr, e.target.value)}
-                  className="flex-1 bg-dark-card border border-muted/30 rounded-lg px-3 py-2 text-xs text-white placeholder-muted/50 focus:outline-none focus:border-accent transition-colors min-h-[36px] min-w-0"
-                />
+                  className="flex-1 bg-surface-overlay border border-border rounded-lg px-3 py-1.5 text-[12px] text-primary placeholder-label-faint focus:outline-none focus:border-label-dim transition-colors min-h-[32px] min-w-0" />
               )}
             </div>
           );
@@ -678,24 +396,20 @@ function StatsBar({ config, userData, campaignDays }) {
   const posted = getPostedCount(userData.days);
   const earned = posted * config.ratePerVideo;
   const streak = getCurrentStreak(campaignDays, userData.days);
-  const pct = Math.round((posted / config.totalVideos) * 100);
-
-  const stats = [
-    { label: "Posted", value: `${posted}/${config.totalVideos}`, icon: "🎬" },
-    { label: "Earned", value: `$${earned}`, icon: "💰" },
-    { label: "Streak", value: `${streak}d`, icon: "🔥" },
-    { label: "Done", value: `${pct}%`, icon: "📊" },
-  ];
+  const pct = config.totalVideos > 0 ? Math.round((posted / config.totalVideos) * 100) : 0;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-dark-card/95 backdrop-blur-sm border-t border-muted/20 px-4 py-3 z-50">
+    <div className="fixed bottom-0 left-0 right-0 bg-surface-raised/95 backdrop-blur-sm border-t border-border px-4 py-3 z-50">
       <div className="max-w-lg mx-auto grid grid-cols-4 gap-2">
-        {stats.map((s) => (
+        {[
+          { label: "Posted", value: `${posted}/${config.totalVideos}` },
+          { label: "Earned", value: `$${earned}` },
+          { label: "Streak", value: `${streak}d` },
+          { label: "Progress", value: `${pct}%` },
+        ].map(s => (
           <div key={s.label} className="text-center">
-            <div className="text-lg font-bold text-white leading-tight">
-              {s.icon} {s.value}
-            </div>
-            <div className="text-[10px] text-muted uppercase tracking-wider">{s.label}</div>
+            <div className="text-[15px] font-bold text-primary leading-tight">{s.value}</div>
+            <div className="text-[9px] text-label-faint uppercase tracking-wider font-medium">{s.label}</div>
           </div>
         ))}
       </div>
@@ -707,46 +421,21 @@ function CampaignView({ config, user, onSwitchUser, onBack, showBack }) {
   const campaignId = config.id || "legacy";
   const [userData, setUserData] = useState(() => {
     let data = loadUserData(user, campaignId);
-    if (!data) {
-      data = buildDefaultUserData(user, config);
-      saveUserData(user, campaignId, data);
-    }
+    if (!data) { data = buildDefaultUserData(user, config); saveUserData(user, campaignId, data); }
     return data;
   });
-
   const campaignDays = useMemo(() => getCampaignDays(config), [config]);
 
   const handleToggleDay = (dateStr) => {
-    setUserData((prev) => {
-      const updated = {
-        ...prev,
-        days: {
-          ...prev.days,
-          [dateStr]: {
-            ...prev.days[dateStr],
-            posted: !prev.days[dateStr]?.posted,
-          },
-        },
-      };
-      saveUserData(user, campaignId, updated);
-      return updated;
+    setUserData(prev => {
+      const u = { ...prev, days: { ...prev.days, [dateStr]: { ...prev.days[dateStr], posted: !prev.days[dateStr]?.posted } } };
+      saveUserData(user, campaignId, u); return u;
     });
   };
-
   const handleUpdateLink = (dateStr, link) => {
-    setUserData((prev) => {
-      const updated = {
-        ...prev,
-        days: {
-          ...prev.days,
-          [dateStr]: {
-            ...prev.days[dateStr],
-            link,
-          },
-        },
-      };
-      saveUserData(user, campaignId, updated);
-      return updated;
+    setUserData(prev => {
+      const u = { ...prev, days: { ...prev.days, [dateStr]: { ...prev.days[dateStr], link } } };
+      saveUserData(user, campaignId, u); return u;
     });
   };
 
@@ -760,154 +449,56 @@ function CampaignView({ config, user, onSwitchUser, onBack, showBack }) {
   );
 }
 
-function CampaignNotFound({ slug }) {
-  return (
-    <div className="min-h-screen flex items-center justify-center p-4">
-      <div className="bg-dark-card rounded-2xl p-8 w-full max-w-sm shadow-2xl text-center">
-        <div className="text-4xl mb-4">🔍</div>
-        <h2 className="text-xl font-bold mb-2">Campaign Not Found</h2>
-        <p className="text-muted text-sm mb-6">
-          No campaign exists at <span className="text-white font-semibold">/{slug}</span>. Check the URL and try again.
-        </p>
-      </div>
-    </div>
-  );
-}
-
 function App() {
   const [user, setUser] = useState(null);
   const [campaigns, setCampaigns] = useState([]);
   const [selectedCampaign, setSelectedCampaign] = useState(null);
-  const [screen, setScreen] = useState("loading"); // loading | pin | setup | app | not-found
+  const [screen, setScreen] = useState("loading");
   const [loaded, setLoaded] = useState(false);
   const [urlSlug, setUrlSlug] = useState(null);
 
   useEffect(() => {
-    const slug = getSlugFromURL();
-    setUrlSlug(slug);
-
-    // If there's a slug in the URL, lock to that campaign
+    const slug = getSlugFromURL(); setUrlSlug(slug);
     let slugCampaign = null;
-    if (slug) {
-      slugCampaign = getCampaignBySlug(slug);
-      if (!slugCampaign) {
-        setScreen("not-found");
-        setLoaded(true);
-        return;
-      }
-    }
+    if (slug) { slugCampaign = getCampaignBySlug(slug); if (!slugCampaign) { setScreen("not-found"); setLoaded(true); return; } }
 
     const loggedIn = getLoggedInUser();
     if (loggedIn) {
       if (slugCampaign) {
-        // Check user is assigned to this campaign
-        const isAssigned = slugCampaign.creators && slugCampaign.creators.some((h) => h.toLowerCase() === loggedIn.toLowerCase());
-        if (isAssigned) {
-          setUser(loggedIn);
-          setCampaigns([slugCampaign]);
-          setSelectedCampaign(slugCampaign);
-          setScreen("app");
-        } else {
-          setScreen("pin");
-        }
+        const ok = slugCampaign.creators?.some(h => h.toLowerCase() === loggedIn.toLowerCase());
+        if (ok) { setUser(loggedIn); setCampaigns([slugCampaign]); setSelectedCampaign(slugCampaign); setScreen("app"); }
+        else setScreen("pin");
       } else {
-        const userCampaigns = getCampaignsForUser(loggedIn);
-        if (userCampaigns.length > 0) {
-          setUser(loggedIn);
-          setCampaigns(userCampaigns);
-          if (userCampaigns.length === 1) {
-            setSelectedCampaign(userCampaigns[0]);
-          }
-          setScreen("app");
-        } else {
-          setScreen("pin");
-        }
+        const uc = getCampaignsForUser(loggedIn);
+        if (uc.length > 0) { setUser(loggedIn); setCampaigns(uc); if (uc.length === 1) setSelectedCampaign(uc[0]); setScreen("app"); }
+        else setScreen("pin");
       }
-    } else {
-      setScreen("pin");
-    }
+    } else setScreen("pin");
     setLoaded(true);
   }, []);
 
   const loginAs = (username) => {
     if (urlSlug) {
-      const slugCampaign = getCampaignBySlug(urlSlug);
-      if (slugCampaign) {
-        const isAssigned = slugCampaign.creators && slugCampaign.creators.some((h) => h.toLowerCase() === username.toLowerCase());
-        if (isAssigned) {
-          setUser(username);
-          setCampaigns([slugCampaign]);
-          setSelectedCampaign(slugCampaign);
-          setScreen("app");
-          return;
-        }
+      const sc = getCampaignBySlug(urlSlug);
+      if (sc?.creators?.some(h => h.toLowerCase() === username.toLowerCase())) {
+        setUser(username); setCampaigns([sc]); setSelectedCampaign(sc); setScreen("app"); return;
       }
-      setUser(username);
-      setCampaigns([]);
-      setScreen("no-campaigns");
-      return;
+      setUser(username); setCampaigns([]); setScreen("no-campaigns"); return;
     }
-
-    const userCampaigns = getCampaignsForUser(username);
-    setUser(username);
-    setCampaigns(userCampaigns);
-    if (userCampaigns.length === 1) {
-      setSelectedCampaign(userCampaigns[0]);
-    } else {
-      setSelectedCampaign(null);
-    }
-    setScreen(userCampaigns.length === 0 ? "no-campaigns" : "app");
+    const uc = getCampaignsForUser(username); setUser(username); setCampaigns(uc);
+    if (uc.length === 1) setSelectedCampaign(uc[0]); else setSelectedCampaign(null);
+    setScreen(uc.length === 0 ? "no-campaigns" : "app");
   };
 
-  const handleLogout = () => {
-    clearLoggedInUser();
-    setUser(null);
-    setCampaigns([]);
-    setSelectedCampaign(null);
-    setScreen("pin");
-  };
+  const handleLogout = () => { clearLoggedInUser(); setUser(null); setCampaigns([]); setSelectedCampaign(null); setScreen("pin"); };
 
-  if (!loaded) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-accent text-xl animate-pulse">Loading...</div>
-      </div>
-    );
-  }
-
-  if (screen === "not-found") {
-    return <CampaignNotFound slug={urlSlug} />;
-  }
-
-  if (screen === "pin") {
-    return <PinLoginScreen onLogin={loginAs} onGoToSetup={() => setScreen("setup")} />;
-  }
-
-  if (screen === "setup") {
-    return <SetupScreen onComplete={loginAs} onBack={() => setScreen("pin")} />;
-  }
-
-  if (screen === "no-campaigns" || (screen === "app" && campaigns.length === 0)) {
-    return <NoCampaignsScreen username={user} onSwitchUser={handleLogout} />;
-  }
-
-  if (screen === "app" && !selectedCampaign) {
-    return <CampaignPicker campaigns={campaigns} onSelect={setSelectedCampaign} username={user} onSwitchUser={handleLogout} />;
-  }
-
-  if (screen === "app" && selectedCampaign) {
-    return (
-      <CampaignView
-        key={selectedCampaign.id}
-        config={selectedCampaign}
-        user={user}
-        onSwitchUser={handleLogout}
-        onBack={() => setSelectedCampaign(null)}
-        showBack={campaigns.length > 1}
-      />
-    );
-  }
-
+  if (!loaded) return <div className="min-h-screen flex items-center justify-center"><div className="text-label-dim text-[14px]">Loading...</div></div>;
+  if (screen === "not-found") return <CampaignNotFound slug={urlSlug} />;
+  if (screen === "pin") return <PinLoginScreen onLogin={loginAs} onGoToSetup={() => setScreen("setup")} />;
+  if (screen === "setup") return <SetupScreen onComplete={loginAs} onBack={() => setScreen("pin")} />;
+  if (screen === "no-campaigns" || (screen === "app" && campaigns.length === 0)) return <NoCampaignsScreen username={user} onSwitchUser={handleLogout} />;
+  if (screen === "app" && !selectedCampaign) return <CampaignPicker campaigns={campaigns} onSelect={setSelectedCampaign} username={user} onSwitchUser={handleLogout} />;
+  if (screen === "app" && selectedCampaign) return <CampaignView key={selectedCampaign.id} config={selectedCampaign} user={user} onSwitchUser={handleLogout} onBack={() => setSelectedCampaign(null)} showBack={campaigns.length > 1} />;
   return null;
 }
 

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Titans Admin</title>
+  <title>Titans - Campaign Management</title>
 
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -11,112 +11,192 @@
       theme: {
         extend: {
           colors: {
-            'dark-bg': '#0f0f0f',
-            'dark-card': '#1a1a1a',
-            'dark-input': '#222222',
-            'accent': '#ff6b00',
-            'accent-hover': '#e55f00',
-            'success': '#22c55e',
-            'muted': '#555555',
-            'danger': '#ef4444',
-          }
-        }
-      }
+            surface: { DEFAULT: '#111113', raised: '#18181B', overlay: '#1E1E22' },
+            border: { DEFAULT: '#27272A', light: '#3F3F46' },
+            label: { DEFAULT: '#A1A1AA', dim: '#71717A', faint: '#52525B' },
+            primary: '#FAFAFA',
+            accent: '#E4E4E7',
+            action: '#FAFAFA',
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+          },
+        },
+      },
     }
   </script>
 
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
   <style>
     * { box-sizing: border-box; }
-    body { margin: 0; padding: 0; background: #0f0f0f; color: #fff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; -webkit-font-smoothing: antialiased; }
+    body { margin: 0; padding: 0; background: #111113; color: #FAFAFA; font-family: 'Inter', system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
     ::-webkit-scrollbar { width: 4px; }
-    ::-webkit-scrollbar-track { background: #0f0f0f; }
-    ::-webkit-scrollbar-thumb { background: #555; border-radius: 2px; }
-    input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
+    ::-webkit-scrollbar-track { background: #111113; }
+    ::-webkit-scrollbar-thumb { background: #3F3F46; border-radius: 2px; }
+    input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); opacity: 0.5; }
   </style>
 </head>
 <body>
   <div id="root"></div>
 
   <script type="text/babel">
-    const { useState, useEffect, useRef, useCallback } = React;
+    const { useState, useEffect, useRef, useCallback, useMemo } = React;
 
     const ADMIN_PIN = "424342";
     const STORAGE_KEY = "retainers_campaigns";
 
     const TIER_OPTIONS = [
-      { value: 5, label: "5 Creators", videos: 120, desc: "Starter campaign" },
-      { value: 10, label: "10 Creators", videos: 225, desc: "Growth campaign" },
-      { value: 15, label: "15 Creators", videos: 325, desc: "Scale campaign" },
+      { value: 5, label: "5 Creators", videos: 120 },
+      { value: 10, label: "10 Creators", videos: 225 },
+      { value: 15, label: "15 Creators", videos: 325 },
     ];
 
     function loadCampaigns() {
-      try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        return raw ? JSON.parse(raw) : [];
-      } catch { return []; }
+      try { const raw = localStorage.getItem(STORAGE_KEY); return raw ? JSON.parse(raw) : []; }
+      catch { return []; }
+    }
+    function saveCampaigns(campaigns) { localStorage.setItem(STORAGE_KEY, JSON.stringify(campaigns)); }
+    function generateId() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+    function slugify(str) { return str.toLowerCase().replace(/[^a-z0-9]+/g, "").replace(/^-+|-+$/g, ""); }
+
+    // ─── Shared UI Primitives ──────────────────────────────────
+    function SectionLabel({ children }) {
+      return <div className="text-[11px] font-semibold text-label-dim uppercase tracking-[0.08em] mb-3">{children}</div>;
     }
 
-    function saveCampaigns(campaigns) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(campaigns));
+    function InputField({ label, required, children }) {
+      return (
+        <div>
+          <label className="block text-[13px] font-medium text-label mb-1.5">{label}{required && <span className="text-label-faint ml-0.5">*</span>}</label>
+          {children}
+        </div>
+      );
     }
 
-    function generateId() {
-      return Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-    }
-
-    function slugify(str) {
-      return str.toLowerCase().replace(/[^a-z0-9]+/g, "").replace(/^-+|-+$/g, "");
-    }
+    const inputClass = "w-full bg-surface-overlay border border-border rounded-lg px-3.5 py-2.5 text-[14px] text-primary placeholder-label-faint focus:outline-none focus:border-label-dim transition-colors";
+    const btnPrimary = "bg-primary text-surface font-semibold rounded-lg transition-all hover:bg-accent active:scale-[0.98]";
+    const btnSecondary = "bg-surface-overlay border border-border text-label font-medium rounded-lg hover:border-border-light hover:text-primary transition-all";
 
     // ─── PIN Gate ──────────────────────────────────────────────
     function PinGate({ onUnlock }) {
       const [pin, setPin] = useState("");
       const [error, setError] = useState(false);
-      const inputRef = useRef(null);
-
-      useEffect(() => { if (inputRef.current) inputRef.current.focus(); }, []);
+      const ref = useRef(null);
+      useEffect(() => { if (ref.current) ref.current.focus(); }, []);
 
       const handleSubmit = (e) => {
         e.preventDefault();
-        if (pin === ADMIN_PIN) {
-          sessionStorage.setItem("admin_unlocked", "1");
-          onUnlock();
-        } else {
-          setError(true);
-          setPin("");
-          setTimeout(() => setError(false), 2000);
-        }
+        if (pin === ADMIN_PIN) { sessionStorage.setItem("admin_unlocked", "1"); onUnlock(); }
+        else { setError(true); setPin(""); setTimeout(() => setError(false), 2000); }
       };
 
       return (
         <div className="min-h-screen flex items-center justify-center p-4">
-          <div className="bg-dark-card rounded-2xl p-8 w-full max-w-sm shadow-2xl">
-            <div className="text-center mb-8">
-              <div className="text-4xl mb-2">🔒</div>
-              <h1 className="text-2xl font-bold mb-1">Admin Access</h1>
-              <p className="text-muted text-sm">Enter your PIN to continue</p>
+          <div className="bg-surface-raised border border-border rounded-xl p-8 w-full max-w-sm">
+            <div className="mb-8">
+              <h1 className="text-[20px] font-bold text-primary mb-1">Admin Access</h1>
+              <p className="text-[13px] text-label-dim">Enter your PIN to continue.</p>
             </div>
             <form onSubmit={handleSubmit}>
-              <input
-                ref={inputRef}
-                type="password"
-                inputMode="numeric"
-                maxLength={6}
-                value={pin}
-                onChange={(e) => setPin(e.target.value.replace(/\D/g, ""))}
-                placeholder="Enter PIN"
-                className={`w-full bg-dark-input border rounded-xl px-4 py-4 text-center text-2xl tracking-[0.5em] text-white placeholder-muted focus:outline-none transition-colors ${error ? "border-danger shake" : "border-muted focus:border-accent"}`}
-              />
-              {error && <p className="text-danger text-sm text-center mt-2">Incorrect PIN</p>}
-              <button type="submit" className="w-full mt-4 bg-accent hover:bg-accent-hover text-white font-bold text-lg rounded-xl py-4 transition-colors active:scale-95">
-                Unlock
-              </button>
+              <input ref={ref} type="password" inputMode="numeric" maxLength={6} value={pin}
+                onChange={(e) => setPin(e.target.value.replace(/\D/g, ""))} placeholder="------"
+                className={`${inputClass} text-center text-xl tracking-[0.4em] ${error ? "border-red-500/60" : ""}`} />
+              {error && <p className="text-red-400 text-[12px] mt-2">Incorrect PIN. Try again.</p>}
+              <button type="submit" className={`w-full mt-4 ${btnPrimary} py-3 text-[14px]`}>Unlock</button>
             </form>
           </div>
+        </div>
+      );
+    }
+
+    // ─── Campaign Link Preview ─────────────────────────────────
+    function CampaignPreview({ campaign }) {
+      const totalDays = (campaign.onboardingDays || 14) + (campaign.phase1?.days || 15) + (campaign.phase2?.days || 15);
+
+      return (
+        <div className="bg-surface-raised border border-border rounded-xl p-6">
+          <SectionLabel>Campaign Link Preview</SectionLabel>
+          <div className="bg-surface border border-border rounded-lg px-4 py-2 mb-4 flex items-center justify-between">
+            <span className="text-[13px] text-label font-mono">titansagency.co/<span className="text-primary font-semibold">{campaign.slug || "---"}</span></span>
+            {campaign.slug && (
+              <button onClick={() => navigator.clipboard.writeText("https://titansagency.co/" + campaign.slug)}
+                className="text-[11px] text-label-dim hover:text-primary transition-colors font-medium">Copy</button>
+            )}
+          </div>
+
+          {/* Preview of what creators see */}
+          <div className="border border-border rounded-lg overflow-hidden">
+            {/* Mock tracker header */}
+            <div className="bg-surface-overlay px-5 py-4 border-b border-border">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-[11px] text-label-dim">Logged in as <span className="text-label">@creator</span></span>
+                <span className="text-[11px] text-label-faint">Log out</span>
+              </div>
+              <div className="text-[16px] font-bold text-primary mb-0.5">
+                {campaign.brandName || "Brand Name"}{campaign.productName ? ` \u2014 ${campaign.productName}` : ""}
+              </div>
+              <div className="text-[12px] text-label-dim mt-1">
+                ${campaign.ratePerVideo || 25}/video &middot; {campaign.totalVideos || 0} videos &middot; {totalDays} days
+              </div>
+            </div>
+
+            {/* Mock progress bar */}
+            <div className="bg-surface-overlay px-5 py-3 border-b border-border">
+              <div className="flex justify-between text-[12px] mb-1.5">
+                <span className="text-label"><span className="text-primary font-semibold">0</span> / {campaign.totalVideos || 0} posted</span>
+                <span className="text-label-dim font-medium">0%</span>
+              </div>
+              <div className="w-full bg-surface rounded h-1.5">
+                <div className="bg-label-dim h-full rounded" style={{ width: "0%" }} />
+              </div>
+            </div>
+
+            {/* Mock calendar preview - 7 small boxes */}
+            <div className="bg-surface-overlay px-5 py-4 border-b border-border">
+              <div className="text-[12px] font-semibold text-label mb-3">Calendar</div>
+              <div className="flex gap-1.5">
+                {[1,2,3,4,5,6,7].map((d) => (
+                  <div key={d} className="w-8 h-8 rounded border border-border bg-surface flex items-center justify-center text-[10px] text-label-faint font-medium">{d}</div>
+                ))}
+                <div className="flex items-center text-[10px] text-label-faint ml-1">...</div>
+              </div>
+            </div>
+
+            {/* Phase timeline */}
+            <div className="bg-surface-overlay px-5 py-3">
+              <div className="flex rounded overflow-hidden h-1.5 mb-2">
+                <div className="h-full bg-label-faint" style={{ width: `${((campaign.onboardingDays || 14) / totalDays) * 100}%` }} />
+                <div className="h-full bg-label-dim" style={{ width: `${((campaign.phase1?.days || 15) / totalDays) * 100}%` }} />
+                <div className="h-full bg-label" style={{ width: `${((campaign.phase2?.days || 15) / totalDays) * 100}%` }} />
+              </div>
+              <div className="flex text-[10px] text-label-faint gap-4">
+                <span>Onboarding {campaign.onboardingDays || 14}d</span>
+                <span>Phase 1 {campaign.phase1?.days || 15}d</span>
+                <span>Phase 2 {campaign.phase2?.days || 15}d</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Status checks */}
+          <div className="mt-4 space-y-2">
+            <StatusCheck ok={!!campaign.brandName} label="Brand name set" />
+            <StatusCheck ok={!!campaign.slug} label="Campaign URL configured" />
+            <StatusCheck ok={!!campaign.startDate && !!campaign.endDate} label="Dates configured" />
+            <StatusCheck ok={(campaign.creators?.length || 0) > 0} label="Creators assigned" />
+          </div>
+        </div>
+      );
+    }
+
+    function StatusCheck({ ok, label }) {
+      return (
+        <div className="flex items-center gap-2 text-[12px]">
+          <div className={`w-1.5 h-1.5 rounded-full ${ok ? "bg-emerald-400" : "bg-label-faint"}`} />
+          <span className={ok ? "text-label" : "text-label-faint"}>{label}</span>
         </div>
       );
     }
@@ -124,56 +204,28 @@
     // ─── Campaign Form ─────────────────────────────────────────
     function CampaignForm({ campaign, onSave, onCancel }) {
       const [form, setForm] = useState(campaign || {
-        id: generateId(),
-        brandName: "",
-        productName: "",
-        slug: "",
-        tier: 10,
-        ratePerVideo: 25,
-        totalVideos: 225,
-        startDate: "",
-        endDate: "",
-        briefLink: "",
-        showcaseLink: "",
-        phase1: { name: "Phase 1 — Launch", days: 15, description: "All creators post daily" },
-        phase2: { name: "Phase 2 — Scale", days: 15, description: "Top performers continue" },
-        onboardingDays: 14,
-        creators: [],
+        id: generateId(), brandName: "", productName: "", slug: "", tier: 10,
+        ratePerVideo: 25, totalVideos: 225, startDate: "", endDate: "",
+        briefLink: "", showcaseLink: "",
+        phase1: { name: "Phase 1 \u2014 Launch", days: 15, description: "All creators post daily" },
+        phase2: { name: "Phase 2 \u2014 Scale", days: 15, description: "Top performers continue" },
+        onboardingDays: 14, creators: [],
       });
       const [creatorInput, setCreatorInput] = useState("");
       const [slugManual, setSlugManual] = useState(!!campaign?.slug);
 
       const set = (key, val) => setForm((prev) => ({ ...prev, [key]: val }));
-
-      const handleBrandChange = (val) => {
-        set("brandName", val);
-        if (!slugManual) set("slug", slugify(val));
-      };
-
-      const handleSlugChange = (val) => {
-        setSlugManual(true);
-        set("slug", val.toLowerCase().replace(/[^a-z0-9]/g, ""));
-      };
-
-      const handleTierChange = (tierVal) => {
-        const tier = TIER_OPTIONS.find((t) => t.value === tierVal);
-        set("tier", tierVal);
-        set("totalVideos", tier.videos);
-      };
+      const handleBrandChange = (val) => { set("brandName", val); if (!slugManual) set("slug", slugify(val)); };
+      const handleSlugChange = (val) => { setSlugManual(true); set("slug", val.toLowerCase().replace(/[^a-z0-9]/g, "")); };
+      const handleTierChange = (v) => { set("tier", v); set("totalVideos", TIER_OPTIONS.find(t => t.value === v).videos); };
 
       const addCreator = () => {
-        const handle = creatorInput.trim();
-        if (!handle) return;
-        const normalized = handle.startsWith("@") ? handle : "@" + handle;
-        if (!form.creators.includes(normalized)) {
-          set("creators", [...form.creators, normalized]);
-        }
+        const h = creatorInput.trim(); if (!h) return;
+        const n = h.startsWith("@") ? h : "@" + h;
+        if (!form.creators.includes(n)) set("creators", [...form.creators, n]);
         setCreatorInput("");
       };
-
-      const removeCreator = (handle) => {
-        set("creators", form.creators.filter((c) => c !== handle));
-      };
+      const removeCreator = (h) => set("creators", form.creators.filter(c => c !== h));
 
       const handleSubmit = (e) => {
         e.preventDefault();
@@ -182,189 +234,147 @@
       };
 
       return (
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="bg-dark-card rounded-2xl p-6">
-            <h3 className="text-lg font-bold mb-4 text-accent">Campaign Details</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm text-muted mb-1">Brand Name *</label>
-                <input value={form.brandName} onChange={(e) => handleBrandChange(e.target.value)} required
-                  className="w-full bg-dark-input border border-muted rounded-xl px-4 py-3 text-white focus:outline-none focus:border-accent" placeholder="e.g. Natural Stacks" />
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+          {/* Form column */}
+          <form onSubmit={handleSubmit} className="lg:col-span-3 space-y-5">
+            {/* Details */}
+            <div className="bg-surface-raised border border-border rounded-xl p-6">
+              <SectionLabel>Campaign Details</SectionLabel>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                <InputField label="Brand Name" required>
+                  <input value={form.brandName} onChange={(e) => handleBrandChange(e.target.value)} required className={inputClass} placeholder="Natural Stacks" />
+                </InputField>
+                <InputField label="Product Name">
+                  <input value={form.productName} onChange={(e) => set("productName", e.target.value)} className={inputClass} placeholder="Dopamine Brain Food" />
+                </InputField>
               </div>
-              <div>
-                <label className="block text-sm text-muted mb-1">Product Name</label>
-                <input value={form.productName} onChange={(e) => set("productName", e.target.value)}
-                  className="w-full bg-dark-input border border-muted rounded-xl px-4 py-3 text-white focus:outline-none focus:border-accent" placeholder="e.g. Dopamine Brain Food" />
-              </div>
-            </div>
-
-            {/* URL Slug */}
-            <div className="mt-4">
-              <label className="block text-sm text-muted mb-1">Campaign URL *</label>
-              <div className="flex items-center bg-dark-input border border-muted rounded-xl overflow-hidden focus-within:border-accent transition-colors">
-                <span className="text-muted text-sm pl-4 whitespace-nowrap">titansagency.co/</span>
-                <input value={form.slug} onChange={(e) => handleSlugChange(e.target.value)} required
-                  className="flex-1 bg-transparent px-1 py-3 text-white focus:outline-none" placeholder="naturalstacks" />
-              </div>
-              <p className="text-xs text-muted mt-1">This is the link creators will use to access their tracker.</p>
-            </div>
-          </div>
-
-          {/* Campaign Tier */}
-          <div className="bg-dark-card rounded-2xl p-6">
-            <h3 className="text-lg font-bold mb-4 text-accent">Campaign Size</h3>
-            <div className="grid grid-cols-3 gap-3">
-              {TIER_OPTIONS.map((tier) => (
-                <button key={tier.value} type="button" onClick={() => handleTierChange(tier.value)}
-                  className={`rounded-xl p-4 text-center transition-all border-2 ${form.tier === tier.value ? "border-accent bg-accent/10" : "border-muted/30 bg-dark-input hover:border-muted"}`}>
-                  <div className="text-2xl font-bold">{tier.value}</div>
-                  <div className="text-xs text-muted mt-1">Creators</div>
-                  <div className="text-xs text-accent mt-1">{tier.videos} videos</div>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Dates */}
-          <div className="bg-dark-card rounded-2xl p-6">
-            <h3 className="text-lg font-bold mb-4 text-accent">Campaign Dates</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm text-muted mb-1">Start Date *</label>
-                <input type="date" value={form.startDate} onChange={(e) => set("startDate", e.target.value)} required
-                  className="w-full bg-dark-input border border-muted rounded-xl px-4 py-3 text-white focus:outline-none focus:border-accent" />
-              </div>
-              <div>
-                <label className="block text-sm text-muted mb-1">End Date *</label>
-                <input type="date" value={form.endDate} onChange={(e) => set("endDate", e.target.value)} required
-                  className="w-full bg-dark-input border border-muted rounded-xl px-4 py-3 text-white focus:outline-none focus:border-accent" />
-              </div>
-            </div>
-
-            {/* Phase Structure */}
-            <div className="mt-6">
-              <h4 className="text-sm font-semibold text-muted mb-3 uppercase tracking-wider">Phase Structure</h4>
-              <div className="space-y-3">
-                <div className="bg-dark-input rounded-xl p-4 border border-muted/20">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-semibold text-purple-400">Onboarding</span>
-                    <div className="flex items-center gap-2">
-                      <input type="number" min="1" max="30" value={form.onboardingDays}
-                        onChange={(e) => set("onboardingDays", parseInt(e.target.value) || 14)}
-                        className="w-16 bg-dark-card border border-muted rounded-lg px-2 py-1 text-sm text-white text-center focus:outline-none focus:border-accent" />
-                      <span className="text-xs text-muted">days</span>
-                    </div>
-                  </div>
-                  <p className="text-xs text-muted">Source creators, ship samples, set up Spark Ads</p>
+              <InputField label="Campaign URL" required>
+                <div className={`flex items-center bg-surface-overlay border border-border rounded-lg overflow-hidden focus-within:border-label-dim transition-colors`}>
+                  <span className="text-label-dim text-[13px] pl-3.5 font-mono whitespace-nowrap">titansagency.co/</span>
+                  <input value={form.slug} onChange={(e) => handleSlugChange(e.target.value)} required
+                    className="flex-1 bg-transparent px-1 py-2.5 text-[14px] text-primary font-mono focus:outline-none" placeholder="naturalstacks" />
                 </div>
-
-                <div className="bg-dark-input rounded-xl p-4 border border-muted/20">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-semibold text-cyan-400">{form.phase1.name}</span>
-                    <div className="flex items-center gap-2">
-                      <input type="number" min="1" max="60" value={form.phase1.days}
-                        onChange={(e) => set("phase1", { ...form.phase1, days: parseInt(e.target.value) || 15 })}
-                        className="w-16 bg-dark-card border border-muted rounded-lg px-2 py-1 text-sm text-white text-center focus:outline-none focus:border-accent" />
-                      <span className="text-xs text-muted">days</span>
-                    </div>
-                  </div>
-                  <input value={form.phase1.description} onChange={(e) => set("phase1", { ...form.phase1, description: e.target.value })}
-                    className="w-full bg-dark-card border border-muted/20 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-accent mt-1" placeholder="Phase description" />
-                </div>
-
-                <div className="bg-dark-input rounded-xl p-4 border border-muted/20">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-semibold text-green-400">{form.phase2.name}</span>
-                    <div className="flex items-center gap-2">
-                      <input type="number" min="1" max="60" value={form.phase2.days}
-                        onChange={(e) => set("phase2", { ...form.phase2, days: parseInt(e.target.value) || 15 })}
-                        className="w-16 bg-dark-card border border-muted rounded-lg px-2 py-1 text-sm text-white text-center focus:outline-none focus:border-accent" />
-                      <span className="text-xs text-muted">days</span>
-                    </div>
-                  </div>
-                  <input value={form.phase2.description} onChange={(e) => set("phase2", { ...form.phase2, description: e.target.value })}
-                    className="w-full bg-dark-card border border-muted/20 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-accent mt-1" placeholder="Phase description" />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Rate */}
-          <div className="bg-dark-card rounded-2xl p-6">
-            <h3 className="text-lg font-bold mb-4 text-accent">Creator Pay</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm text-muted mb-1">Rate Per Video ($)</label>
-                <input type="number" min="1" value={form.ratePerVideo} onChange={(e) => set("ratePerVideo", parseInt(e.target.value) || 25)}
-                  className="w-full bg-dark-input border border-muted rounded-xl px-4 py-3 text-white focus:outline-none focus:border-accent" />
-              </div>
-              <div>
-                <label className="block text-sm text-muted mb-1">Total Videos</label>
-                <input type="number" min="1" value={form.totalVideos} onChange={(e) => set("totalVideos", parseInt(e.target.value) || 0)}
-                  className="w-full bg-dark-input border border-muted rounded-xl px-4 py-3 text-white focus:outline-none focus:border-accent" />
-              </div>
-            </div>
-          </div>
-
-          {/* Links */}
-          <div className="bg-dark-card rounded-2xl p-6">
-            <h3 className="text-lg font-bold mb-4 text-accent">Links</h3>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm text-muted mb-1">Brief / Discord Link</label>
-                <input value={form.briefLink} onChange={(e) => set("briefLink", e.target.value)}
-                  className="w-full bg-dark-input border border-muted rounded-xl px-4 py-3 text-white focus:outline-none focus:border-accent" placeholder="https://discord.com/channels/..." />
-              </div>
-              <div>
-                <label className="block text-sm text-muted mb-1">Showcase / Product Link</label>
-                <input value={form.showcaseLink} onChange={(e) => set("showcaseLink", e.target.value)}
-                  className="w-full bg-dark-input border border-muted rounded-xl px-4 py-3 text-white focus:outline-none focus:border-accent" placeholder="https://affiliate-us.tiktok.com/..." />
-              </div>
-            </div>
-          </div>
-
-          {/* Creators */}
-          <div className="bg-dark-card rounded-2xl p-6">
-            <h3 className="text-lg font-bold mb-4 text-accent">Assigned Creators</h3>
-            <p className="text-xs text-muted mb-4">Add creators by their Discord handle. Only these creators will see this campaign when they log in to the tracker.</p>
-
-            <div className="flex gap-2 mb-4">
-              <input value={creatorInput} onChange={(e) => setCreatorInput(e.target.value)}
-                onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addCreator(); } }}
-                className="flex-1 bg-dark-input border border-muted rounded-xl px-4 py-3 text-white focus:outline-none focus:border-accent" placeholder="@discordhandle" />
-              <button type="button" onClick={addCreator}
-                className="px-5 py-3 bg-accent hover:bg-accent-hover text-white font-bold rounded-xl transition-colors whitespace-nowrap">
-                Add
-              </button>
+              </InputField>
             </div>
 
-            {form.creators.length === 0 ? (
-              <p className="text-muted text-sm text-center py-4">No creators assigned yet</p>
-            ) : (
-              <div className="flex flex-wrap gap-2">
-                {form.creators.map((handle) => (
-                  <span key={handle} className="inline-flex items-center gap-2 bg-dark-input border border-muted/30 rounded-full px-4 py-2 text-sm">
-                    <span className="text-white">{handle}</span>
-                    <button type="button" onClick={() => removeCreator(handle)} className="text-muted hover:text-danger transition-colors text-lg leading-none">&times;</button>
-                  </span>
+            {/* Size */}
+            <div className="bg-surface-raised border border-border rounded-xl p-6">
+              <SectionLabel>Campaign Size</SectionLabel>
+              <div className="grid grid-cols-3 gap-2">
+                {TIER_OPTIONS.map((tier) => (
+                  <button key={tier.value} type="button" onClick={() => handleTierChange(tier.value)}
+                    className={`rounded-lg p-3 text-center transition-all border ${form.tier === tier.value ? "border-primary/30 bg-surface-overlay" : "border-border bg-surface hover:border-border-light"}`}>
+                    <div className="text-[18px] font-bold text-primary">{tier.value}</div>
+                    <div className="text-[11px] text-label-dim mt-0.5">{tier.videos} videos</div>
+                  </button>
                 ))}
               </div>
-            )}
-            <div className="mt-3 text-xs text-muted">{form.creators.length} / {form.tier} creators assigned</div>
-          </div>
+            </div>
 
-          {/* Actions */}
-          <div className="flex gap-3">
-            <button type="submit" className="flex-1 bg-accent hover:bg-accent-hover text-white font-bold text-lg rounded-xl py-4 transition-colors active:scale-95">
-              {campaign ? "Update Campaign" : "Create Campaign"}
-            </button>
-            {onCancel && (
-              <button type="button" onClick={onCancel} className="px-6 py-4 bg-dark-card border border-muted/30 text-muted hover:text-white rounded-xl transition-colors">
-                Cancel
+            {/* Dates + Phases */}
+            <div className="bg-surface-raised border border-border rounded-xl p-6">
+              <SectionLabel>Schedule</SectionLabel>
+              <div className="grid grid-cols-2 gap-4 mb-5">
+                <InputField label="Start Date" required>
+                  <input type="date" value={form.startDate} onChange={(e) => set("startDate", e.target.value)} required className={inputClass} />
+                </InputField>
+                <InputField label="End Date" required>
+                  <input type="date" value={form.endDate} onChange={(e) => set("endDate", e.target.value)} required className={inputClass} />
+                </InputField>
+              </div>
+
+              <SectionLabel>Phase Structure</SectionLabel>
+              <div className="space-y-2">
+                {[
+                  { key: "onboarding", label: "Onboarding", value: form.onboardingDays, onChange: (v) => set("onboardingDays", v), desc: "Source creators, ship samples, set up Spark Ads" },
+                  { key: "phase1", label: form.phase1.name, value: form.phase1.days, onChange: (v) => set("phase1", { ...form.phase1, days: v }), desc: form.phase1.description },
+                  { key: "phase2", label: form.phase2.name, value: form.phase2.days, onChange: (v) => set("phase2", { ...form.phase2, days: v }), desc: form.phase2.description },
+                ].map((p) => (
+                  <div key={p.key} className="flex items-center justify-between bg-surface-overlay border border-border rounded-lg px-4 py-3">
+                    <div>
+                      <div className="text-[13px] font-medium text-primary">{p.label}</div>
+                      <div className="text-[11px] text-label-faint">{p.desc}</div>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <input type="number" min="1" max="60" value={p.value}
+                        onChange={(e) => p.onChange(parseInt(e.target.value) || 1)}
+                        className="w-14 bg-surface border border-border rounded px-2 py-1 text-[13px] text-primary text-center focus:outline-none focus:border-label-dim" />
+                      <span className="text-[11px] text-label-faint">days</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Pay */}
+            <div className="bg-surface-raised border border-border rounded-xl p-6">
+              <SectionLabel>Compensation</SectionLabel>
+              <div className="grid grid-cols-2 gap-4">
+                <InputField label="Rate Per Video ($)">
+                  <input type="number" min="1" value={form.ratePerVideo} onChange={(e) => set("ratePerVideo", parseInt(e.target.value) || 25)} className={inputClass} />
+                </InputField>
+                <InputField label="Total Videos">
+                  <input type="number" min="1" value={form.totalVideos} onChange={(e) => set("totalVideos", parseInt(e.target.value) || 0)} className={inputClass} />
+                </InputField>
+              </div>
+            </div>
+
+            {/* Links */}
+            <div className="bg-surface-raised border border-border rounded-xl p-6">
+              <SectionLabel>Links</SectionLabel>
+              <div className="space-y-3">
+                <InputField label="Brief / Discord Link">
+                  <input value={form.briefLink} onChange={(e) => set("briefLink", e.target.value)} className={inputClass} placeholder="https://discord.com/channels/..." />
+                </InputField>
+                <InputField label="Showcase / Product Link">
+                  <input value={form.showcaseLink} onChange={(e) => set("showcaseLink", e.target.value)} className={inputClass} placeholder="https://affiliate-us.tiktok.com/..." />
+                </InputField>
+              </div>
+            </div>
+
+            {/* Creators */}
+            <div className="bg-surface-raised border border-border rounded-xl p-6">
+              <SectionLabel>Assigned Creators</SectionLabel>
+              <p className="text-[12px] text-label-faint mb-3">Only these creators will see this campaign when they log in.</p>
+
+              <div className="flex gap-2 mb-4">
+                <input value={creatorInput} onChange={(e) => setCreatorInput(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addCreator(); } }}
+                  className={`${inputClass} flex-1`} placeholder="@discordhandle" />
+                <button type="button" onClick={addCreator} className={`${btnPrimary} px-4 py-2.5 text-[13px]`}>Add</button>
+              </div>
+
+              {form.creators.length === 0 ? (
+                <p className="text-label-faint text-[13px] text-center py-3">No creators assigned yet</p>
+              ) : (
+                <div className="flex flex-wrap gap-1.5">
+                  {form.creators.map((h) => (
+                    <span key={h} className="inline-flex items-center gap-1.5 bg-surface-overlay border border-border rounded px-3 py-1.5 text-[13px]">
+                      <span className="text-primary">{h}</span>
+                      <button type="button" onClick={() => removeCreator(h)} className="text-label-faint hover:text-red-400 transition-colors">&times;</button>
+                    </span>
+                  ))}
+                </div>
+              )}
+              <div className="mt-2 text-[11px] text-label-faint">{form.creators.length} / {form.tier} slots filled</div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex gap-3">
+              <button type="submit" className={`flex-1 ${btnPrimary} py-3 text-[14px]`}>
+                {campaign ? "Save Changes" : "Create Campaign"}
               </button>
-            )}
+              {onCancel && (
+                <button type="button" onClick={onCancel} className={`${btnSecondary} px-5 py-3 text-[14px]`}>Cancel</button>
+              )}
+            </div>
+          </form>
+
+          {/* Preview sidebar */}
+          <div className="lg:col-span-2 lg:sticky lg:top-6 lg:self-start">
+            <CampaignPreview campaign={form} />
           </div>
-        </form>
+        </div>
       );
     }
 
@@ -372,76 +382,75 @@
     function CampaignCard({ campaign, onEdit, onDelete }) {
       const tierLabel = TIER_OPTIONS.find((t) => t.value === campaign.tier)?.label || `${campaign.tier} Creators`;
       const totalDays = (campaign.onboardingDays || 14) + (campaign.phase1?.days || 15) + (campaign.phase2?.days || 15);
+      const [copied, setCopied] = useState(false);
+
+      const copyUrl = () => {
+        navigator.clipboard.writeText("https://titansagency.co/" + campaign.slug);
+        setCopied(true); setTimeout(() => setCopied(false), 1500);
+      };
 
       return (
-        <div className="bg-dark-card rounded-2xl p-6 border border-muted/10 hover:border-muted/30 transition-all">
-          <div className="flex items-start justify-between mb-2">
+        <div className="bg-surface-raised border border-border rounded-xl p-5 hover:border-border-light transition-all">
+          <div className="flex items-start justify-between mb-3">
             <div>
-              <h3 className="text-xl font-bold">{campaign.brandName}</h3>
-              {campaign.productName && <p className="text-sm text-muted">{campaign.productName}</p>}
+              <h3 className="text-[16px] font-bold text-primary">{campaign.brandName}</h3>
+              {campaign.productName && <p className="text-[13px] text-label-dim">{campaign.productName}</p>}
             </div>
-            <span className="bg-accent/10 text-accent text-xs font-bold px-3 py-1 rounded-full">{tierLabel}</span>
+            <span className="text-[11px] font-semibold text-label-dim border border-border rounded px-2 py-0.5">{tierLabel}</span>
           </div>
+
           {campaign.slug && (
-            <div className="mb-4 bg-dark-input rounded-lg px-3 py-2 flex items-center justify-between">
-              <span className="text-xs text-muted">titansagency.co/<span className="text-white font-semibold">{campaign.slug}</span></span>
-              <button type="button" onClick={() => { navigator.clipboard.writeText("https://titansagency.co/" + campaign.slug); }}
-                className="text-xs text-accent hover:text-accent-hover transition-colors">Copy</button>
+            <div className="mb-4 bg-surface border border-border rounded-lg px-3 py-2 flex items-center justify-between">
+              <span className="text-[12px] text-label-dim font-mono">titansagency.co/<span className="text-primary font-medium">{campaign.slug}</span></span>
+              <button onClick={copyUrl} className="text-[11px] text-label-dim hover:text-primary transition-colors font-medium">
+                {copied ? "Copied" : "Copy"}
+              </button>
             </div>
           )}
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
-            <div className="bg-dark-input rounded-xl p-3">
-              <div className="text-xs text-muted mb-1">Start</div>
-              <div className="text-sm font-semibold">{campaign.startDate || "—"}</div>
-            </div>
-            <div className="bg-dark-input rounded-xl p-3">
-              <div className="text-xs text-muted mb-1">End</div>
-              <div className="text-sm font-semibold">{campaign.endDate || "—"}</div>
-            </div>
-            <div className="bg-dark-input rounded-xl p-3">
-              <div className="text-xs text-muted mb-1">Videos</div>
-              <div className="text-sm font-semibold">{campaign.totalVideos}</div>
-            </div>
-            <div className="bg-dark-input rounded-xl p-3">
-              <div className="text-xs text-muted mb-1">Rate</div>
-              <div className="text-sm font-semibold">${campaign.ratePerVideo}/vid</div>
-            </div>
+          <div className="grid grid-cols-4 gap-2 mb-4">
+            {[
+              { l: "Start", v: campaign.startDate || "\u2014" },
+              { l: "End", v: campaign.endDate || "\u2014" },
+              { l: "Videos", v: campaign.totalVideos },
+              { l: "Rate", v: "$" + campaign.ratePerVideo },
+            ].map((s) => (
+              <div key={s.l} className="bg-surface border border-border rounded-lg px-3 py-2">
+                <div className="text-[10px] text-label-faint uppercase tracking-wide">{s.l}</div>
+                <div className="text-[13px] font-semibold text-primary mt-0.5">{s.v}</div>
+              </div>
+            ))}
           </div>
 
-          {/* Phase timeline mini */}
-          <div className="flex rounded-lg overflow-hidden h-2 mb-3">
-            <div className="h-full bg-purple-500" style={{ width: `${((campaign.onboardingDays || 14) / totalDays) * 100}%` }} />
-            <div className="h-full bg-cyan-400" style={{ width: `${((campaign.phase1?.days || 15) / totalDays) * 100}%` }} />
-            <div className="h-full bg-green-400" style={{ width: `${((campaign.phase2?.days || 15) / totalDays) * 100}%` }} />
+          {/* Phase bar */}
+          <div className="flex rounded overflow-hidden h-1 mb-2">
+            <div className="h-full bg-label-faint" style={{ width: `${((campaign.onboardingDays || 14) / totalDays) * 100}%` }} />
+            <div className="h-full bg-label-dim" style={{ width: `${((campaign.phase1?.days || 15) / totalDays) * 100}%` }} />
+            <div className="h-full bg-label" style={{ width: `${((campaign.phase2?.days || 15) / totalDays) * 100}%` }} />
           </div>
-          <div className="flex gap-3 text-[10px] text-muted mb-4">
-            <span>Onboard: {campaign.onboardingDays || 14}d</span>
-            <span>Phase 1: {campaign.phase1?.days || 15}d</span>
-            <span>Phase 2: {campaign.phase2?.days || 15}d</span>
+          <div className="flex gap-3 text-[10px] text-label-faint mb-4">
+            <span>Onboard {campaign.onboardingDays || 14}d</span>
+            <span>Phase 1 {campaign.phase1?.days || 15}d</span>
+            <span>Phase 2 {campaign.phase2?.days || 15}d</span>
           </div>
 
           {/* Creators */}
           <div className="mb-4">
-            <div className="text-xs text-muted mb-2">Creators ({campaign.creators?.length || 0} / {campaign.tier})</div>
+            <div className="text-[11px] text-label-faint mb-1.5">Creators ({campaign.creators?.length || 0} / {campaign.tier})</div>
             {campaign.creators?.length > 0 ? (
-              <div className="flex flex-wrap gap-1.5">
+              <div className="flex flex-wrap gap-1">
                 {campaign.creators.map((c) => (
-                  <span key={c} className="bg-dark-input text-xs px-2.5 py-1 rounded-full text-white/80">{c}</span>
+                  <span key={c} className="bg-surface border border-border text-[11px] px-2 py-0.5 rounded text-label font-medium">{c}</span>
                 ))}
               </div>
             ) : (
-              <span className="text-xs text-muted/50">None assigned</span>
+              <span className="text-[11px] text-label-faint">No creators assigned</span>
             )}
           </div>
 
           <div className="flex gap-2">
-            <button onClick={() => onEdit(campaign)} className="flex-1 bg-dark-input border border-muted/30 text-white font-semibold rounded-xl py-2.5 text-sm hover:border-accent transition-colors">
-              Edit
-            </button>
-            <button onClick={() => onDelete(campaign.id)} className="px-4 py-2.5 bg-dark-input border border-muted/30 text-danger font-semibold rounded-xl text-sm hover:border-danger transition-colors">
-              Delete
-            </button>
+            <button onClick={() => onEdit(campaign)} className={`flex-1 ${btnSecondary} py-2 text-[13px]`}>Edit</button>
+            <button onClick={() => onDelete(campaign.id)} className="bg-surface-overlay border border-border text-red-400/70 font-medium rounded-lg hover:border-red-500/30 hover:text-red-400 transition-all px-3.5 py-2 text-[13px]">Delete</button>
           </div>
         </div>
       );
@@ -450,69 +459,49 @@
     // ─── Admin Dashboard ───────────────────────────────────────
     function AdminDashboard() {
       const [campaigns, setCampaigns] = useState(loadCampaigns());
-      const [view, setView] = useState("list"); // list | create | edit
+      const [view, setView] = useState("list");
       const [editingCampaign, setEditingCampaign] = useState(null);
 
       const handleSave = (campaign) => {
         setCampaigns((prev) => {
           const exists = prev.find((c) => c.id === campaign.id);
           const updated = exists ? prev.map((c) => (c.id === campaign.id ? campaign : c)) : [...prev, campaign];
-          saveCampaigns(updated);
-          return updated;
+          saveCampaigns(updated); return updated;
         });
-        setView("list");
-        setEditingCampaign(null);
+        setView("list"); setEditingCampaign(null);
       };
-
-      const handleEdit = (campaign) => {
-        setEditingCampaign(campaign);
-        setView("edit");
-      };
-
+      const handleEdit = (c) => { setEditingCampaign(c); setView("edit"); };
       const handleDelete = (id) => {
         if (!confirm("Delete this campaign? This cannot be undone.")) return;
-        setCampaigns((prev) => {
-          const updated = prev.filter((c) => c.id !== id);
-          saveCampaigns(updated);
-          return updated;
-        });
+        setCampaigns((prev) => { const u = prev.filter((c) => c.id !== id); saveCampaigns(u); return u; });
       };
-
-      const handleLogout = () => {
-        sessionStorage.removeItem("admin_unlocked");
-        window.location.reload();
-      };
+      const handleLogout = () => { sessionStorage.removeItem("admin_unlocked"); window.location.reload(); };
 
       return (
-        <div className="max-w-3xl mx-auto px-4 py-8">
+        <div className="max-w-5xl mx-auto px-5 py-8">
           {/* Header */}
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center justify-between mb-8 pb-6 border-b border-border">
             <div>
-              <h1 className="text-2xl font-bold flex items-center gap-2">
-                <span className="text-accent">⚡</span> Titans Admin
-              </h1>
-              <p className="text-muted text-sm mt-1">Manage campaigns & creators</p>
+              <h1 className="text-[22px] font-bold text-primary tracking-tight">Titans</h1>
+              <p className="text-[13px] text-label-dim mt-0.5">Campaign Management</p>
             </div>
-            <div className="flex items-center gap-3">
-              <button onClick={handleLogout} className="text-sm text-muted hover:text-danger transition-colors">Logout</button>
-            </div>
+            <button onClick={handleLogout} className="text-[13px] text-label-faint hover:text-primary transition-colors">Sign out</button>
           </div>
 
           {view === "list" && (
             <>
               <button onClick={() => { setEditingCampaign(null); setView("create"); }}
-                className="w-full bg-accent hover:bg-accent-hover text-white font-bold rounded-xl py-4 mb-6 transition-colors active:scale-[0.98] text-lg">
-                + New Campaign
+                className={`w-full ${btnPrimary} py-3.5 mb-6 text-[14px]`}>
+                New Campaign
               </button>
 
               {campaigns.length === 0 ? (
-                <div className="text-center py-20">
-                  <div className="text-4xl mb-4">📋</div>
-                  <h2 className="text-xl font-bold mb-2">No campaigns yet</h2>
-                  <p className="text-muted text-sm">Create your first campaign to get started.</p>
+                <div className="text-center py-20 border border-border border-dashed rounded-xl">
+                  <h2 className="text-[16px] font-semibold text-primary mb-1">No campaigns yet</h2>
+                  <p className="text-[13px] text-label-dim">Create your first campaign to get started.</p>
                 </div>
               ) : (
-                <div className="space-y-4">
+                <div className="space-y-3">
                   {campaigns.map((c) => (
                     <CampaignCard key={c.id} campaign={c} onEdit={handleEdit} onDelete={handleDelete} />
                   ))}
@@ -523,14 +512,20 @@
 
           {view === "create" && (
             <>
-              <h2 className="text-xl font-bold mb-6">Create Campaign</h2>
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-[18px] font-bold text-primary">New Campaign</h2>
+                <button onClick={() => setView("list")} className="text-[13px] text-label-dim hover:text-primary transition-colors">Cancel</button>
+              </div>
               <CampaignForm onSave={handleSave} onCancel={() => setView("list")} />
             </>
           )}
 
           {view === "edit" && editingCampaign && (
             <>
-              <h2 className="text-xl font-bold mb-6">Edit Campaign</h2>
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-[18px] font-bold text-primary">Edit Campaign</h2>
+                <button onClick={() => { setView("list"); setEditingCampaign(null); }} className="text-[13px] text-label-dim hover:text-primary transition-colors">Cancel</button>
+              </div>
               <CampaignForm campaign={editingCampaign} onSave={handleSave} onCancel={() => { setView("list"); setEditingCampaign(null); }} />
             </>
           )}
@@ -538,10 +533,8 @@
       );
     }
 
-    // ─── App ───────────────────────────────────────────────────
     function App() {
       const [unlocked, setUnlocked] = useState(sessionStorage.getItem("admin_unlocked") === "1");
-
       if (!unlocked) return <PinGate onUnlock={() => setUnlocked(true)} />;
       return <AdminDashboard />;
     }
