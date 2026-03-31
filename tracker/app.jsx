@@ -112,17 +112,24 @@ function getCreatorStartDate(config) {
   return formatDateISO(s);
 }
 
-function getCreatorConfig(config) {
+function getCreatorConfig(config, phase2Selected = false) {
   const creatorStart = getCreatorStartDate(config);
-  // End date = start + phase1 + phase2 days (or use campaign end, whichever is later)
   const p1 = config.phase1?.days || 15;
   const p2 = config.phase2?.days || 15;
-  const calcEnd = parseDate(creatorStart);
-  calcEnd.setDate(calcEnd.getDate() + p1 + p2 - 1);
-  const calcEndISO = formatDateISO(calcEnd);
-  // Use the later of calculated end or campaign end
-  const endDate = calcEndISO > config.endDate ? calcEndISO : config.endDate;
-  return { ...config, startDate: creatorStart, endDate };
+  const p1End = parseDate(creatorStart);
+  p1End.setDate(p1End.getDate() + p1 - 1);
+  const p1EndISO = formatDateISO(p1End);
+
+  if (phase2Selected) {
+    const fullEnd = parseDate(creatorStart);
+    fullEnd.setDate(fullEnd.getDate() + p1 + p2 - 1);
+    const fullEndISO = formatDateISO(fullEnd);
+    const endDate = fullEndISO > config.endDate ? fullEndISO : config.endDate;
+    return { ...config, startDate: creatorStart, endDate };
+  }
+
+  // Default: end at Phase 1
+  return { ...config, startDate: creatorStart, endDate: p1EndISO };
 }
 
 function buildDefaultUserData(username, config) {
@@ -506,7 +513,8 @@ function StatsBar({ config, userData, campaignDays }) {
 
 function CampaignView({ config, user, onSwitchUser, onBack, showBack }) {
   const campaignId = config.id || "legacy";
-  const creatorCfg = useMemo(() => getCreatorConfig(config), [config]);
+  const isPhase2 = (config.phase2Creators || []).some(c => c.toLowerCase() === user.toLowerCase());
+  const creatorCfg = useMemo(() => getCreatorConfig(config, isPhase2), [config, isPhase2]);
   const [userData, setUserData] = useState(null);
   const [loadingData, setLoadingData] = useState(true);
   const campaignDays = useMemo(() => getCampaignDays(creatorCfg), [creatorCfg]);
@@ -581,7 +589,7 @@ function CampaignAdminView({ config }) {
   const [unlocked, setUnlocked] = useState(sessionStorage.getItem("campaign_admin_unlocked") === "1");
   const [trackingData, setTrackingData] = useState([]);
   const [loading, setLoading] = useState(true);
-  const creatorCfg = useMemo(() => getCreatorConfig(config), [config]);
+  const creatorCfg = useMemo(() => getCreatorConfig(config, true), [config]);
   const campaignDays = useMemo(() => getCampaignDays(creatorCfg), [creatorCfg]);
   const today = getTodayISO();
 
