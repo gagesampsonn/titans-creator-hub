@@ -113,7 +113,16 @@ function getCreatorStartDate(config) {
 }
 
 function getCreatorConfig(config) {
-  return { ...config, startDate: getCreatorStartDate(config) };
+  const creatorStart = getCreatorStartDate(config);
+  // End date = start + phase1 + phase2 days (or use campaign end, whichever is later)
+  const p1 = config.phase1?.days || 15;
+  const p2 = config.phase2?.days || 15;
+  const calcEnd = parseDate(creatorStart);
+  calcEnd.setDate(calcEnd.getDate() + p1 + p2 - 1);
+  const calcEndISO = formatDateISO(calcEnd);
+  // Use the later of calculated end or campaign end
+  const endDate = calcEndISO > config.endDate ? calcEndISO : config.endDate;
+  return { ...config, startDate: creatorStart, endDate };
 }
 
 function buildDefaultUserData(username, config) {
@@ -411,7 +420,6 @@ function CalendarGrid({ config, userData, campaignDays, onToggleDay }) {
 
               const dayData = userData.days[iso] || { posted: false };
               const isPast = iso < today;
-              const isFuture = iso > today;
               const isPosted = dayData.posted;
 
               let cls = "bg-surface border-border";
@@ -419,8 +427,8 @@ function CalendarGrid({ config, userData, campaignDays, onToggleDay }) {
               else if (isToday) cls = "bg-surface border-primary/40";
 
               return (
-                <button key={iso} onClick={() => onToggleDay(iso)} disabled={isFuture}
-                  className={`day-cell relative flex flex-col items-center justify-center rounded border min-h-[36px] aspect-square text-[11px] font-semibold transition-all ${cls} ${isFuture ? "opacity-30 cursor-not-allowed" : "cursor-pointer hover:border-label-dim"}`}>
+                <button key={iso} onClick={() => onToggleDay(iso)}
+                  className={`day-cell relative flex flex-col items-center justify-center rounded border min-h-[36px] aspect-square text-[11px] font-semibold transition-all cursor-pointer hover:border-label-dim ${cls}`}>
                   <span className={isPosted ? "text-emerald-400" : isPast ? "text-label-faint" : "text-primary"}>{day}</span>
                   {isPosted && <span className="text-emerald-400 text-[7px] leading-none mt-0.5">Done</span>}
                   {isToday && <span className="text-[7px] text-primary/60 leading-none mt-0.5">Today</span>}
