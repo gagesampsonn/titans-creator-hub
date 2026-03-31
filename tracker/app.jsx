@@ -39,7 +39,19 @@ async function dbGetCampaignBySlug(slug) {
   return fromDbCampaign(data);
 }
 
-function getSlugFromURL() { const p = window.location.pathname.replace(/^\/|\/$/g, ""); if (!p || p === "tracker" || p === "adminmanage") return null; return p; }
+function getSlugFromURL() {
+  const p = window.location.pathname.replace(/^\/|\/$/g, "");
+  if (!p || p === "tracker" || p === "adminmanage") return { slug: null, isAdmin: false };
+  if (p.endsWith("/admin")) return { slug: p.replace(/\/admin$/, ""), isAdmin: true };
+  return { slug: p, isAdmin: false };
+}
+
+// Load ALL user tracking rows for a campaign (for admin view)
+async function dbLoadAllTrackingForCampaign(campaignId) {
+  const { data, error } = await sb.from("user_tracking").select("*").eq("campaign_id", campaignId);
+  if (error) { console.error("Load all tracking:", error); return []; }
+  return data || [];
+}
 
 // User tracking data
 async function dbLoadUserData(username, campaignId) {
@@ -88,6 +100,19 @@ function getTodayISO() { return formatDateISO(new Date()); }
 function getDaysRemaining(config) { const e = parseDate(config.endDate), t = new Date(); t.setHours(0,0,0,0); return Math.max(0, Math.ceil((e - t) / 86400000)); }
 function getPostedCount(days) { return Object.values(days).filter(d => d.posted).length; }
 function getCurrentStreak(campaignDays, daysData) { let s = 0; const t = getTodayISO(); for (let i = campaignDays.length - 1; i >= 0; i--) { if (campaignDays[i] > t) continue; if (daysData[campaignDays[i]]?.posted) s++; else break; } return s; }
+
+// Get creator-facing start date (after onboarding)
+function getCreatorStartDate(config) {
+  const ob = config.onboardingDays || 0;
+  if (ob === 0) return config.startDate;
+  const s = parseDate(config.startDate);
+  s.setDate(s.getDate() + ob);
+  return formatDateISO(s);
+}
+
+function getCreatorConfig(config) {
+  return { ...config, startDate: getCreatorStartDate(config) };
+}
 
 function buildDefaultUserData(username, config) {
   const campaignDays = getCampaignDays(config);
@@ -372,16 +397,17 @@ function CalendarGrid({ config, userData, campaignDays, onToggleDay }) {
             {Array.from({ length: m.firstDow }, (_, i) => <div key={"b-" + i} />)}
             {m.days.map(({ day, iso }) => {
               const inCampaign = campaignSet.has(iso);
+              const isToday = iso === today;
+
               if (!inCampaign) {
                 return (
-                  <div key={iso} className="flex items-center justify-center rounded min-h-[36px] aspect-square text-[11px] text-label-faint/30 font-medium">
+                  <div key={iso} className={`flex items-center justify-center rounded min-h-[36px] aspect-square text-[11px] font-medium ${isToday ? "border border-primary/50 text-primary" : "text-label-faint/30"}`}>
                     {day}
                   </div>
                 );
               }
 
               const dayData = userData.days[iso] || { posted: false };
-              const isToday = iso === today;
               const isPast = iso < today;
               const isFuture = iso > today;
               const isPosted = dayData.posted;
@@ -395,6 +421,7 @@ function CalendarGrid({ config, userData, campaignDays, onToggleDay }) {
                   className={`day-cell relative flex flex-col items-center justify-center rounded border min-h-[36px] aspect-square text-[11px] font-semibold transition-all ${cls} ${isFuture ? "opacity-30 cursor-not-allowed" : "cursor-pointer hover:border-label-dim"}`}>
                   <span className={isPosted ? "text-emerald-400" : isPast ? "text-label-faint" : "text-primary"}>{day}</span>
                   {isPosted && <span className="text-emerald-400 text-[7px] leading-none mt-0.5">Done</span>}
+                  {isToday && <span className="text-[7px] text-primary/60 leading-none mt-0.5">Today</span>}
                 </button>
               );
             })}
@@ -477,15 +504,16 @@ function StatsBar({ config, userData, campaignDays }) {
 
 function CampaignView({ config, user, onSwitchUser, onBack, showBack }) {
   const campaignId = config.id || "legacy";
+  const creatorCfg = useMemo(() => getCreatorConfig(config), [config]);
   const [userData, setUserData] = useState(null);
   const [loadingData, setLoadingData] = useState(true);
-  const campaignDays = useMemo(() => getCampaignDays(config), [config]);
+  const campaignDays = useMemo(() => getCampaignDays(creatorCfg), [creatorCfg]);
 
   useEffect(() => {
     (async () => {
       let days = await dbLoadUserData(user, campaignId);
       if (!days) {
-        const defaultData = buildDefaultUserData(user, config);
+        const defaultData = buildDefaultUserData(user, creatorCfg);
         days = defaultData.days;
         await dbSaveUserDays(user, campaignId, days);
       }
@@ -513,10 +541,124 @@ function CampaignView({ config, user, onSwitchUser, onBack, showBack }) {
 
   return (
     <div className="max-w-lg mx-auto px-4 pt-4 pb-24">
-      <CampaignHeader config={config} userData={userData} onSwitchUser={onSwitchUser} onBack={onBack} showBack={showBack} />
-      <CalendarGrid config={config} userData={userData} campaignDays={campaignDays} onToggleDay={handleToggleDay} />
+      <CampaignHeader config={creatorCfg} userData={userData} onSwitchUser={onSwitchUser} onBack={onBack} showBack={showBack} />
+      <CalendarGrid config={creatorCfg} userData={userData} campaignDays={campaignDays} onToggleDay={handleToggleDay} />
       <VideoLog userData={userData} campaignDays={campaignDays} onUpdateLink={handleUpdateLink} />
-      <StatsBar config={config} userData={userData} campaignDays={campaignDays} />
+      <StatsBar config={creatorCfg} userData={userData} campaignDays={campaignDays} />
+    </div>
+  );
+}
+
+// ── Campaign Manager Admin View (/slug/admin) ─────────────
+function CampaignAdminView({ config }) {
+  const [trackingData, setTrackingData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const creatorCfg = useMemo(() => getCreatorConfig(config), [config]);
+  const campaignDays = useMemo(() => getCampaignDays(creatorCfg), [creatorCfg]);
+  const today = getTodayISO();
+
+  useEffect(() => {
+    (async () => {
+      const rows = await dbLoadAllTrackingForCampaign(config.id);
+      setTrackingData(rows);
+      setLoading(false);
+    })();
+  }, [config.id]);
+
+  const refresh = async () => {
+    setLoading(true);
+    const rows = await dbLoadAllTrackingForCampaign(config.id);
+    setTrackingData(rows);
+    setLoading(false);
+  };
+
+  if (loading) return <div className="min-h-screen flex items-center justify-center"><div className="text-label-dim text-[14px]">Loading campaign data...</div></div>;
+
+  const totalDays = (creatorCfg.onboardingDays || 0) + (creatorCfg.phase1?.days || 15) + (creatorCfg.phase2?.days || 15);
+
+  return (
+    <div className="max-w-4xl mx-auto px-4 pt-6 pb-8">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6 pb-4 border-b border-border">
+        <div>
+          <div className="text-[11px] text-label-faint uppercase tracking-wider font-semibold mb-1">Campaign Manager</div>
+          <h1 className="text-[22px] font-bold text-primary">{config.brandName}</h1>
+          {config.productName && <p className="text-[13px] text-label-dim">{config.productName}</p>}
+        </div>
+        <div className="flex items-center gap-3">
+          <button onClick={refresh} className="bg-surface-overlay border border-border text-label font-medium rounded-lg px-3 py-1.5 text-[12px] hover:border-border-light transition-all">Refresh</button>
+          <a href="/adminmanage/" className="text-[12px] text-label-faint hover:text-primary transition-colors">Admin Panel</a>
+        </div>
+      </div>
+
+      {/* Campaign stats */}
+      <div className="grid grid-cols-4 gap-3 mb-6">
+        {[
+          { l: "Creators", v: config.creators?.length || 0 },
+          { l: "Active Tracking", v: trackingData.length },
+          { l: "Rate", v: "$" + config.ratePerVideo },
+          { l: "Days Left", v: getDaysRemaining(creatorCfg) },
+        ].map(s => (
+          <div key={s.l} className="bg-surface-raised border border-border rounded-lg px-4 py-3">
+            <div className="text-[10px] text-label-faint uppercase tracking-wide">{s.l}</div>
+            <div className="text-[18px] font-bold text-primary mt-0.5">{s.v}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Creator progress table */}
+      <div className="bg-surface-raised border border-border rounded-xl overflow-hidden">
+        <div className="px-5 py-3 border-b border-border">
+          <h2 className="text-[14px] font-semibold text-primary">Creator Progress</h2>
+        </div>
+
+        {(config.creators || []).length === 0 ? (
+          <div className="px-5 py-8 text-center text-label-faint text-[13px]">No creators assigned to this campaign.</div>
+        ) : (
+          <div className="divide-y divide-border">
+            {(config.creators || []).map(handle => {
+              const row = trackingData.find(r => r.username.toLowerCase() === handle.toLowerCase());
+              const days = row ? row.days : {};
+              const posted = Object.values(days).filter(d => d.posted).length;
+              const total = config.totalVideos;
+              const pct = total > 0 ? Math.round((posted / total) * 100) : 0;
+              const earned = posted * config.ratePerVideo;
+              const isPhase2 = (config.phase2Creators || []).some(c => c.toLowerCase() === handle.toLowerCase());
+
+              // Count missed (past campaign days not posted)
+              const missed = campaignDays.filter(d => d < today && !(days[d]?.posted)).length;
+
+              // Last posted date
+              const postedDates = Object.entries(days).filter(([,v]) => v.posted).map(([k]) => k).sort();
+              const lastPosted = postedDates.length > 0 ? postedDates[postedDates.length - 1] : null;
+
+              return (
+                <div key={handle} className="px-5 py-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[14px] font-semibold text-primary">{handle}</span>
+                      {isPhase2 && <span className="text-[10px] font-medium text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 rounded px-1.5 py-0.5">Phase 2</span>}
+                    </div>
+                    <span className="text-[13px] font-semibold text-primary">{pct}%</span>
+                  </div>
+
+                  <div className="w-full bg-surface rounded h-1.5 overflow-hidden mb-2">
+                    <div className="bg-primary h-full rounded transition-all" style={{ width: `${pct}%` }} />
+                  </div>
+
+                  <div className="flex gap-4 text-[11px] text-label-dim">
+                    <span>{posted}/{total} posted</span>
+                    <span>{missed} missed</span>
+                    <span>${earned} earned</span>
+                    {lastPosted && <span>Last: {formatDateShort(parseDate(lastPosted))}</span>}
+                    {!row && <span className="text-label-faint">Not logged in yet</span>}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -528,10 +670,19 @@ function App() {
   const [screen, setScreen] = useState("loading");
   const [loaded, setLoaded] = useState(false);
   const [urlSlug, setUrlSlug] = useState(null);
+  const [adminCampaign, setAdminCampaign] = useState(null);
 
   useEffect(() => {
     (async () => {
-      const slug = getSlugFromURL(); setUrlSlug(slug);
+      const { slug, isAdmin } = getSlugFromURL(); setUrlSlug(slug);
+
+      // Campaign manager admin view
+      if (isAdmin && slug) {
+        const campaign = await dbGetCampaignBySlug(slug);
+        if (!campaign) { setScreen("not-found"); setLoaded(true); return; }
+        setAdminCampaign(campaign); setScreen("campaign-admin"); setLoaded(true); return;
+      }
+
       let slugCampaign = null;
       if (slug) { slugCampaign = await dbGetCampaignBySlug(slug); if (!slugCampaign) { setScreen("not-found"); setLoaded(true); return; } }
 
@@ -567,6 +718,7 @@ function App() {
   const handleLogout = () => { clearLoggedInUser(); setUser(null); setCampaigns([]); setSelectedCampaign(null); setScreen("pin"); };
 
   if (!loaded) return <div className="min-h-screen flex items-center justify-center"><div className="text-label-dim text-[14px]">Loading...</div></div>;
+  if (screen === "campaign-admin" && adminCampaign) return <CampaignAdminView config={adminCampaign} />;
   if (screen === "not-found") return <CampaignNotFound slug={urlSlug} />;
   if (screen === "pin") return <PinLoginScreen onLogin={loginAs} onGoToSetup={() => setScreen("setup")} />;
   if (screen === "setup") return <SetupScreen onComplete={loginAs} onBack={() => setScreen("pin")} />;
