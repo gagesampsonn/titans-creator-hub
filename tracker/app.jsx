@@ -365,127 +365,119 @@ function CampaignHeader({ config, userData, onSwitchUser, onBack, showBack }) {
   );
 }
 
-function CalendarGrid({ config, userData, campaignDays, onToggleDay }) {
+function CampaignTimeline({ config, userData, campaignDays, onToggleDay }) {
   const today = getTodayISO();
-  const campaignSet = useMemo(() => new Set(campaignDays), [campaignDays]);
+  const p1Days = config.phase1?.days || 15;
+  const startDate = parseDate(config.startDate);
 
-  // Build month grids spanning the campaign
-  const months = useMemo(() => {
-    const start = parseDate(config.startDate);
-    const end = parseDate(config.endDate);
-    const result = [];
-    let cur = new Date(start.getFullYear(), start.getMonth(), 1);
-    while (cur <= end) {
-      const year = cur.getFullYear();
-      const month = cur.getMonth();
-      const firstDow = cur.getDay();
-      const daysInMonth = new Date(year, month + 1, 0).getDate();
-      const label = cur.toLocaleDateString("en-US", { month: "long", year: "numeric" });
-      const days = [];
-      for (let d = 1; d <= daysInMonth; d++) {
-        const iso = `${year}-${String(month + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
-        days.push({ day: d, iso });
-      }
-      result.push({ label, firstDow, days });
-      cur = new Date(year, month + 1, 1);
-    }
-    return result;
-  }, [config.startDate, config.endDate]);
+  // Compute phase boundaries
+  const phase1End = new Date(startDate);
+  phase1End.setDate(phase1End.getDate() + p1Days - 1);
+  const phase1EndISO = formatDateISO(phase1End);
+
+  const phase2Start = new Date(phase1End);
+  phase2Start.setDate(phase2Start.getDate() + 1);
+  const phase2StartISO = formatDateISO(phase2Start);
+
+  const lastDay = campaignDays[campaignDays.length - 1];
+  const firstDay = campaignDays[0];
+
+  // Group by week rows (7 per row)
+  const weeks = [];
+  // Pad start to align to weekday
+  const startDow = parseDate(firstDay).getDay();
+  let currentWeek = Array(startDow).fill(null);
+
+  campaignDays.forEach(iso => {
+    currentWeek.push(iso);
+    if (currentWeek.length === 7) { weeks.push(currentWeek); currentWeek = []; }
+  });
+  if (currentWeek.length > 0) weeks.push(currentWeek);
 
   return (
     <div className="bg-surface-raised border border-border rounded-xl p-5 mb-3">
-      <h3 className="text-[14px] font-semibold text-primary mb-4">Calendar</h3>
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-[14px] font-semibold text-primary">Campaign Timeline</h3>
+        <span className="text-[11px] text-label-faint">{campaignDays.length} days</span>
+      </div>
 
-      {months.map((m) => (
-        <div key={m.label} className="mb-5 last:mb-0">
-          <div className="text-[12px] font-semibold text-label mb-2">{m.label}</div>
-          <div className="grid grid-cols-7 gap-1 mb-1">
-            {["S","M","T","W","T","F","S"].map((d, i) => (
-              <div key={i} className="text-center text-[9px] text-label-faint font-semibold uppercase">{d}</div>
-            ))}
-          </div>
-          <div className="grid grid-cols-7 gap-1">
-            {Array.from({ length: m.firstDow }, (_, i) => <div key={"b-" + i} />)}
-            {m.days.map(({ day, iso }) => {
-              const inCampaign = campaignSet.has(iso);
-              const isToday = iso === today;
+      {/* Phase indicator bar */}
+      <div className="flex rounded overflow-hidden h-2 mb-1">
+        <div className="h-full bg-label-dim" style={{ width: `${(p1Days / campaignDays.length) * 100}%` }} title="Phase 1" />
+        <div className="h-full bg-label" style={{ width: `${((campaignDays.length - p1Days) / campaignDays.length) * 100}%` }} title="Phase 2" />
+      </div>
+      <div className="flex justify-between text-[10px] text-label-faint mb-4">
+        <span>Phase 1 ends {formatDateShort(phase1End)}</span>
+        <span>Campaign ends {formatDateShort(parseDate(lastDay))}</span>
+      </div>
 
-              if (!inCampaign) {
-                return (
-                  <div key={iso} className={`flex items-center justify-center rounded min-h-[36px] aspect-square text-[11px] font-medium ${isToday ? "border border-primary/50 text-primary" : "text-label-faint/30"}`}>
-                    {day}
-                  </div>
-                );
-              }
+      {/* Weekday headers */}
+      <div className="grid grid-cols-7 gap-1 mb-1">
+        {["S","M","T","W","T","F","S"].map((d, i) => (
+          <div key={i} className="text-center text-[9px] text-label-faint font-semibold uppercase">{d}</div>
+        ))}
+      </div>
 
+      {/* Day grid */}
+      <div className="space-y-1">
+        {weeks.map((week, wi) => (
+          <div key={wi} className="grid grid-cols-7 gap-1">
+            {week.map((iso, di) => {
+              if (!iso) return <div key={"pad-" + di} />;
+
+              const date = parseDate(iso);
+              const dayNum = date.getDate();
               const dayData = userData.days[iso] || { posted: false };
+              const isToday = iso === today;
               const isPast = iso < today;
               const isPosted = dayData.posted;
+              const isFirstDay = iso === firstDay;
+              const isLastDay = iso === lastDay;
+              const isPhase1End = iso === phase1EndISO;
+              const isPhase2Start = iso === phase2StartISO;
+              const inPhase1 = iso <= phase1EndISO;
 
-              let cls = "bg-surface border-border";
-              if (isPosted) cls = "bg-emerald-500/10 border-emerald-500/30";
-              else if (isToday) cls = "bg-surface border-primary/40";
+              let bg = "bg-surface border-border";
+              if (isPosted) bg = "bg-emerald-500/10 border-emerald-500/30";
+              else if (isToday) bg = "bg-surface border-primary/50";
+              else if (isFirstDay || isLastDay) bg = "bg-emerald-500/5 border-emerald-500/20";
+              else if (isPhase1End || isPhase2Start) bg = "bg-surface border-label-dim/40";
+
+              // Tooltip
+              let tooltip = formatDateShort(date);
+              if (isFirstDay) tooltip += " \u2014 Campaign Start";
+              if (isPhase1End) tooltip += " \u2014 Phase 1 Deadline";
+              if (isPhase2Start) tooltip += " \u2014 Phase 2 Start";
+              if (isLastDay) tooltip += " \u2014 Campaign End";
+              if (isToday) tooltip += " \u2014 Today";
 
               return (
-                <button key={iso} onClick={() => onToggleDay(iso)}
-                  className={`day-cell relative flex flex-col items-center justify-center rounded border min-h-[36px] aspect-square text-[11px] font-semibold transition-all cursor-pointer hover:border-label-dim ${cls}`}>
-                  <span className={isPosted ? "text-emerald-400" : isPast ? "text-label-faint" : "text-primary"}>{day}</span>
+                <button key={iso} onClick={() => onToggleDay(iso)} title={tooltip}
+                  className={`day-cell relative flex flex-col items-center justify-center rounded border min-h-[38px] aspect-square text-[11px] font-semibold transition-all cursor-pointer hover:border-label-dim ${bg}`}>
+                  <span className={isPosted ? "text-emerald-400" : isToday ? "text-primary" : isPast && !isPosted ? "text-label-faint" : "text-primary"}>{dayNum}</span>
                   {isPosted && <span className="text-emerald-400 text-[7px] leading-none mt-0.5">Done</span>}
-                  {isToday && <span className="text-[7px] text-primary/60 leading-none mt-0.5">Today</span>}
+                  {isToday && !isPosted && <span className="text-[7px] text-primary/60 leading-none mt-0.5">Today</span>}
+                  {isFirstDay && !isPosted && !isToday && <span className="text-[7px] text-emerald-400/60 leading-none mt-0.5">Start</span>}
+                  {isPhase1End && !isPosted && !isToday && !isFirstDay && <span className="text-[7px] text-label-dim leading-none mt-0.5">P1 End</span>}
+                  {isLastDay && !isPosted && !isToday && !isPhase1End && <span className="text-[7px] text-emerald-400/60 leading-none mt-0.5">End</span>}
                 </button>
               );
             })}
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
 
-      <div className="flex items-center gap-4 mt-4 text-[11px] text-label-faint">
+      {/* Legend */}
+      <div className="flex flex-wrap items-center gap-4 mt-4 text-[11px] text-label-faint">
         <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded border border-emerald-500/30 bg-emerald-500/10 inline-block" /> Posted</span>
-        <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded border border-border bg-surface inline-block" /> Missed</span>
-        <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded border border-primary/40 bg-surface inline-block" /> Today</span>
+        <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded border border-primary/50 bg-surface inline-block" /> Today</span>
+        <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded border border-emerald-500/20 bg-emerald-500/5 inline-block" /> Start / End</span>
+        <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded border border-label-dim/40 bg-surface inline-block" /> Phase Boundary</span>
       </div>
     </div>
   );
 }
 
-function VideoLog({ userData, campaignDays, onUpdateLink }) {
-  const today = getTodayISO();
-
-  return (
-    <div className="bg-surface-raised border border-border rounded-xl p-5 mb-3">
-      <h3 className="text-[14px] font-semibold text-primary mb-4">Video Log</h3>
-      <div className="space-y-1.5 max-h-[400px] overflow-y-auto pr-1">
-        {campaignDays.map((dateStr, idx) => {
-          const dayData = userData.days[dateStr] || { posted: false, link: "" };
-          const isToday = dateStr === today;
-          const isPast = dateStr < today;
-          const isPosted = dayData.posted;
-
-          let statusText, statusColor;
-          if (isPosted) { statusText = "Posted"; statusColor = "text-emerald-400"; }
-          else if (isToday) { statusText = "Today"; statusColor = "text-primary"; }
-          else if (isPast) { statusText = "Missed"; statusColor = "text-label-faint"; }
-          else { statusText = "Upcoming"; statusColor = "text-label-faint/50"; }
-
-          return (
-            <div key={dateStr} className={`rounded-lg p-3 flex flex-col sm:flex-row sm:items-center gap-2 ${isToday ? "bg-surface-overlay border border-border" : "bg-surface"}`}>
-              <div className="flex items-center gap-3 flex-1 min-w-0">
-                <span className="text-[11px] text-label-faint font-mono w-7 shrink-0">D{idx + 1}</span>
-                <span className="text-[13px] text-primary w-14 shrink-0">{formatDateShort(parseDate(dateStr))}</span>
-                <span className={`text-[12px] ${statusColor} font-medium w-16 shrink-0`}>{statusText}</span>
-              </div>
-              {(isPosted || isToday || isPast) && (
-                <input type="url" placeholder="Paste TikTok link..." value={dayData.link || ""}
-                  onChange={(e) => onUpdateLink(dateStr, e.target.value)}
-                  className="flex-1 bg-surface-overlay border border-border rounded-lg px-3 py-1.5 text-[12px] text-primary placeholder-label-faint focus:outline-none focus:border-label-dim transition-colors min-h-[32px] min-w-0" />
-              )}
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
 
 function StatsBar({ config, userData, campaignDays }) {
   const posted = getPostedCount(userData.days);
@@ -539,21 +531,13 @@ function CampaignView({ config, user, onSwitchUser, onBack, showBack }) {
       return { ...prev, days: newDays };
     });
   };
-  const handleUpdateLink = (dateStr, link) => {
-    setUserData(prev => {
-      const newDays = { ...prev.days, [dateStr]: { ...prev.days[dateStr], link } };
-      dbSaveUserDays(user, campaignId, newDays);
-      return { ...prev, days: newDays };
-    });
-  };
 
   if (loadingData || !userData) return <div className="min-h-screen flex items-center justify-center"><div className="text-label-dim text-[14px]">Loading...</div></div>;
 
   return (
     <div className="max-w-lg mx-auto px-4 pt-4 pb-24">
       <CampaignHeader config={creatorCfg} userData={userData} onSwitchUser={onSwitchUser} onBack={onBack} showBack={showBack} />
-      <CalendarGrid config={creatorCfg} userData={userData} campaignDays={campaignDays} onToggleDay={handleToggleDay} />
-      <VideoLog userData={userData} campaignDays={campaignDays} onUpdateLink={handleUpdateLink} />
+      <CampaignTimeline config={creatorCfg} userData={userData} campaignDays={campaignDays} onToggleDay={handleToggleDay} />
       <StatsBar config={creatorCfg} userData={userData} campaignDays={campaignDays} />
     </div>
   );
