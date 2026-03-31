@@ -47,7 +47,7 @@
   <script type="text/babel">
     const { useState, useEffect, useRef, useCallback, useMemo } = React;
 
-    const ADMIN_PIN = "424342";
+    const ADMIN_PINS = ["424342", "742896"];
     const SUPABASE_URL = "https://luegkjhpmmdflyksmmnb.supabase.co";
     const SUPABASE_KEY = "sb_publishable_k0UnSsbi8ftmyvzK6Fxznw_CcpaOqMm";
     const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -66,6 +66,8 @@
         total_videos: c.totalVideos, total_videos_admin: c.totalVideosAdmin || null,
         start_date: c.startDate, end_date: c.endDate,
         brief_link: c.briefLink || null, showcase_link: c.showcaseLink || null,
+        total_budget: c.totalBudget || 0, management_fee: c.managementFee || 0,
+        retainer_budget: c.retainerBudget || 0, upfront_payment: c.upfrontPayment || 0,
         onboarding_days: c.onboardingDays, phase1: c.phase1, phase2: c.phase2,
         creators: c.creators || [], phase2_creators: c.phase2Creators || [],
         updated_at: new Date().toISOString(),
@@ -78,6 +80,8 @@
         totalVideos: r.total_videos, totalVideosAdmin: r.total_videos_admin,
         startDate: r.start_date, endDate: r.end_date,
         briefLink: r.brief_link || "", showcaseLink: r.showcase_link || "",
+        totalBudget: r.total_budget || 0, managementFee: r.management_fee || 0,
+        retainerBudget: r.retainer_budget || 0, upfrontPayment: r.upfront_payment || 0,
         onboardingDays: r.onboarding_days, phase1: r.phase1, phase2: r.phase2,
         creators: r.creators || [], phase2Creators: r.phase2_creators || [],
       };
@@ -142,7 +146,7 @@
 
       const handleSubmit = (e) => {
         e.preventDefault();
-        if (pin === ADMIN_PIN) { sessionStorage.setItem("admin_unlocked", "1"); onUnlock(); }
+        if (ADMIN_PINS.includes(pin)) { sessionStorage.setItem("admin_unlocked", "1"); onUnlock(); }
         else { setError(true); setPin(""); setTimeout(() => setError(false), 2000); }
       };
 
@@ -259,6 +263,7 @@
         id: generateId(), brandName: "", productName: "", slug: "", tier: 10,
         ratePerVideo: 25, totalVideos: 225, totalVideosAdmin: 225, startDate: "", endDate: "",
         briefLink: "", showcaseLink: "",
+        totalBudget: 0, managementFee: 0, retainerBudget: 0, upfrontPayment: 0,
         phase1: { name: "Phase 1 \u2014 Launch", days: 15, description: "All creators post daily" },
         phase2: { name: "Phase 2 \u2014 Scale", days: 15, description: "Top performers continue" },
         onboardingDays: 14, creators: [],
@@ -411,6 +416,28 @@
                   <input type="number" min="0" value={form.totalVideosAdmin || ""} onChange={(e) => set("totalVideosAdmin", parseInt(e.target.value) || 0)} className={inputClass} placeholder="Auto-calculated or set manually" />
                 </InputField>
                 <p className="text-[11px] text-label-faint mt-1">Admin-only. Not shown to creators.</p>
+              </div>
+            </div>
+
+            {/* Budget */}
+            <div className="bg-surface-raised border border-border rounded-xl p-6">
+              <SectionLabel>Budget</SectionLabel>
+              <p className="text-[12px] text-label-faint mb-3">Admin-only. Not shown to creators.</p>
+              <div className="grid grid-cols-2 gap-4 mb-3">
+                <InputField label="Total Campaign Cost ($)">
+                  <input type="number" min="0" value={form.totalBudget || ""} onChange={(e) => set("totalBudget", parseInt(e.target.value) || 0)} className={inputClass} placeholder="10500" />
+                </InputField>
+                <InputField label="Management Fee ($)">
+                  <input type="number" min="0" value={form.managementFee || ""} onChange={(e) => set("managementFee", parseInt(e.target.value) || 0)} className={inputClass} placeholder="3000" />
+                </InputField>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <InputField label="Retainer Budget ($)">
+                  <input type="number" min="0" value={form.retainerBudget || ""} onChange={(e) => set("retainerBudget", parseInt(e.target.value) || 0)} className={inputClass} placeholder="7500" />
+                </InputField>
+                <InputField label="Upfront Payment ($)">
+                  <input type="number" min="0" value={form.upfrontPayment || ""} onChange={(e) => set("upfrontPayment", parseInt(e.target.value) || 0)} className={inputClass} placeholder="6750" />
+                </InputField>
               </div>
             </div>
 

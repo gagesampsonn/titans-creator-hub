@@ -17,6 +17,8 @@ function fromDbCampaign(r) {
     totalVideos: r.total_videos, totalVideosAdmin: r.total_videos_admin,
     startDate: r.start_date, endDate: r.end_date,
     briefLink: r.brief_link || "", showcaseLink: r.showcase_link || "",
+    totalBudget: r.total_budget || 0, managementFee: r.management_fee || 0,
+    retainerBudget: r.retainer_budget || 0, upfrontPayment: r.upfront_payment || 0,
     onboardingDays: r.onboarding_days, phase1: r.phase1, phase2: r.phase2,
     creators: r.creators || [], phase2Creators: r.phase2_creators || [],
   };
@@ -550,7 +552,41 @@ function CampaignView({ config, user, onSwitchUser, onBack, showBack }) {
 }
 
 // ── Campaign Manager Admin View (/slug/admin) ─────────────
+const ADMIN_PINS = ["424342", "742896"];
+
+function AdminPinGate({ onUnlock }) {
+  const [pin, setPin] = useState("");
+  const [error, setError] = useState(false);
+  const ref = useRef(null);
+  useEffect(() => { if (ref.current) ref.current.focus(); }, []);
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (ADMIN_PINS.includes(pin)) { sessionStorage.setItem("campaign_admin_unlocked", "1"); onUnlock(); }
+    else { setError(true); setPin(""); setTimeout(() => setError(false), 2000); }
+  };
+  return (
+    <div className="min-h-screen flex items-center justify-center p-4">
+      <div className="bg-surface-raised border border-border rounded-xl p-8 w-full max-w-sm">
+        <div className="mb-8">
+          <h1 className="text-[20px] font-bold text-primary mb-1">Campaign Manager</h1>
+          <p className="text-[13px] text-label-dim">Enter your admin PIN to continue.</p>
+        </div>
+        <form onSubmit={handleSubmit}>
+          <input ref={ref} type="password" inputMode="numeric" maxLength={6} value={pin}
+            onChange={(e) => setPin(e.target.value.replace(/\D/g, ""))} placeholder="------"
+            className={`w-full bg-surface-overlay border rounded-lg px-4 py-4 text-center text-[20px] font-bold tracking-[0.4em] text-primary placeholder-label-faint focus:outline-none transition-colors ${error ? "border-red-500/60" : "border-border focus:border-label-dim"}`} />
+          {error && <p className="text-red-400 text-[12px] mt-2 text-center">Incorrect PIN.</p>}
+          <button type="submit" className="w-full mt-4 bg-primary text-surface font-semibold rounded-lg py-3 text-[14px] hover:bg-accent transition-all">Unlock</button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+function formatMoney(n) { return n ? "$" + n.toLocaleString() : "$0"; }
+
 function CampaignAdminView({ config }) {
+  const [unlocked, setUnlocked] = useState(sessionStorage.getItem("campaign_admin_unlocked") === "1");
   const [trackingData, setTrackingData] = useState([]);
   const [loading, setLoading] = useState(true);
   const creatorCfg = useMemo(() => getCreatorConfig(config), [config]);
@@ -558,12 +594,13 @@ function CampaignAdminView({ config }) {
   const today = getTodayISO();
 
   useEffect(() => {
+    if (!unlocked) return;
     (async () => {
       const rows = await dbLoadAllTrackingForCampaign(config.id);
       setTrackingData(rows);
       setLoading(false);
     })();
-  }, [config.id]);
+  }, [config.id, unlocked]);
 
   const refresh = async () => {
     setLoading(true);
@@ -572,9 +609,13 @@ function CampaignAdminView({ config }) {
     setLoading(false);
   };
 
+  if (!unlocked) return <AdminPinGate onUnlock={() => setUnlocked(true)} />;
   if (loading) return <div className="min-h-screen flex items-center justify-center"><div className="text-label-dim text-[14px]">Loading campaign data...</div></div>;
 
-  const totalDays = (creatorCfg.onboardingDays || 0) + (creatorCfg.phase1?.days || 15) + (creatorCfg.phase2?.days || 15);
+  // Budget calcs
+  const totalPostedAll = trackingData.reduce((sum, r) => sum + Object.values(r.days || {}).filter(d => d.posted).length, 0);
+  const totalSpentOnCreators = totalPostedAll * config.ratePerVideo;
+  const budgetRemaining = (config.retainerBudget || 0) - totalSpentOnCreators;
 
   return (
     <div className="max-w-4xl mx-auto px-4 pt-6 pb-8">
@@ -592,7 +633,7 @@ function CampaignAdminView({ config }) {
       </div>
 
       {/* Campaign stats */}
-      <div className="grid grid-cols-4 gap-3 mb-6">
+      <div className="grid grid-cols-4 gap-3 mb-4">
         {[
           { l: "Creators", v: config.creators?.length || 0 },
           { l: "Active Tracking", v: trackingData.length },
@@ -604,6 +645,30 @@ function CampaignAdminView({ config }) {
             <div className="text-[18px] font-bold text-primary mt-0.5">{s.v}</div>
           </div>
         ))}
+      </div>
+
+      {/* Budget overview */}
+      <div className="bg-surface-raised border border-border rounded-xl p-5 mb-6">
+        <div className="text-[11px] font-semibold text-label-faint uppercase tracking-wider mb-3">Budget</div>
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+          {[
+            { l: "Total Cost", v: formatMoney(config.totalBudget) },
+            { l: "Mgmt Fee", v: formatMoney(config.managementFee) },
+            { l: "Retainer Budget", v: formatMoney(config.retainerBudget) },
+            { l: "Spent on Creators", v: formatMoney(totalSpentOnCreators) },
+            { l: "Budget Remaining", v: formatMoney(budgetRemaining), warn: budgetRemaining < 0 },
+          ].map(s => (
+            <div key={s.l}>
+              <div className="text-[10px] text-label-faint uppercase tracking-wide">{s.l}</div>
+              <div className={`text-[16px] font-bold mt-0.5 ${s.warn ? "text-red-400" : "text-primary"}`}>{s.v}</div>
+            </div>
+          ))}
+        </div>
+        {config.upfrontPayment > 0 && (
+          <div className="mt-3 pt-3 border-t border-border text-[11px] text-label-dim">
+            Upfront payment collected: {formatMoney(config.upfrontPayment)}
+          </div>
+        )}
       </div>
 
       {/* Creator progress table */}
@@ -624,11 +689,7 @@ function CampaignAdminView({ config }) {
               const pct = total > 0 ? Math.round((posted / total) * 100) : 0;
               const earned = posted * config.ratePerVideo;
               const isPhase2 = (config.phase2Creators || []).some(c => c.toLowerCase() === handle.toLowerCase());
-
-              // Count missed (past campaign days not posted)
               const missed = campaignDays.filter(d => d < today && !(days[d]?.posted)).length;
-
-              // Last posted date
               const postedDates = Object.entries(days).filter(([,v]) => v.posted).map(([k]) => k).sort();
               const lastPosted = postedDates.length > 0 ? postedDates[postedDates.length - 1] : null;
 
