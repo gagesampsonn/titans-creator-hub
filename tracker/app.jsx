@@ -16,6 +16,8 @@ function fromDbCampaign(r) {
     slug: r.slug, tier: r.tier, ratePerVideo: r.rate_per_video,
     totalVideos: r.total_videos, totalVideosAdmin: r.total_videos_admin,
     startDate: r.start_date, endDate: r.end_date,
+    // Optional explicit Phase 1 last day (YYYY-MM-DD) — use when computed phase length would be wrong.
+    phase1EndDate: r.phase1_end_date || null,
     briefLink: r.brief_link || "", showcaseLink: r.showcase_link || "",
     totalBudget: r.total_budget || 0, managementFee: r.management_fee || 0,
     retainerBudget: r.retainer_budget || 0, upfrontPayment: r.upfront_payment || 0,
@@ -118,7 +120,7 @@ function getCreatorConfig(config, phase2Selected = false) {
   const p2 = config.phase2?.days || 15;
   const p1End = parseDate(creatorStart);
   p1End.setDate(p1End.getDate() + p1 - 1);
-  const p1EndISO = formatDateISO(p1End);
+  const p1EndISO = config.phase1EndDate || formatDateISO(p1End);
 
   if (phase2Selected) {
     const fullEnd = parseDate(creatorStart);
@@ -377,9 +379,14 @@ function CampaignTimeline({ config, userData, campaignDays, onToggleDay }) {
   const p1Days = config.phase1?.days || 15;
   const startDate = parseDate(config.startDate);
 
-  // Compute phase boundaries
-  const phase1End = new Date(startDate);
-  phase1End.setDate(phase1End.getDate() + p1Days - 1);
+  // Compute phase boundaries (config.startDate here is creator-facing start from getCreatorConfig)
+  const phase1End = config.phase1EndDate
+    ? parseDate(config.phase1EndDate)
+    : (() => {
+        const d = new Date(startDate);
+        d.setDate(d.getDate() + p1Days - 1);
+        return d;
+      })();
   const phase1EndISO = formatDateISO(phase1End);
 
   const phase2Start = new Date(phase1End);
@@ -388,6 +395,7 @@ function CampaignTimeline({ config, userData, campaignDays, onToggleDay }) {
 
   const lastDay = campaignDays[campaignDays.length - 1];
   const firstDay = campaignDays[0];
+  const phase1DayCount = Math.max(1, campaignDays.filter((d) => d <= phase1EndISO).length);
 
   // Group by week rows (7 per row)
   const weeks = [];
@@ -410,8 +418,8 @@ function CampaignTimeline({ config, userData, campaignDays, onToggleDay }) {
 
       {/* Phase indicator bar */}
       <div className="flex rounded overflow-hidden h-2 mb-1">
-        <div className="h-full bg-label-dim" style={{ width: `${(p1Days / campaignDays.length) * 100}%` }} title="Phase 1" />
-        <div className="h-full bg-label" style={{ width: `${((campaignDays.length - p1Days) / campaignDays.length) * 100}%` }} title="Phase 2" />
+        <div className="h-full bg-label-dim" style={{ width: `${(phase1DayCount / campaignDays.length) * 100}%` }} title="Phase 1" />
+        <div className="h-full bg-label" style={{ width: `${((campaignDays.length - phase1DayCount) / campaignDays.length) * 100}%` }} title="Phase 2" />
       </div>
       <div className="flex justify-between text-[10px] text-label-faint mb-4">
         <span>Phase 1 ends {formatDateShort(phase1End)}</span>
