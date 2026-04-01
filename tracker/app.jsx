@@ -411,12 +411,29 @@ function CampaignNotFound({ slug }) {
   );
 }
 
-function NoCampaignsScreen({ username, onSwitchUser }) {
+function NoCampaignsScreen({ username, onSwitchUser, slugDenied }) {
+  const onCampaignLink = !!slugDenied;
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
       <div className="bg-surface-raised border border-border rounded-xl p-8 w-full max-w-sm text-center">
-        <h2 className="text-[18px] font-bold text-primary mb-2">No Campaigns Found</h2>
-        <p className="text-[13px] text-label-dim mb-6">No active campaigns assigned to <span className="text-primary font-semibold">{username}</span>.</p>
+        <h2 className="text-[18px] font-bold text-primary mb-2">
+          {onCampaignLink ? "Not on this campaign" : "No campaigns found"}
+        </h2>
+        <p className="text-[13px] text-label-dim mb-6">
+          {onCampaignLink ? (
+            <>
+              <span className="text-primary font-semibold">{username}</span> isn&apos;t assigned to this campaign
+              {slugDenied && (
+                <> (<span className="font-mono text-label">/{slugDenied}</span>)</>
+              )}
+              . If this is a mistake, contact your campaign manager.
+            </>
+          ) : (
+            <>
+              No active campaigns assigned to <span className="text-primary font-semibold">{username}</span>.
+            </>
+          )}
+        </p>
         <button onClick={onSwitchUser} className="w-full bg-primary text-surface font-semibold rounded-lg py-2.5 text-[14px] hover:bg-accent transition-all">Back to Login</button>
       </div>
     </div>
@@ -908,6 +925,8 @@ function App() {
   const [loaded, setLoaded] = useState(false);
   const [urlSlug, setUrlSlug] = useState(null);
   const [adminCampaign, setAdminCampaign] = useState(null);
+  /** Set when user logs in from /{slug} but isn&apos;t in that campaign&apos;s creator list */
+  const [slugAccessDenied, setSlugAccessDenied] = useState(null);
 
   useEffect(() => {
     (async () => {
@@ -943,23 +962,31 @@ function App() {
     if (urlSlug) {
       const sc = await dbGetCampaignBySlug(urlSlug);
       if (sc?.creators?.some(h => h.toLowerCase() === username.toLowerCase())) {
+        setSlugAccessDenied(null);
         setUser(username); setCampaigns([sc]); setSelectedCampaign(sc); setScreen("app"); return;
       }
+      setSlugAccessDenied(urlSlug);
       setUser(username); setCampaigns([]); setScreen("no-campaigns"); return;
     }
+    setSlugAccessDenied(null);
     const uc = await dbGetCampaignsForUser(username); setUser(username); setCampaigns(uc);
     if (uc.length === 1) setSelectedCampaign(uc[0]); else setSelectedCampaign(null);
     setScreen(uc.length === 0 ? "no-campaigns" : "app");
   };
 
-  const handleLogout = () => { clearLoggedInUser(); setUser(null); setCampaigns([]); setSelectedCampaign(null); setScreen("pin"); };
+  const handleLogout = () => {
+    clearLoggedInUser();
+    setUser(null); setCampaigns([]); setSelectedCampaign(null); setSlugAccessDenied(null); setScreen("pin");
+  };
 
   if (!loaded) return <div className="min-h-screen flex items-center justify-center"><div className="text-label-dim text-[14px]">Loading...</div></div>;
   if (screen === "campaign-admin" && adminCampaign) return <CampaignAdminView config={adminCampaign} />;
   if (screen === "not-found") return <CampaignNotFound slug={urlSlug} />;
   if (screen === "pin") return <PinLoginScreen onLogin={loginAs} onGoToSetup={() => setScreen("setup")} />;
   if (screen === "setup") return <SetupScreen onComplete={loginAs} onBack={() => setScreen("pin")} />;
-  if (screen === "no-campaigns" || (screen === "app" && campaigns.length === 0)) return <NoCampaignsScreen username={user} onSwitchUser={handleLogout} />;
+  if (screen === "no-campaigns" || (screen === "app" && campaigns.length === 0)) {
+    return <NoCampaignsScreen username={user} onSwitchUser={handleLogout} slugDenied={slugAccessDenied} />;
+  }
   if (screen === "app" && !selectedCampaign) return <CampaignPicker campaigns={campaigns} onSelect={setSelectedCampaign} username={user} onSwitchUser={handleLogout} />;
   if (screen === "app" && selectedCampaign) return <CampaignView key={selectedCampaign.id} config={selectedCampaign} user={user} onSwitchUser={handleLogout} onBack={() => setSelectedCampaign(null)} showBack={campaigns.length > 1} />;
   return null;
