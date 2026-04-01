@@ -116,8 +116,9 @@ async function dbSaveUserDays(username, campaignId, days) {
 
 // PIN Auth (Supabase-backed)
 async function dbLookupPin(pin) {
-  const { data } = await sb.from("pin_accounts").select("username").eq("pin", pin).limit(1).single();
-  return data ? data.username : null;
+  const { data, error } = await sb.from("pin_accounts").select("username").eq("pin", pin).limit(1).maybeSingle();
+  if (error) { console.error("PIN lookup:", error); return null; }
+  return data?.username ?? null;
 }
 
 async function dbUsernameHasPin(username) {
@@ -217,15 +218,59 @@ function PinLoginScreen({ onLogin, onGoToSetup }) {
   const [pin, setPin] = useState("");
   const [error, setError] = useState("");
   const ref = useRef(null);
+  const debounceRef = useRef(null);
+  const lookupInFlightRef = useRef(false);
+  const submittingRef = useRef(false);
   useEffect(() => { if (ref.current) ref.current.focus(); }, []);
+  useEffect(() => () => { if (debounceRef.current) clearTimeout(debounceRef.current); }, []);
 
-  const handleChange = async (val) => {
+  const readPinFromInput = () => (ref.current?.value || "").replace(/\D/g, "").slice(0, 4);
+
+  const runLookup = async (digits) => {
+    if (digits.length !== 4 || submittingRef.current || lookupInFlightRef.current) return;
+    lookupInFlightRef.current = true;
+    const attempt = digits;
+    try {
+      const u = await dbLookupPin(attempt);
+      const still = readPinFromInput();
+      if (still !== attempt) return;
+      if (u) {
+        submittingRef.current = true;
+        setLoggedInUser(u);
+        onLogin(u);
+        return;
+      }
+      setError("PIN not recognized");
+      setTimeout(() => { setPin(""); setError(""); }, 1500);
+    } finally {
+      lookupInFlightRef.current = false;
+    }
+  };
+
+  const handleChange = (val) => {
     const digits = val.replace(/\D/g, "").slice(0, 4);
-    setPin(digits); setError("");
-    if (digits.length === 4) {
-      const u = await dbLookupPin(digits);
-      if (u) { setLoggedInUser(u); onLogin(u); }
-      else { setError("PIN not recognized"); setTimeout(() => { setPin(""); setError(""); }, 1500); }
+    setPin(digits);
+    setError("");
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+      debounceRef.current = null;
+    }
+    if (digits.length !== 4) return;
+    debounceRef.current = setTimeout(() => {
+      debounceRef.current = null;
+      runLookup(readPinFromInput());
+    }, 220);
+  };
+
+  const onPinKeyDown = (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+        debounceRef.current = null;
+      }
+      const v = readPinFromInput();
+      if (v.length === 4) runLookup(v);
     }
   };
 
@@ -238,11 +283,21 @@ function PinLoginScreen({ onLogin, onGoToSetup }) {
         </div>
 
         <div>
-          <input ref={ref} type="tel" inputMode="numeric" maxLength={4} value={pin}
+          <input
+            ref={ref}
+            type="tel"
+            inputMode="numeric"
+            pattern="[0-9]*"
+            autoComplete="one-time-code"
+            enterKeyHint="done"
+            maxLength={4}
+            value={pin}
             onChange={(e) => handleChange(e.target.value)}
+            onKeyDown={onPinKeyDown}
             placeholder="0000"
             className="w-full bg-surface-overlay border border-border rounded-lg px-4 py-4 text-center text-[24px] font-bold tracking-[0.5em] text-primary placeholder-label-faint focus:outline-none focus:border-label-dim transition-colors"
-            autoFocus />
+            autoFocus
+          />
           {error && <p className="text-red-400 text-[12px] text-center mt-2">{error}</p>}
         </div>
 
