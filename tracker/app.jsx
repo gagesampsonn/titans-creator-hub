@@ -148,6 +148,32 @@ function getDaysRemaining(config) { const e = parseDate(config.endDate), t = new
 function getPostedCount(days) { return Object.values(days).filter(d => d.posted).length; }
 function getCurrentStreak(campaignDays, daysData) { let s = 0; const t = getTodayISO(); for (let i = campaignDays.length - 1; i >= 0; i--) { if (campaignDays[i] > t) continue; if (daysData[campaignDays[i]]?.posted) s++; else break; } return s; }
 
+/** Videos a creator may mark posted: Phase 1 only = totalVideos; Phase 2 = phase 1 + phase 2 (defaults to same count as Phase 1 if phase2.videoCount omitted). */
+function getCreatorVideoCap(config, isPhase2) {
+  const phase1Videos = Math.max(0, Number(config.totalVideos) || 0);
+  if (!isPhase2) return phase1Videos;
+  const p2 = config.phase2 != null && config.phase2.videoCount != null
+    ? Math.max(0, Number(config.phase2.videoCount))
+    : phase1Videos;
+  return phase1Videos + p2;
+}
+
+/** If more days are marked posted than allowed, un-mark the latest excess (chronological). */
+function clampPostedDaysToCap(days, cap) {
+  if (cap <= 0 || !days) return days;
+  const postedIso = Object.entries(days)
+    .filter(([, v]) => v && v.posted)
+    .map(([iso]) => iso)
+    .sort();
+  if (postedIso.length <= cap) return days;
+  const keep = new Set(postedIso.slice(0, cap));
+  const out = { ...days };
+  postedIso.forEach((iso) => {
+    if (!keep.has(iso)) out[iso] = { ...out[iso], posted: false, link: out[iso]?.link || "" };
+  });
+  return out;
+}
+
 // Get creator-facing start date (after onboarding)
 function getCreatorStartDate(config) {
   const ob = config.onboardingDays || 0;
@@ -372,10 +398,11 @@ function CampaignPicker({ campaigns, onSelect, username, onSwitchUser }) {
   );
 }
 
-function CampaignHeader({ config, userData, onSwitchUser, onBack, showBack }) {
-  const posted = getPostedCount(userData.days);
-  const total = config.totalVideos;
-  const pct = total > 0 ? Math.round((posted / total) * 100) : 0;
+function CampaignHeader({ config, userData, onSwitchUser, onBack, showBack, videoCap }) {
+  const postedRaw = getPostedCount(userData.days);
+  const total = Math.max(0, videoCap || Number(config.totalVideos) || 0);
+  const posted = Math.min(postedRaw, total);
+  const pct = total > 0 ? Math.min(100, Math.round((posted / total) * 100)) : 0;
   const earned = posted * config.ratePerVideo;
   const remaining = getDaysRemaining(config);
 
@@ -417,7 +444,7 @@ function CampaignHeader({ config, userData, onSwitchUser, onBack, showBack }) {
   );
 }
 
-function CampaignTimeline({ config, userData, campaignDays, onToggleDay }) {
+function CampaignTimeline({ config, userData, campaignDays, onToggleDay, videoCap }) {
   const today = getTodayISO();
   const p1Days = config.phase1?.days || 15;
   const startDate = parseDate(config.startDate);
@@ -439,6 +466,8 @@ function CampaignTimeline({ config, userData, campaignDays, onToggleDay }) {
   const lastDay = campaignDays[campaignDays.length - 1];
   const firstDay = campaignDays[0];
   const phase1DayCount = Math.max(1, campaignDays.filter((d) => d <= phase1EndISO).length);
+  const postedCount = getPostedCount(userData.days);
+  const atVideoCap = videoCap > 0 && postedCount >= videoCap;
 
   // Group by week rows (7 per row)
   const weeks = [];
@@ -509,9 +538,14 @@ function CampaignTimeline({ config, userData, campaignDays, onToggleDay }) {
               if (isLastDay) tooltip += " \u2014 Campaign End";
               if (isToday) tooltip += " \u2014 Today";
 
+              const blockTurningOn = !isPosted && atVideoCap;
+              const toggleTitle = blockTurningOn
+                ? `${tooltip} \u2014 Video quota reached (${videoCap} max)`
+                : tooltip;
+
               return (
-                <button key={iso} onClick={() => onToggleDay(iso)} title={tooltip}
-                  className={`day-cell relative flex flex-col items-center justify-center rounded border min-h-[38px] aspect-square text-[11px] font-semibold transition-all cursor-pointer hover:border-label-dim ${bg}`}>
+                <button key={iso} type="button" disabled={blockTurningOn} onClick={() => !blockTurningOn && onToggleDay(iso)} title={toggleTitle}
+                  className={`day-cell relative flex flex-col items-center justify-center rounded border min-h-[38px] aspect-square text-[11px] font-semibold transition-all ${blockTurningOn ? "opacity-40 cursor-not-allowed" : "cursor-pointer hover:border-label-dim"} ${bg}`}>
                   <span className={isPosted ? "text-emerald-400" : isToday ? "text-primary" : isPast && !isPosted ? "text-label-faint" : "text-primary"}>{dayNum}</span>
                   {isPosted && <span className="text-emerald-400 text-[7px] leading-none mt-0.5">Done</span>}
                   {isToday && !isPosted && <span className="text-[7px] text-primary/60 leading-none mt-0.5">Today</span>}
@@ -537,17 +571,18 @@ function CampaignTimeline({ config, userData, campaignDays, onToggleDay }) {
 }
 
 
-function StatsBar({ config, userData, campaignDays }) {
-  const posted = getPostedCount(userData.days);
+function StatsBar({ config, userData, campaignDays, videoCap }) {
+  const total = Math.max(0, videoCap || Number(config.totalVideos) || 0);
+  const posted = Math.min(getPostedCount(userData.days), total);
   const earned = posted * config.ratePerVideo;
   const streak = getCurrentStreak(campaignDays, userData.days);
-  const pct = config.totalVideos > 0 ? Math.round((posted / config.totalVideos) * 100) : 0;
+  const pct = total > 0 ? Math.min(100, Math.round((posted / total) * 100)) : 0;
 
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-surface-raised/95 backdrop-blur-sm border-t border-border px-4 py-3 z-50">
       <div className="max-w-lg mx-auto grid grid-cols-4 gap-2">
         {[
-          { label: "Posted", value: `${posted}/${config.totalVideos}` },
+          { label: "Posted", value: `${posted}/${total}` },
           { label: "Earned", value: `$${earned}` },
           { label: "Streak", value: `${streak}d` },
           { label: "Progress", value: `${pct}%` },
@@ -566,8 +601,12 @@ function CampaignView({ config, user, onSwitchUser, onBack, showBack }) {
   const campaignId = config.id || "legacy";
   const isPhase2 = (config.phase2Creators || []).some(c => c.toLowerCase() === user.toLowerCase());
   const creatorCfg = useMemo(() => getCreatorConfig(config, isPhase2), [config, isPhase2]);
+  const videoCap = useMemo(() => getCreatorVideoCap(config, isPhase2), [config, isPhase2]);
   const [userData, setUserData] = useState(null);
   const [loadingData, setLoadingData] = useState(true);
+  const [quotaMsg, setQuotaMsg] = useState("");
+  const userDataRef = useRef(null);
+  userDataRef.current = userData;
   const campaignDays = useMemo(() => getCampaignDays(creatorCfg), [creatorCfg]);
 
   useEffect(() => {
@@ -577,33 +616,45 @@ function CampaignView({ config, user, onSwitchUser, onBack, showBack }) {
       let days = mergeDayMaps(fromDb, fromLocal);
       if (!days) {
         const defaultData = buildDefaultUserData(user, creatorCfg);
-        days = defaultData.days;
+        days = clampPostedDaysToCap(defaultData.days, videoCap);
         saveDaysToLocalBackup(user, campaignId, days);
         const ok = await dbSaveUserDays(user, campaignId, days);
         if (!ok) console.warn("Could not sync new tracker row to cloud; data is saved on this device.");
       } else {
+        const clamped = clampPostedDaysToCap(days, videoCap);
+        const clampChanged = JSON.stringify(clamped) !== JSON.stringify(days);
+        days = clamped;
         saveDaysToLocalBackup(user, campaignId, days);
-        if (JSON.stringify(fromDb || {}) !== JSON.stringify(days)) {
+        if (clampChanged || JSON.stringify(fromDb || {}) !== JSON.stringify(days)) {
           const ok = await dbSaveUserDays(user, campaignId, days);
-          if (!ok) console.warn("Could not sync merged tracker data to cloud; backup kept locally.");
+          if (!ok) console.warn("Could not sync tracker data to cloud; backup kept locally.");
         }
       }
       setUserData({ username: user, days });
       setLoadingData(false);
     })();
-  }, [user, campaignId]);
+  }, [user, campaignId, creatorCfg, videoCap]);
 
   const handleToggleDay = (dateStr) => {
-    setUserData((prev) => {
+    const prev = userDataRef.current;
+    if (!prev) return;
+    const turningOn = !prev.days[dateStr]?.posted;
+    if (turningOn && videoCap > 0 && getPostedCount(prev.days) >= videoCap) {
+      setQuotaMsg(`Video quota reached (${videoCap} max${isPhase2 ? "" : " for Phase 1"}). Un-mark a day to change which videos count.`);
+      setTimeout(() => setQuotaMsg(""), 5000);
+      return;
+    }
+    setQuotaMsg("");
+    setUserData((p) => {
       const newDays = {
-        ...prev.days,
-        [dateStr]: { ...prev.days[dateStr], posted: !prev.days[dateStr]?.posted },
+        ...p.days,
+        [dateStr]: { ...p.days[dateStr], posted: !p.days[dateStr]?.posted },
       };
       saveDaysToLocalBackup(user, campaignId, newDays);
       dbSaveUserDays(user, campaignId, newDays).then((ok) => {
         if (!ok) console.warn("Cloud save failed; your change is still saved on this device.");
       });
-      return { ...prev, days: newDays };
+      return { ...p, days: newDays };
     });
   };
 
@@ -611,9 +662,12 @@ function CampaignView({ config, user, onSwitchUser, onBack, showBack }) {
 
   return (
     <div className="max-w-lg mx-auto px-4 pt-4 pb-24">
-      <CampaignHeader config={creatorCfg} userData={userData} onSwitchUser={onSwitchUser} onBack={onBack} showBack={showBack} />
-      <CampaignTimeline config={creatorCfg} userData={userData} campaignDays={campaignDays} onToggleDay={handleToggleDay} />
-      <StatsBar config={creatorCfg} userData={userData} campaignDays={campaignDays} />
+      {quotaMsg && (
+        <div className="mb-3 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-2 text-[12px] text-amber-200">{quotaMsg}</div>
+      )}
+      <CampaignHeader config={creatorCfg} userData={userData} onSwitchUser={onSwitchUser} onBack={onBack} showBack={showBack} videoCap={videoCap} />
+      <CampaignTimeline config={creatorCfg} userData={userData} campaignDays={campaignDays} onToggleDay={handleToggleDay} videoCap={videoCap} />
+      <StatsBar config={creatorCfg} userData={userData} campaignDays={campaignDays} videoCap={videoCap} />
     </div>
   );
 }
