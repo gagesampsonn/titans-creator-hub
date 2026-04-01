@@ -57,10 +57,49 @@ async function dbLoadAllTrackingForCampaign(campaignId) {
   return data || [];
 }
 
-// User tracking data
+// User tracking data — local backup so edits survive Supabase RLS/network failures
+const TRACKER_DAYS_KEY = "titans_tracker_days_v1_";
+function localDaysKey(username, campaignId) {
+  return TRACKER_DAYS_KEY + String(username).toLowerCase() + "_" + String(campaignId);
+}
+function loadDaysFromLocalBackup(username, campaignId) {
+  try {
+    const raw = localStorage.getItem(localDaysKey(username, campaignId));
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+function saveDaysToLocalBackup(username, campaignId, days) {
+  try {
+    localStorage.setItem(localDaysKey(username, campaignId), JSON.stringify(days));
+  } catch (e) {
+    console.error("Local backup save failed:", e);
+  }
+}
+function mergeDayMaps(dbDays, localDays) {
+  if (!dbDays && !localDays) return null;
+  if (!dbDays) return localDays;
+  if (!localDays) return dbDays;
+  const keys = new Set([...Object.keys(dbDays), ...Object.keys(localDays)]);
+  const out = {};
+  keys.forEach((k) => {
+    const d = dbDays[k] || {};
+    const l = localDays[k] || {};
+    out[k] = { posted: !!(d.posted || l.posted), link: (l.link || d.link || "").trim() };
+  });
+  return out;
+}
+
 async function dbLoadUserData(username, campaignId) {
-  const { data } = await sb.from("user_tracking").select("*").eq("username", username).eq("campaign_id", campaignId).limit(1).single();
-  return data ? data.days : null;
+  const { data, error } = await sb
+    .from("user_tracking")
+    .select("*")
+    .eq("username", username)
+    .eq("campaign_id", campaignId)
+    .maybeSingle();
+  if (error) console.error("Load user data:", error);
+  return data?.days ?? null;
 }
 
 async function dbSaveUserDays(username, campaignId, days) {
@@ -68,7 +107,11 @@ async function dbSaveUserDays(username, campaignId, days) {
     { username, campaign_id: campaignId, days, updated_at: new Date().toISOString() },
     { onConflict: "username,campaign_id" }
   );
-  if (error) console.error("Save user data:", error);
+  if (error) {
+    console.error("Save user data:", error);
+    return false;
+  }
+  return true;
 }
 
 // PIN Auth (Supabase-backed)
@@ -529,11 +572,21 @@ function CampaignView({ config, user, onSwitchUser, onBack, showBack }) {
 
   useEffect(() => {
     (async () => {
-      let days = await dbLoadUserData(user, campaignId);
+      const fromDb = await dbLoadUserData(user, campaignId);
+      const fromLocal = loadDaysFromLocalBackup(user, campaignId);
+      let days = mergeDayMaps(fromDb, fromLocal);
       if (!days) {
         const defaultData = buildDefaultUserData(user, creatorCfg);
         days = defaultData.days;
-        await dbSaveUserDays(user, campaignId, days);
+        saveDaysToLocalBackup(user, campaignId, days);
+        const ok = await dbSaveUserDays(user, campaignId, days);
+        if (!ok) console.warn("Could not sync new tracker row to cloud; data is saved on this device.");
+      } else {
+        saveDaysToLocalBackup(user, campaignId, days);
+        if (JSON.stringify(fromDb || {}) !== JSON.stringify(days)) {
+          const ok = await dbSaveUserDays(user, campaignId, days);
+          if (!ok) console.warn("Could not sync merged tracker data to cloud; backup kept locally.");
+        }
       }
       setUserData({ username: user, days });
       setLoadingData(false);
@@ -541,9 +594,15 @@ function CampaignView({ config, user, onSwitchUser, onBack, showBack }) {
   }, [user, campaignId]);
 
   const handleToggleDay = (dateStr) => {
-    setUserData(prev => {
-      const newDays = { ...prev.days, [dateStr]: { ...prev.days[dateStr], posted: !prev.days[dateStr]?.posted } };
-      dbSaveUserDays(user, campaignId, newDays);
+    setUserData((prev) => {
+      const newDays = {
+        ...prev.days,
+        [dateStr]: { ...prev.days[dateStr], posted: !prev.days[dateStr]?.posted },
+      };
+      saveDaysToLocalBackup(user, campaignId, newDays);
+      dbSaveUserDays(user, campaignId, newDays).then((ok) => {
+        if (!ok) console.warn("Cloud save failed; your change is still saved on this device.");
+      });
       return { ...prev, days: newDays };
     });
   };
