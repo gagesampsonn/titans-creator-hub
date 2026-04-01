@@ -7,6 +7,9 @@ const SUPABASE_URL = "https://luegkjhpmmdflyksmmnb.supabase.co";
 const SUPABASE_KEY = "sb_publishable_k0UnSsbi8ftmyvzK6Fxznw_CcpaOqMm";
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+/** Default Discord server widget (override with `campaigns.discord_server_id` in Supabase when you add the column). */
+const DEFAULT_DISCORD_SERVER_ID = "1201451443031375942";
+
 // ============================================================
 // DB HELPERS
 // ============================================================
@@ -23,6 +26,7 @@ function fromDbCampaign(r) {
     retainerBudget: r.retainer_budget || 0, upfrontPayment: r.upfront_payment || 0,
     onboardingDays: r.onboarding_days, phase1: r.phase1, phase2: r.phase2,
     creators: r.creators || [], phase2Creators: r.phase2_creators || [],
+    discordServerId: r.discord_server_id || null,
   };
 }
 
@@ -626,6 +630,29 @@ function CampaignTimeline({ config, userData, campaignDays, onToggleDay, videoCa
 }
 
 
+function DiscordWidgetEmbed({ serverId }) {
+  if (!serverId) return null;
+  const src = `https://discord.com/widget?id=${encodeURIComponent(serverId)}&theme=dark`;
+  return (
+    <div className="bg-surface-raised border border-border rounded-xl p-4 mb-3">
+      <h3 className="text-[14px] font-semibold text-primary mb-1">Campaign Discord</h3>
+      <p className="text-[12px] text-label-dim mb-3">Join the server for updates, briefs, and questions.</p>
+      <div className="w-full rounded-lg overflow-hidden border border-border bg-[#313338]">
+        <iframe
+          title="Discord"
+          src={src}
+          width="100%"
+          height={420}
+          className="w-full max-w-full block align-middle min-h-[320px] sm:min-h-[420px]"
+          allowTransparency
+          style={{ border: 0, colorScheme: "normal" }}
+          sandbox="allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts"
+        />
+      </div>
+    </div>
+  );
+}
+
 function StatsBar({ config, userData, campaignDays, videoCap }) {
   const total = Math.max(0, videoCap || Number(config.totalVideos) || 0);
   const posted = Math.min(getPostedCount(userData.days), total);
@@ -722,6 +749,7 @@ function CampaignView({ config, user, onSwitchUser, onBack, showBack }) {
       )}
       <CampaignHeader config={creatorCfg} userData={userData} onSwitchUser={onSwitchUser} onBack={onBack} showBack={showBack} videoCap={videoCap} />
       <CampaignTimeline config={creatorCfg} userData={userData} campaignDays={campaignDays} onToggleDay={handleToggleDay} videoCap={videoCap} />
+      <DiscordWidgetEmbed serverId={config.discordServerId || DEFAULT_DISCORD_SERVER_ID} />
       <StatsBar config={creatorCfg} userData={userData} campaignDays={campaignDays} videoCap={videoCap} />
     </div>
   );
