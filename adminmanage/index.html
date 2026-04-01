@@ -96,13 +96,17 @@
       const row = toDbCampaign(campaign);
       const { error } = await sb.from("campaigns").upsert(row, { onConflict: "id" });
       if (error) console.error("Save campaign error:", error);
+      return { error };
     }
     async function dbDeleteCampaign(id) {
       const { error } = await sb.from("campaigns").delete().eq("id", id);
       if (error) console.error("Delete campaign error:", error);
     }
 
-    function generateId() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+    function generateId() {
+      if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") return crypto.randomUUID();
+      return Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
+    }
     function addDaysToDate(dateStr, days) {
       if (!dateStr) return "";
       const d = new Date(dateStr + "T00:00:00");
@@ -167,6 +171,17 @@
           </div>
         </div>
       );
+    }
+
+    /** Last calendar day of the campaign (start + onboarding + phase1 + phase2 − 1). */
+    function computeCampaignEndDate(form) {
+      if (!form.startDate) return form.endDate || "";
+      const ob = form.onboardingDays || 0;
+      const p1 = form.phase1?.days || 0;
+      const p2 = form.phase2?.days || 0;
+      const total = ob + p1 + p2;
+      if (total < 1) return form.endDate || "";
+      return addDaysISO(form.startDate, total - 1);
     }
 
     // ─── Campaign Link Preview ─────────────────────────────────
@@ -241,7 +256,7 @@
           <div className="mt-4 space-y-2">
             <StatusCheck ok={!!campaign.brandName} label="Brand name set" />
             <StatusCheck ok={!!campaign.slug} label="Campaign URL configured" />
-            <StatusCheck ok={!!campaign.startDate && !!campaign.endDate} label="Dates configured" />
+            <StatusCheck ok={!!campaign.startDate && !!computeCampaignEndDate(campaign)} label="Dates configured" />
             <StatusCheck ok={(campaign.creators?.length || 0) > 0} label="Creators assigned" />
           </div>
         </div>
@@ -258,7 +273,7 @@
     }
 
     // ─── Campaign Form ─────────────────────────────────────────
-    function CampaignForm({ campaign, onSave, onCancel }) {
+    function CampaignForm({ campaign, onSave, onCancel, saveError, onClearSaveError, saving }) {
       const [form, setForm] = useState(campaign || {
         id: generateId(), brandName: "", productName: "", slug: "", tier: 10,
         ratePerVideo: 25, totalVideos: 225, totalVideosAdmin: 225, startDate: "", endDate: "",
@@ -272,7 +287,10 @@
       const [slugManual, setSlugManual] = useState(!!campaign?.slug);
       const isCustomTier = !TIER_PRESETS.some(t => t.value === form.tier);
 
-      const set = (key, val) => setForm((prev) => ({ ...prev, [key]: val }));
+      const set = (key, val) => {
+        onClearSaveError && onClearSaveError();
+        setForm((prev) => ({ ...prev, [key]: val }));
+      };
       const handleBrandChange = (val) => { set("brandName", val); if (!slugManual) set("slug", slugify(val)); };
       const handleSlugChange = (val) => { setSlugManual(true); set("slug", val.toLowerCase().replace(/[^a-z0-9]/g, "")); };
       const handleTierChange = (v) => { const preset = TIER_PRESETS.find(t => t.value === v); set("tier", v); if (preset) { set("totalVideos", preset.videos); set("totalVideosAdmin", preset.videos); } };
@@ -285,16 +303,32 @@
       };
       const removeCreator = (h) => set("creators", form.creators.filter(c => c !== h));
 
+      const [validationError, setValidationError] = useState("");
+
       const handleSubmit = (e) => {
         e.preventDefault();
-        if (!form.brandName || !form.slug || !form.startDate || !form.endDate) return;
-        onSave(form);
+        onClearSaveError && onClearSaveError();
+        if (!form.brandName || !form.slug || !form.startDate) {
+          setValidationError("Fill in Brand name, Campaign URL, and Start date.");
+          return;
+        }
+        setValidationError("");
+        const endDate = computeCampaignEndDate(form);
+        onSave({ ...form, endDate });
       };
 
       return (
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
           {/* Form column */}
           <form onSubmit={handleSubmit} className="lg:col-span-3 space-y-5">
+            {(validationError || saveError) && (
+              <div className="rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-3 text-[13px] text-red-300">
+                {validationError || saveError}
+              </div>
+            )}
+            <p className="text-[12px] text-label-dim -mt-2 mb-1">
+              End date is set automatically from your phase lengths (last day of Phase 2). Change Start date or phase days to adjust.
+            </p>
             {/* Details */}
             <div className="bg-surface-raised border border-border rounded-xl p-6">
               <SectionLabel>Campaign Details</SectionLabel>
@@ -351,8 +385,9 @@
                 <InputField label="Start Date" required>
                   <input type="date" value={form.startDate} onChange={(e) => set("startDate", e.target.value)} required className={inputClass} />
                 </InputField>
-                <InputField label="End Date" required>
-                  <input type="date" value={form.endDate} onChange={(e) => set("endDate", e.target.value)} required className={inputClass} />
+                <InputField label="End Date (auto)">
+                  <input type="date" value={computeCampaignEndDate(form)} readOnly disabled
+                    className={`${inputClass} opacity-80 cursor-not-allowed`} title="Computed from start date + onboarding + phase 1 + phase 2" />
                 </InputField>
               </div>
 
@@ -512,8 +547,8 @@
 
             {/* Actions */}
             <div className="flex gap-3">
-              <button type="submit" className={`flex-1 ${btnPrimary} py-3 text-[14px]`}>
-                {campaign ? "Save Changes" : "Create Campaign"}
+              <button type="submit" disabled={saving} className={`flex-1 ${btnPrimary} py-3 text-[14px] disabled:opacity-50 disabled:cursor-not-allowed`}>
+                {saving ? "Saving…" : campaign ? "Save Changes" : "Create Campaign"}
               </button>
               {onCancel && (
                 <button type="button" onClick={onCancel} className={`${btnSecondary} px-5 py-3 text-[14px]`}>Cancel</button>
@@ -614,11 +649,24 @@
       const [view, setView] = useState("list");
       const [editingCampaign, setEditingCampaign] = useState(null);
       const [loading, setLoading] = useState(true);
+      const [saveError, setSaveError] = useState("");
+      const [saving, setSaving] = useState(false);
 
       useEffect(() => { dbLoadCampaigns().then((c) => { setCampaigns(c); setLoading(false); }); }, []);
 
       const handleSave = async (campaign) => {
-        await dbSaveCampaign(campaign);
+        setSaveError("");
+        setSaving(true);
+        const { error } = await dbSaveCampaign(campaign);
+        setSaving(false);
+        if (error) {
+          const msg = error.message || String(error);
+          const hint = /permission|policy|RLS|row-level/i.test(msg)
+            ? " Check Supabase → campaigns → RLS policies allow INSERT/UPDATE for anon (or use the service role from a server)."
+            : "";
+          setSaveError("Save failed: " + msg + hint);
+          return;
+        }
         const updated = await dbLoadCampaigns();
         setCampaigns(updated);
         setView("list"); setEditingCampaign(null);
@@ -670,9 +718,9 @@
             <>
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-[18px] font-bold text-primary">New Campaign</h2>
-                <button onClick={() => setView("list")} className="text-[13px] text-label-dim hover:text-primary transition-colors">Cancel</button>
+                <button onClick={() => { setView("list"); setSaveError(""); }} className="text-[13px] text-label-dim hover:text-primary transition-colors">Cancel</button>
               </div>
-              <CampaignForm onSave={handleSave} onCancel={() => setView("list")} />
+              <CampaignForm onSave={handleSave} onCancel={() => { setView("list"); setSaveError(""); }} saveError={saveError} onClearSaveError={() => setSaveError("")} saving={saving} />
             </>
           )}
 
@@ -680,9 +728,9 @@
             <>
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-[18px] font-bold text-primary">Edit Campaign</h2>
-                <button onClick={() => { setView("list"); setEditingCampaign(null); }} className="text-[13px] text-label-dim hover:text-primary transition-colors">Cancel</button>
+                <button onClick={() => { setView("list"); setEditingCampaign(null); setSaveError(""); }} className="text-[13px] text-label-dim hover:text-primary transition-colors">Cancel</button>
               </div>
-              <CampaignForm campaign={editingCampaign} onSave={handleSave} onCancel={() => { setView("list"); setEditingCampaign(null); }} />
+              <CampaignForm campaign={editingCampaign} onSave={handleSave} onCancel={() => { setView("list"); setEditingCampaign(null); setSaveError(""); }} saveError={saveError} onClearSaveError={() => setSaveError("")} saving={saving} />
             </>
           )}
         </div>
