@@ -3,16 +3,16 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Titans Agency — TikTok Shop creators &amp; retainer campaigns</title>
-    <meta name="description" content="Join Titans Agency as a TikTok Shop creator, or launch a managed retainer campaign with vetted creators." />
+    <title>TikTok Titans — TikTok Shop affiliate creators</title>
+    <meta name="description" content="Join TikTok Titans if you do TikTok Shop affiliate: retainers, structure, and a team built for creators—not brands." />
     <link rel="icon" type="image/png" href="assets/icon.png" />
 
-    <!-- React via CDN -->
-    <script crossorigin src="https://unpkg.com/react@19/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@19/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- React 18 UMD (jsDelivr — more reliable than unpkg on some networks) -->
+    <script crossorigin src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js"></script>
+    <script crossorigin src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.26.0/babel.min.js"></script>
 
-    <!-- Tailwind CSS -->
+    <!-- Tailwind Play CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
@@ -47,9 +47,6 @@
 
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 
     <style>
       * { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
@@ -88,64 +85,124 @@
     </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root" style="min-height:100vh;background:#0A0A0A;color:#F5F5F5;">
+      <p style="padding:2rem;font-family:system-ui,sans-serif;">Loading TikTok Titans…</p>
+    </div>
 
-    <script type="text/babel">
+    <script type="text/babel" data-presets="react">
       const { useState, useEffect, useRef, useCallback } = React;
 
-      // ─── Campaign Config Data ────────────────────────────────────
-      const CAMPAIGN_CONFIGS = {
-        5:  { totalCost: 5500,  totalVideos: 120, managementFee: 2000, retainerBudget: 3500,  upfrontPayment: 3750, creatorsPhase1: 5, creatorsPhase2: 3 },
-        10: { totalCost: 10500, totalVideos: 225, managementFee: 3000, retainerBudget: 7500,  upfrontPayment: 6750, creatorsPhase1: 10, creatorsPhase2: 5 },
-        15: { totalCost: 13500, totalVideos: 325, managementFee: 3000, retainerBudget: 10500, upfrontPayment: 8250, creatorsPhase1: 15, creatorsPhase2: 8 },
-      };
-
-      const CAMPAIGN_DURATION = 44;
-
-      const PHASES = [
-        { name: 'Onboarding', days: 14, color: '#8B5CF6', tasks: ['Source & vet creators', 'Ship product samples', 'Set up Spark Ad codes', 'Brief creators on brand'] },
-        { name: 'Phase 1 \u2014 Launch', days: 15, color: '#00F2EA', tasks: ['All creators post daily', 'Performance monitoring', 'Real-time optimization', 'Weekly brand reports'] },
-        { name: 'Phase 2 \u2014 Scale', days: 15, color: '#22C55E', tasks: ['Top 50% continue', '15 additional videos each', 'Scale winning content angles', 'Final performance report'] },
-      ];
-
       const FEATURES_DISCOVER = [
-        { icon: 'Users', title: 'Vetted network', desc: 'Work alongside creators who are serious about TikTok Shop and long-term partnerships.' },
-        { icon: 'TrendingUp', title: 'Campaign matchmaking', desc: 'Get paired with brands and products that fit your niche and audience.' },
-        { icon: 'Zap', title: 'Structured retainers', desc: 'Clear phases, deliverables, and payouts—focus on content, not spreadsheets.' },
-        { icon: 'Shield', title: 'Agency support', desc: 'Briefs, samples, and reporting handled so you always know what is next.' },
+        { icon: 'TrendingUp', title: 'Earn with structure', desc: 'Retainers and clear phases so you know what you are making on TikTok Shop affiliate—not guessing off a spreadsheet.' },
+        { icon: 'Zap', title: 'Built for Shop', desc: 'We work with creators who actually sell on TikTok Shop: products, samples, and content that converts.' },
+        { icon: 'Users', title: 'You are not alone', desc: 'A network of affiliates going hard on the same platform—share wins, ask questions, and grow with people who get it.' },
+        { icon: 'Shield', title: 'Titans in your corner', desc: 'Briefs, samples, and a team that answers—so you spend time filming, not chasing info.' },
       ];
 
       const CREATOR_STEPS = [
-        { step: '01', title: 'Apply', desc: 'Share your niche, metrics, and TikTok Shop experience.', color: '#8B5CF6' },
-        { step: '02', title: 'Onboarding', desc: 'Get briefed, receive samples, and align on deliverables.', color: '#00F2EA' },
-        { step: '03', title: 'Create & scale', desc: 'Post on schedule; Phase 2 doubles down on what performs.', color: '#FF0050' },
+        { step: '01', title: 'Apply', desc: 'Tell us your niche, your Shop affiliate experience, and how you like to post.', color: '#8B5CF6' },
+        { step: '02', title: 'Onboard', desc: 'Get matched to fits, receive product, and lock deliverables and timelines that work for you.', color: '#00F2EA' },
+        { step: '03', title: 'Create & earn', desc: 'Ship content, track what you owe and what you have done in the tracker, and level up as you perform.', color: '#FF0050' },
       ];
 
       const JOIN_LINKS = [
-        { icon: 'MessageCircle', title: 'Discord', desc: 'Community and campaign updates.', href: '#', gradient: 'from-accent-teal to-accent-purple' },
-        { icon: 'Send', title: 'Apply', desc: 'Start your creator application.', href: 'mailto:tiktoktitansmanagement@gmail.com?subject=Creator%20application', gradient: 'from-accent-fuchsia to-accent-purple' },
-        { icon: 'Video', title: 'Content tips', desc: 'UGC and Spark best practices.', href: '#discover', gradient: 'from-accent-purple to-accent-teal' },
-        { icon: 'BarChart3', title: 'Tracker', desc: 'Already signed? Log in to your campaign.', href: '/tracker/', gradient: 'from-accent-teal to-accent-fuchsia' },
+        { icon: 'MessageCircle', title: 'Discord', desc: 'Meet other TikTok Shop affiliates and get updates from the team.', href: '#', gradient: 'from-accent-teal to-accent-purple' },
+        { icon: 'Send', title: 'Apply', desc: 'Email us to start your application.', href: 'mailto:tiktoktitansmanagement@gmail.com?subject=TikTok%20Titans%20-%20creator%20application', gradient: 'from-accent-fuchsia to-accent-purple' },
+        { icon: 'Video', title: 'Why Titans', desc: 'Scroll up for what you get when you join the network.', href: '#discover', gradient: 'from-accent-purple to-accent-teal' },
+        { icon: 'BarChart3', title: 'Tracker', desc: 'Already with us? Log in to your retainer and deliverables.', href: '/tracker/', gradient: 'from-accent-teal to-accent-fuchsia' },
       ];
 
-      const formatCurrency = (amount) =>
-        new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount);
-
-      // ─── Icon Component ──────────────────────────────────────────
+      // ─── Icons (inline SVG — no extra CDN; Lucide UMD API does not match createElement/icons) ─
       function Icon({ name, size = 20, className = '' }) {
-        const ref = useRef(null);
-        useEffect(() => {
-          if (ref.current) {
-            ref.current.innerHTML = '';
-            const el = lucide.createElement(lucide.icons[name]);
-            if (el) {
-              el.setAttribute('width', size);
-              el.setAttribute('height', size);
-              ref.current.appendChild(el);
-            }
-          }
-        }, [name, size]);
-        return <span ref={ref} className={`inline-flex items-center justify-center ${className}`} />;
+        const a = {
+          xmlns: 'http://www.w3.org/2000/svg',
+          width: size,
+          height: size,
+          viewBox: '0 0 24 24',
+          fill: 'none',
+          stroke: 'currentColor',
+          strokeWidth: 2,
+          strokeLinecap: 'round',
+          strokeLinejoin: 'round',
+          className: `inline-flex shrink-0 ${className}`,
+          ariaHidden: true,
+        };
+        switch (name) {
+          case 'Users':
+            return (
+              <svg {...a}>
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+              </svg>
+            );
+          case 'TrendingUp':
+            return (
+              <svg {...a}>
+                <polyline points="22 7 13.5 15.5 8.5 10.5 2 17" />
+                <polyline points="16 7 22 7 22 13" />
+              </svg>
+            );
+          case 'Zap':
+            return (
+              <svg {...a}>
+                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+              </svg>
+            );
+          case 'Shield':
+            return (
+              <svg {...a}>
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" />
+              </svg>
+            );
+          case 'MessageCircle':
+            return (
+              <svg {...a}>
+                <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" />
+              </svg>
+            );
+          case 'Send':
+            return (
+              <svg {...a}>
+                <line x1="22" x2="11" y1="2" y2="13" />
+                <polygon points="22 2 15 22 11 13 2 9 22 2" />
+              </svg>
+            );
+          case 'Video':
+            return (
+              <svg {...a}>
+                <path d="m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5" />
+                <rect x="2" y="6" width="14" height="12" rx="2" />
+              </svg>
+            );
+          case 'BarChart3':
+            return (
+              <svg {...a}>
+                <path d="M3 3v18h18" />
+                <path d="M18 17V9" />
+                <path d="M13 17V5" />
+                <path d="M8 17v-3" />
+              </svg>
+            );
+          case 'Mail':
+            return (
+              <svg {...a}>
+                <rect width="20" height="16" x="2" y="4" rx="2" />
+                <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+              </svg>
+            );
+          case 'Target':
+            return (
+              <svg {...a}>
+                <circle cx="12" cy="12" r="10" />
+                <circle cx="12" cy="12" r="6" />
+                <circle cx="12" cy="12" r="2" />
+              </svg>
+            );
+          default:
+            return <span className={`inline-block ${className}`} style={{ width: size, height: size }} />;
+        }
       }
 
       // ─── Animated Counter ────────────────────────────────────────
@@ -194,24 +251,24 @@
               <a href="#" className="flex items-center gap-3 group" onClick={() => setMobileOpen(false)}>
                 <img
                   src="assets/icon.png"
-                  alt="Titans Agency"
+                  alt="TikTok Titans"
                   className="w-10 h-10 rounded-xl object-cover ring-1 ring-titan-border-light group-hover:ring-accent-teal/40 transition-all"
                 />
                 <div className="flex flex-col leading-tight">
                   <span className="text-lg font-bold text-text-primary tracking-tight">TITANS</span>
-                  <span className="text-[10px] text-text-muted font-medium tracking-widest uppercase">Agency</span>
+                  <span className="text-[10px] text-text-muted font-medium tracking-widest uppercase">Creators</span>
                 </div>
               </a>
               <div className="hidden lg:flex items-center gap-6">
                 <a href="#discover" className={link}>Why join</a>
-                <a href="#journey" className={link}>Your journey</a>
+                <a href="#journey" className={link}>How it works</a>
                 <a href="#team" className={link}>Team</a>
                 <a href="#join" className={link}>Join</a>
-                <a href="#brands" className={link}>For brands</a>
-                <a href="/tracker/" className={`${link} text-accent-teal`}>Creator login</a>
+                <a href="#faq" className={link}>FAQ</a>
+                <a href="/tracker/" className={`${link} text-accent-teal`}>Tracker login</a>
                 <a href="/adminmanage/" className={link}>Admin</a>
                 <button type="button" onClick={onContactClick} className="px-5 py-2 text-sm font-semibold bg-gradient-to-r from-accent-teal to-accent-purple text-titan-bg rounded-lg hover:opacity-90 transition-opacity">
-                  Contact
+                  Get in touch
                 </button>
               </div>
               <button
@@ -226,14 +283,14 @@
             {mobileOpen && (
               <div className="lg:hidden border-t border-titan-border glass-panel px-6 py-4 flex flex-col gap-3">
                 <a href="#discover" className={link} onClick={() => setMobileOpen(false)}>Why join</a>
-                <a href="#journey" className={link} onClick={() => setMobileOpen(false)}>Your journey</a>
+                <a href="#journey" className={link} onClick={() => setMobileOpen(false)}>How it works</a>
                 <a href="#team" className={link} onClick={() => setMobileOpen(false)}>Team</a>
                 <a href="#join" className={link} onClick={() => setMobileOpen(false)}>Join</a>
-                <a href="#brands" className={link} onClick={() => setMobileOpen(false)}>For brands</a>
-                <a href="/tracker/" className={`${link} text-accent-teal`} onClick={() => setMobileOpen(false)}>Creator login</a>
+                <a href="#faq" className={link} onClick={() => setMobileOpen(false)}>FAQ</a>
+                <a href="/tracker/" className={`${link} text-accent-teal`} onClick={() => setMobileOpen(false)}>Tracker login</a>
                 <a href="/adminmanage/" className={link} onClick={() => setMobileOpen(false)}>Admin</a>
                 <button type="button" onClick={() => { setMobileOpen(false); onContactClick(); }} className="text-left px-0 py-2 text-sm font-semibold text-accent-teal">
-                  Contact
+                  Get in touch
                 </button>
               </div>
             )}
@@ -256,21 +313,21 @@
             <div className="max-w-5xl mx-auto text-center relative z-10">
               <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-titan-border-light bg-titan-surface/50 text-xs text-text-secondary mb-8">
                 <span className="w-2 h-2 rounded-full bg-accent-fuchsia animate-pulse-glow" />
-                Now accepting TikTok Shop creators
+                For TikTok Shop affiliates
               </div>
 
               <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold leading-tight mb-6">
-                Titans of<br />
-                <span className="text-gradient">TikTok Shop</span>
+                TikTok Titans<br />
+                <span className="text-gradient">for creators</span>
               </h1>
 
               <p className="text-lg text-text-secondary max-w-2xl mx-auto mb-4 leading-relaxed">
-                Join a vetted creator network, get matched to brand campaigns, and grow with structured retainers and real agency support.
+                If you are grinding TikTok Shop affiliate and want retainers, clear expectations, and a team that works for you—not a brand pitch deck—this is the network.
               </p>
               <p className="text-sm text-text-muted max-w-xl mx-auto mb-10">
-                Already on a campaign? Use{' '}
-                <a href="/tracker/" className="text-accent-teal hover:underline font-medium">Creator login</a>
-                {' '}for retainer tracking, deliverables, and phase updates.
+                Already rolling with us? Use{' '}
+                <a href="/tracker/" className="text-accent-teal hover:underline font-medium">Tracker login</a>
+                {' '}for your retainer, videos, and campaign check-ins.
               </p>
 
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-14">
@@ -278,13 +335,13 @@
                   href="#join"
                   className="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-accent-teal to-accent-purple text-titan-bg font-semibold rounded-xl hover:opacity-90 transition-opacity text-sm shadow-lg glow-teal"
                 >
-                  Get started
+                  Join Titans
                 </a>
                 <a
-                  href="#brands"
+                  href="#discover"
                   className="w-full sm:w-auto px-8 py-3.5 glass-panel border border-titan-border-light text-text-primary font-semibold rounded-xl hover:border-accent-teal/40 transition-colors text-sm"
                 >
-                  I am a brand
+                  Why join
                 </a>
               </div>
 
@@ -299,7 +356,7 @@
                 </div>
                 <div ref={gmvRef} className="text-center">
                   <div className="text-3xl font-bold text-gradient">${gmvCount}M+</div>
-                  <div className="text-xs text-text-muted mt-1">GMV driven</div>
+                  <div className="text-xs text-text-muted mt-1">Network GMV</div>
                 </div>
               </div>
             </div>
@@ -314,10 +371,10 @@
             <div className="max-w-6xl mx-auto">
               <div className="text-center mb-14">
                 <h2 className="text-3xl sm:text-4xl font-bold mb-4">
-                  Why creators choose <span className="text-gradient">Titans</span>
+                  Why TikTok Shop affiliates join <span className="text-gradient">Titans</span>
                 </h2>
                 <p className="text-text-secondary max-w-2xl mx-auto">
-                  Discovery is the front door. Behind it, our team runs retainers, samples, and reporting so you can ship content with confidence.
+                  This page is for creators—not brands. Here is what you get when you are part of the network.
                 </p>
               </div>
               <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
@@ -345,8 +402,8 @@
           <section id="journey" className="py-20 px-6 border-t border-titan-border scroll-mt-28">
             <div className="max-w-5xl mx-auto">
               <div className="text-center mb-14">
-                <h2 className="text-3xl sm:text-4xl font-bold mb-4">Your journey</h2>
-                <p className="text-text-secondary max-w-xl mx-auto">From application to scale—clear steps, Titans colors at every phase.</p>
+                <h2 className="text-3xl sm:text-4xl font-bold mb-4">From apply to earning</h2>
+                <p className="text-text-secondary max-w-xl mx-auto">A simple path so you know what happens after you raise your hand.</p>
               </div>
               <div className="grid md:grid-cols-3 gap-6">
                 {CREATOR_STEPS.map((s, i) => (
@@ -372,7 +429,7 @@
             <div className="max-w-5xl mx-auto">
               <div className="text-center mb-12">
                 <h2 className="text-3xl sm:text-4xl font-bold mb-4">Meet the team</h2>
-                <p className="text-text-secondary max-w-xl mx-auto">The people building the creator network and brand programs at Titans Agency.</p>
+                <p className="text-text-secondary max-w-xl mx-auto">The people behind TikTok Titans—here for creators first.</p>
               </div>
               <div className="grid sm:grid-cols-2 gap-8 max-w-3xl mx-auto">
                 <div className="glass-panel rounded-2xl p-8 text-center border border-titan-border hover:border-accent-teal/30 transition-colors">
@@ -382,7 +439,7 @@
                     className="w-36 h-36 rounded-full object-cover mx-auto mb-5 ring-2 ring-accent-teal/40 shadow-lg"
                   />
                   <div className="font-semibold text-lg text-text-primary">Hollie</div>
-                  <div className="text-xs text-text-muted uppercase tracking-widest mt-2">Titans Agency</div>
+                  <div className="text-xs text-text-muted uppercase tracking-widest mt-2">TikTok Titans</div>
                 </div>
                 <div className="glass-panel rounded-2xl p-8 text-center border border-titan-border hover:border-accent-fuchsia/30 transition-colors">
                   <img
@@ -391,7 +448,7 @@
                     className="w-36 h-36 rounded-full object-cover mx-auto mb-5 ring-2 ring-accent-fuchsia/40 shadow-lg"
                   />
                   <div className="font-semibold text-lg text-text-primary">Haley</div>
-                  <div className="text-xs text-text-muted uppercase tracking-widest mt-2">Titans Agency</div>
+                  <div className="text-xs text-text-muted uppercase tracking-widest mt-2">TikTok Titans</div>
                 </div>
               </div>
             </div>
@@ -406,7 +463,7 @@
             <div className="max-w-5xl mx-auto">
               <div className="text-center mb-12">
                 <h2 className="text-3xl sm:text-4xl font-bold mb-4">Join the network</h2>
-                <p className="text-text-secondary max-w-xl mx-auto">Pick a path—community, application, or jump straight to the retainer tracker if you are already live.</p>
+                <p className="text-text-secondary max-w-xl mx-auto">Discord, apply by email, or open the tracker if you are already with Titans.</p>
               </div>
               <div className="grid sm:grid-cols-2 gap-5">
                 {JOIN_LINKS.map((card, i) => (
@@ -430,226 +487,24 @@
         );
       }
 
-      // ─── Brands section intro ────────────────────────────────────
-      function BrandsSectionIntro() {
-        return (
-          <div id="brands" className="scroll-mt-28 pt-8 px-6">
-            <div className="max-w-5xl mx-auto text-center border-t border-titan-border pt-20 pb-4">
-              <p className="text-xs font-semibold tracking-widest uppercase text-accent-fuchsia mb-3">For TikTok Shop brands</p>
-              <h2 className="text-3xl sm:text-4xl font-bold mb-4">Retainer campaigns that scale</h2>
-              <p className="text-text-secondary max-w-2xl mx-auto leading-relaxed">
-                Our platform is built for retainer tracking and campaign ops day to day. This section is for brands evaluating a fixed-fee creator program—how we run a {CAMPAIGN_DURATION}-day cycle end to end.
-              </p>
-            </div>
-          </div>
-        );
-      }
-
-      // ─── How It Works ────────────────────────────────────────────
-      function HowItWorks() {
-        return (
-          <section id="how-it-works" className="py-20 px-6">
-            <div className="max-w-5xl mx-auto">
-              <div className="text-center mb-16">
-                <h2 className="text-3xl sm:text-4xl font-bold mb-4">How a Campaign Works</h2>
-                <p className="text-text-secondary max-w-xl mx-auto">Three structured phases over {CAMPAIGN_DURATION} days, fully managed by our team.</p>
-              </div>
-
-              <div className="grid md:grid-cols-3 gap-6">
-                {PHASES.map((phase, i) => (
-                  <div key={i} className="relative glass-panel rounded-xl overflow-hidden group hover:border-titan-border-light transition-all">
-                    {/* Phase color bar */}
-                    <div className="h-1 w-full" style={{ background: phase.color }} />
-
-                    <div className="p-6">
-                      <div className="flex items-center justify-between mb-4">
-                        <span className="text-xs font-semibold tracking-wider uppercase" style={{ color: phase.color }}>
-                          {phase.name}
-                        </span>
-                        <span className="text-xs text-text-muted bg-titan-bg px-2 py-1 rounded-md">{phase.days} days</span>
-                      </div>
-
-                      <ul className="space-y-3">
-                        {phase.tasks.map((task, j) => (
-                          <li key={j} className="flex items-start gap-3 text-sm text-text-secondary">
-                            <span className="w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0" style={{ background: phase.color }} />
-                            {task}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Timeline bar */}
-              <div className="mt-10 glass-panel rounded-xl p-6">
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-xs text-text-muted font-medium">CAMPAIGN TIMELINE</span>
-                  <span className="text-xs text-text-muted">{CAMPAIGN_DURATION} days total</span>
-                </div>
-                <div className="flex rounded-lg overflow-hidden h-3">
-                  <div className="h-full" style={{ width: `${(14/44)*100}%`, background: '#8B5CF6' }} title="Onboarding: 14 days" />
-                  <div className="h-full" style={{ width: `${(15/44)*100}%`, background: '#00F2EA' }} title="Phase 1: 15 days" />
-                  <div className="h-full" style={{ width: `${(15/44)*100}%`, background: '#22C55E' }} title="Phase 2: 15 days" />
-                </div>
-                <div className="flex mt-2">
-                  <div className="text-xs text-text-muted" style={{ width: `${(14/44)*100}%` }}>14d</div>
-                  <div className="text-xs text-text-muted" style={{ width: `${(15/44)*100}%` }}>15d</div>
-                  <div className="text-xs text-text-muted" style={{ width: `${(15/44)*100}%` }}>15d</div>
-                </div>
-              </div>
-            </div>
-          </section>
-        );
-      }
-
-      // ─── Campaign Pricing ────────────────────────────────────────
-      function Pricing({ onContactClick }) {
-        const [selected, setSelected] = useState(10);
-        const config = CAMPAIGN_CONFIGS[selected];
-
-        return (
-          <section id="pricing" className="py-20 px-6">
-            <div className="max-w-5xl mx-auto">
-              <div className="text-center mb-12">
-                <h2 className="text-3xl sm:text-4xl font-bold mb-4">Campaign Packages</h2>
-                <p className="text-text-secondary max-w-xl mx-auto">Choose your creator count. Everything else is handled by us.</p>
-              </div>
-
-              {/* Tier selector */}
-              <div className="flex justify-center gap-3 mb-12">
-                {[5, 10, 15].map((count) => (
-                  <button
-                    key={count}
-                    onClick={() => setSelected(count)}
-                    className={`px-6 py-3 rounded-xl text-sm font-semibold transition-all ${
-                      selected === count
-                        ? 'bg-gradient-to-r from-accent-teal to-accent-purple text-titan-bg shadow-lg glow-teal'
-                        : 'glass-panel text-text-secondary hover:text-text-primary hover:border-titan-border-light'
-                    }`}
-                  >
-                    {count} Creators
-                  </button>
-                ))}
-              </div>
-
-              {/* Main pricing card */}
-              <div className="glass-panel rounded-2xl overflow-hidden glow-teal max-w-3xl mx-auto">
-                <div className="p-8 border-b border-titan-border">
-                  <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-                    <div>
-                      <div className="text-sm text-text-muted font-medium mb-1">{selected}-Creator Campaign</div>
-                      <div className="text-4xl font-bold text-gradient">{formatCurrency(config.totalCost)}</div>
-                      <div className="text-sm text-text-muted mt-1">{CAMPAIGN_DURATION} days \u00B7 {config.totalVideos} total videos</div>
-                    </div>
-                    <button
-                      onClick={onContactClick}
-                      className="px-8 py-3 bg-gradient-to-r from-accent-teal to-accent-purple text-titan-bg font-semibold rounded-xl hover:opacity-90 transition-opacity whitespace-nowrap"
-                    >
-                      Get Started
-                    </button>
-                  </div>
-                </div>
-
-                {/* Breakdown */}
-                <div className="grid sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-titan-border">
-                  <div className="p-6 text-center">
-                    <div className="text-xs text-text-muted font-medium mb-2 uppercase tracking-wider">Management Fee</div>
-                    <div className="text-2xl font-bold text-text-primary">{formatCurrency(config.managementFee)}</div>
-                    <div className="text-xs text-text-muted mt-1">Agency operations</div>
-                  </div>
-                  <div className="p-6 text-center">
-                    <div className="text-xs text-text-muted font-medium mb-2 uppercase tracking-wider">Creator Retainers</div>
-                    <div className="text-2xl font-bold text-text-primary">{formatCurrency(config.retainerBudget)}</div>
-                    <div className="text-xs text-text-muted mt-1">Paid to creators</div>
-                  </div>
-                  <div className="p-6 text-center">
-                    <div className="text-xs text-text-muted font-medium mb-2 uppercase tracking-wider">Upfront Payment</div>
-                    <div className="text-2xl font-bold" style={{ color: '#00F2EA' }}>{formatCurrency(config.upfrontPayment)}</div>
-                    <div className="text-xs text-text-muted mt-1">50% retainer + mgmt</div>
-                  </div>
-                </div>
-
-                {/* What's included */}
-                <div className="p-6 border-t border-titan-border bg-titan-bg/30">
-                  <div className="text-xs text-text-muted font-medium mb-4 uppercase tracking-wider">What's Included</div>
-                  <div className="grid sm:grid-cols-2 gap-3">
-                    {[
-                      `${config.totalVideos} total videos over ${CAMPAIGN_DURATION} days`,
-                      'Creator sourcing & vetting',
-                      'Sample shipping coordination',
-                      'Spark Ad code collection',
-                      'Weekly performance reports',
-                      'Phase 2 scaling with top performers',
-                      'Dedicated campaign manager',
-                      'Content strategy & briefs',
-                    ].map((item, i) => (
-                      <div key={i} className="flex items-center gap-2 text-sm text-text-secondary">
-                        <span className="w-4 h-4 rounded-full bg-accent-teal/10 flex items-center justify-center flex-shrink-0">
-                          <span className="w-1.5 h-1.5 rounded-full bg-accent-teal" />
-                        </span>
-                        {item}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
-        );
-      }
-
-      // ─── Deliverables Section ────────────────────────────────────
-      function Deliverables() {
-        const items = [
-          { icon: 'Video', title: 'UGC Content', desc: 'Authentic short-form videos from creators already thriving on TikTok Shop.' },
-          { icon: 'Zap', title: 'Spark Ad Codes', desc: 'Every video comes with a Spark Ad code so you can run paid ads on top-performing content.' },
-          { icon: 'BarChart3', title: 'Performance Reports', desc: 'Weekly reports on GMV, views, orders, and creator performance.' },
-          { icon: 'Target', title: 'Scaling Strategy', desc: 'Phase 2 doubles down on your best performers to maximize ROI.' },
-        ];
-
-        return (
-          <section className="py-20 px-6">
-            <div className="max-w-5xl mx-auto">
-              <div className="text-center mb-12">
-                <h2 className="text-3xl sm:text-4xl font-bold mb-4">What You Get</h2>
-                <p className="text-text-secondary max-w-xl mx-auto">Every campaign delivers tangible assets your brand can use long after the campaign ends.</p>
-              </div>
-
-              <div className="grid sm:grid-cols-2 gap-6">
-                {items.map((item, i) => (
-                  <div key={i} className="glass-panel rounded-xl p-6 hover:border-titan-border-light transition-all group">
-                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-accent-teal/10 to-accent-purple/10 border border-titan-border flex items-center justify-center mb-4 group-hover:border-accent-teal/30 transition-colors">
-                      <Icon name={item.icon} size={18} className="text-accent-teal" />
-                    </div>
-                    <h3 className="text-lg font-semibold text-text-primary mb-2">{item.title}</h3>
-                    <p className="text-sm text-text-secondary leading-relaxed">{item.desc}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </section>
-        );
-      }
-
       // ─── FAQ Section ─────────────────────────────────────────────
       function FAQ() {
         const [open, setOpen] = useState(null);
         const faqs = [
-          { q: 'How do you source creators?', a: 'We have a network of 200+ vetted TikTok Shop creators. We match creators to your brand based on niche, content style, audience demographics, and past performance on similar products.' },
-          { q: 'What happens after the 44 days?', a: 'You keep all the content and Spark Ad codes. Many brands choose to re-engage top performers on a rolling basis or launch a new campaign cycle.' },
-          { q: 'Do I need a TikTok Shop already?', a: 'Yes \u2014 you need an active TikTok Shop with products listed. We handle everything else from there.' },
-          { q: 'What if a creator underperforms?', a: 'Phase 2 is designed exactly for this. We cut the bottom 50% and redistribute volume to your top-performing creators, so budget always flows to what works.' },
-          { q: 'How is the retainer paid to creators?', a: '50% of the creator retainer budget is paid upfront alongside the management fee. The remaining 50% is paid at the start of Phase 2 to creators who advance.' },
-          { q: 'Can I review content before it goes live?', a: 'Yes. During onboarding we establish a review workflow so your team can approve or request edits before any video is posted.' },
+          { q: 'What is TikTok Titans?', a: 'A creator network focused on TikTok Shop affiliate: retainers, clear deliverables, and support so you can focus on content and commissions—not figuring everything out alone.' },
+          { q: 'Do I need TikTok Shop experience?', a: 'Yes. We are built for people who already sell on TikTok Shop or are serious about leveling up there—not generic short-form creators with no Shop.' },
+          { q: 'Is this the same as the tracker app?', a: 'This site is for discovery and joining. Once you are on a campaign, the tracker is where you log in to see your retainer, videos, and what is due—that is the day-to-day tool.' },
+          { q: 'How do I get paid?', a: 'Payout structure depends on your campaign and retainer. We spell out timelines and milestones when you onboard so you know what to expect.' },
+          { q: 'How do I apply?', a: 'Email us from the Join section or use Get in touch. Tell us your handle, niche, and a bit about your TikTok Shop affiliate experience.' },
+          { q: 'Do you work with brands on this page?', a: 'No. This page is for creators only. Brand and campaign work lives elsewhere.' },
         ];
 
         return (
-          <section className="py-20 px-6">
+          <section id="faq" className="py-20 px-6 border-t border-titan-border scroll-mt-28">
             <div className="max-w-2xl mx-auto">
               <div className="text-center mb-12">
-                <h2 className="text-3xl sm:text-4xl font-bold mb-4">Questions</h2>
+                <h2 className="text-3xl sm:text-4xl font-bold mb-4">Creator FAQ</h2>
+                <p className="text-text-secondary text-sm mt-2">Straight answers—no brand deck.</p>
               </div>
 
               <div className="space-y-3">
@@ -696,8 +551,8 @@
               <button onClick={onClose} className="absolute top-4 right-4 text-text-muted hover:text-text-primary transition-colors text-xl">&times;</button>
 
               <div className="p-6 pb-4 border-b border-titan-border">
-                <h3 className="text-xl font-bold text-text-primary">Get In Touch</h3>
-                <p className="text-sm text-text-secondary mt-1">Ready to launch a campaign? Reach out below.</p>
+                <h3 className="text-xl font-bold text-text-primary">Get in touch</h3>
+                <p className="text-sm text-text-secondary mt-1">Questions about joining Titans as a creator? Reach out below.</p>
               </div>
 
               <div className="p-6 space-y-4">
@@ -758,13 +613,13 @@
           <footer className="border-t border-titan-border py-16 px-6">
             <div className="max-w-5xl mx-auto">
               <div className="text-center mb-12">
-                <h2 className="text-2xl sm:text-3xl font-bold mb-4">Ready to launch your campaign?</h2>
-                <p className="text-text-secondary mb-8">Get matched with creators and start driving sales in under 2 weeks.</p>
+                <h2 className="text-2xl sm:text-3xl font-bold mb-4">Ready to join TikTok Titans?</h2>
+                <p className="text-text-secondary mb-8 max-w-md mx-auto">Apply by email, say hi on WhatsApp, or jump into Discord when the link is live—we read creator messages first.</p>
                 <button
                   onClick={onContactClick}
                   className="px-8 py-3 bg-gradient-to-r from-accent-teal to-accent-purple text-titan-bg font-semibold rounded-xl hover:opacity-90 transition-opacity text-sm"
                 >
-                  Contact Sales
+                  Get in touch
                 </button>
               </div>
 
@@ -772,13 +627,13 @@
                 <div className="flex items-center gap-3 mb-2 sm:mb-0">
                   <img src="assets/icon.png" alt="" className="w-8 h-8 rounded-lg object-cover ring-1 ring-titan-border-light" />
                   <div>
-                    <div className="text-text-primary font-medium">Titans Agency</div>
-                    <a href="/tracker/" className="text-accent-teal hover:underline">Creator login</a>
+                    <div className="text-text-primary font-medium">TikTok Titans</div>
+                    <a href="/tracker/" className="text-accent-teal hover:underline">Tracker login</a>
                     <span className="text-text-muted"> · </span>
-                    <a href="#brands" className="hover:text-text-primary">Brand programs</a>
+                    <a href="#join" className="hover:text-text-primary">Join</a>
                   </div>
                 </div>
-                <div>&copy; {new Date().getFullYear()} Titans Agency. All rights reserved.</div>
+                <div>&copy; {new Date().getFullYear()} TikTok Titans. All rights reserved.</div>
               </div>
             </div>
           </footer>
@@ -799,10 +654,6 @@
             <CreatorJourney />
             <TeamTitans />
             <JoinCTA />
-            <BrandsSectionIntro />
-            <HowItWorks />
-            <Deliverables />
-            <Pricing onContactClick={openContact} />
             <FAQ />
             <Footer onContactClick={openContact} />
             <ContactModal isOpen={contactOpen} onClose={closeContact} />
@@ -811,8 +662,26 @@
       }
 
       // ─── Mount ───────────────────────────────────────────────────
-      const root = ReactDOM.createRoot(document.getElementById('root'));
-      root.render(<App />);
+      (function mount() {
+        const el = document.getElementById('root');
+        if (!el || !window.React || !window.ReactDOM) {
+          if (el) {
+            el.innerHTML =
+              '<div style="padding:2rem;font-family:system-ui;max-width:40rem"><h1 style="font-size:1.25rem;margin:0 0 0.5rem">Could not load the page</h1><p style="opacity:.85;margin:0">Scripts did not load. Check your network, VPN, or ad-blocker, then refresh. The site needs React from the CDN.</p></div>';
+          }
+          return;
+        }
+        try {
+          const root = ReactDOM.createRoot(el);
+          root.render(<App />);
+        } catch (err) {
+          el.innerHTML =
+            '<div style="padding:2rem;font-family:system-ui;color:#fecaca"><strong>App error</strong><pre style="white-space:pre-wrap;margin-top:1rem;font-size:12px">' +
+            String(err && err.message ? err.message : err) +
+            '</pre></div>';
+          console.error(err);
+        }
+      })();
     </script>
   </body>
 </html>
