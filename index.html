@@ -3,9 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Titans Agency - Retainer Campaign Tracker</title>
-    <meta name="description" content="Track and manage your TikTok Shop creator retainer campaigns with Titans Agency." />
-    <link rel="icon" type="image/png" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#9889;</text></svg>" />
+    <title>Titans Agency — TikTok Shop creators &amp; retainer campaigns</title>
+    <meta name="description" content="Join Titans Agency as a TikTok Shop creator, or launch a managed retainer campaign with vetted creators." />
+    <link rel="icon" type="image/png" href="assets/icon.png" />
 
     <!-- React via CDN -->
     <script crossorigin src="https://unpkg.com/react@19/umd/react.production.min.js"></script>
@@ -108,6 +108,26 @@
         { name: 'Phase 2 \u2014 Scale', days: 15, color: '#22C55E', tasks: ['Top 50% continue', '15 additional videos each', 'Scale winning content angles', 'Final performance report'] },
       ];
 
+      const FEATURES_DISCOVER = [
+        { icon: 'Users', title: 'Vetted network', desc: 'Work alongside creators who are serious about TikTok Shop and long-term partnerships.' },
+        { icon: 'TrendingUp', title: 'Campaign matchmaking', desc: 'Get paired with brands and products that fit your niche and audience.' },
+        { icon: 'Zap', title: 'Structured retainers', desc: 'Clear phases, deliverables, and payouts—focus on content, not spreadsheets.' },
+        { icon: 'Shield', title: 'Agency support', desc: 'Briefs, samples, and reporting handled so you always know what is next.' },
+      ];
+
+      const CREATOR_STEPS = [
+        { step: '01', title: 'Apply', desc: 'Share your niche, metrics, and TikTok Shop experience.', color: '#8B5CF6' },
+        { step: '02', title: 'Onboarding', desc: 'Get briefed, receive samples, and align on deliverables.', color: '#00F2EA' },
+        { step: '03', title: 'Create & scale', desc: 'Post on schedule; Phase 2 doubles down on what performs.', color: '#FF0050' },
+      ];
+
+      const JOIN_LINKS = [
+        { icon: 'MessageCircle', title: 'Discord', desc: 'Community and campaign updates.', href: '#', gradient: 'from-accent-teal to-accent-purple' },
+        { icon: 'Send', title: 'Apply', desc: 'Start your creator application.', href: 'mailto:tiktoktitansmanagement@gmail.com?subject=Creator%20application', gradient: 'from-accent-fuchsia to-accent-purple' },
+        { icon: 'Video', title: 'Content tips', desc: 'UGC and Spark best practices.', href: '#discover', gradient: 'from-accent-purple to-accent-teal' },
+        { icon: 'BarChart3', title: 'Tracker', desc: 'Already signed? Log in to your campaign.', href: '/tracker/', gradient: 'from-accent-teal to-accent-fuchsia' },
+      ];
+
       const formatCurrency = (amount) =>
         new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount);
 
@@ -159,78 +179,269 @@
       // ─── Nav Bar ─────────────────────────────────────────────────
       function NavBar({ onContactClick }) {
         const [scrolled, setScrolled] = useState(false);
+        const [mobileOpen, setMobileOpen] = useState(false);
         useEffect(() => {
           const handler = () => setScrolled(window.scrollY > 20);
           window.addEventListener('scroll', handler);
           return () => window.removeEventListener('scroll', handler);
         }, []);
 
+        const link = 'text-sm text-text-secondary hover:text-text-primary transition-colors';
+
         return (
           <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'glass-panel shadow-lg' : 'bg-transparent'}`}>
             <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-accent-teal to-accent-purple flex items-center justify-center font-bold text-sm text-titan-bg">T</div>
-                <span className="text-lg font-bold text-text-primary tracking-tight">TITANS</span>
-                <span className="text-xs text-text-muted font-medium tracking-widest uppercase ml-1 hidden sm:inline">Agency</span>
-              </div>
-              <div className="flex items-center gap-4">
-                <a href="#how-it-works" className="text-sm text-text-secondary hover:text-text-primary transition-colors hidden sm:inline">How It Works</a>
-                <a href="#pricing" className="text-sm text-text-secondary hover:text-text-primary transition-colors hidden sm:inline">Pricing</a>
-                <a href="/adminmanage/" className="text-sm text-text-secondary hover:text-text-primary transition-colors hidden sm:inline">Admin</a>
-                <button onClick={onContactClick} className="px-5 py-2 text-sm font-semibold bg-gradient-to-r from-accent-teal to-accent-purple text-titan-bg rounded-lg hover:opacity-90 transition-opacity">
-                  Contact Sales
+              <a href="#" className="flex items-center gap-3 group" onClick={() => setMobileOpen(false)}>
+                <img
+                  src="assets/icon.png"
+                  alt="Titans Agency"
+                  className="w-10 h-10 rounded-xl object-cover ring-1 ring-titan-border-light group-hover:ring-accent-teal/40 transition-all"
+                />
+                <div className="flex flex-col leading-tight">
+                  <span className="text-lg font-bold text-text-primary tracking-tight">TITANS</span>
+                  <span className="text-[10px] text-text-muted font-medium tracking-widest uppercase">Agency</span>
+                </div>
+              </a>
+              <div className="hidden lg:flex items-center gap-6">
+                <a href="#discover" className={link}>Why join</a>
+                <a href="#journey" className={link}>Your journey</a>
+                <a href="#team" className={link}>Team</a>
+                <a href="#join" className={link}>Join</a>
+                <a href="#brands" className={link}>For brands</a>
+                <a href="/tracker/" className={`${link} text-accent-teal`}>Creator login</a>
+                <a href="/adminmanage/" className={link}>Admin</a>
+                <button type="button" onClick={onContactClick} className="px-5 py-2 text-sm font-semibold bg-gradient-to-r from-accent-teal to-accent-purple text-titan-bg rounded-lg hover:opacity-90 transition-opacity">
+                  Contact
                 </button>
               </div>
+              <button
+                type="button"
+                className="lg:hidden p-2 text-text-primary"
+                aria-label="Menu"
+                onClick={() => setMobileOpen((o) => !o)}
+              >
+                {mobileOpen ? '\u2715' : '\u2630'}
+              </button>
             </div>
+            {mobileOpen && (
+              <div className="lg:hidden border-t border-titan-border glass-panel px-6 py-4 flex flex-col gap-3">
+                <a href="#discover" className={link} onClick={() => setMobileOpen(false)}>Why join</a>
+                <a href="#journey" className={link} onClick={() => setMobileOpen(false)}>Your journey</a>
+                <a href="#team" className={link} onClick={() => setMobileOpen(false)}>Team</a>
+                <a href="#join" className={link} onClick={() => setMobileOpen(false)}>Join</a>
+                <a href="#brands" className={link} onClick={() => setMobileOpen(false)}>For brands</a>
+                <a href="/tracker/" className={`${link} text-accent-teal`} onClick={() => setMobileOpen(false)}>Creator login</a>
+                <a href="/adminmanage/" className={link} onClick={() => setMobileOpen(false)}>Admin</a>
+                <button type="button" onClick={() => { setMobileOpen(false); onContactClick(); }} className="text-left px-0 py-2 text-sm font-semibold text-accent-teal">
+                  Contact
+                </button>
+              </div>
+            )}
           </nav>
         );
       }
 
-      // ─── Hero Section ────────────────────────────────────────────
-      function Hero() {
+      // ─── Hero (creator discovery) ────────────────────────────────
+      function HeroDiscover() {
         const [creatorsCount, creatorsRef] = useAnimatedCounter(200);
         const [videosCount, videosRef] = useAnimatedCounter(5000);
         const [gmvCount, gmvRef] = useAnimatedCounter(2);
 
         return (
-          <section className="relative pt-32 pb-20 px-6 overflow-hidden">
-            {/* Background glow */}
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-gradient-to-b from-accent-teal/5 to-transparent rounded-full blur-3xl pointer-events-none" />
-            <div className="absolute top-20 right-1/4 w-[300px] h-[300px] bg-accent-purple/5 rounded-full blur-3xl pointer-events-none" />
+          <section className="relative pt-32 pb-16 px-6 overflow-hidden">
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-gradient-to-b from-accent-fuchsia/10 via-accent-teal/5 to-transparent rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute top-20 right-1/4 w-[300px] h-[300px] bg-accent-purple/10 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute bottom-0 left-1/4 w-[200px] h-[200px] bg-accent-teal/5 rounded-full blur-3xl pointer-events-none" />
 
-            <div className="max-w-4xl mx-auto text-center relative z-10">
+            <div className="max-w-5xl mx-auto text-center relative z-10">
               <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-titan-border-light bg-titan-surface/50 text-xs text-text-secondary mb-8">
-                <span className="w-2 h-2 rounded-full bg-accent-teal animate-pulse-glow" />
-                TikTok Shop Creator Campaigns
+                <span className="w-2 h-2 rounded-full bg-accent-fuchsia animate-pulse-glow" />
+                Now accepting TikTok Shop creators
               </div>
 
               <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold leading-tight mb-6">
-                Retainer Campaigns<br />
-                <span className="text-gradient">Built to Scale</span>
+                Titans of<br />
+                <span className="text-gradient">TikTok Shop</span>
               </h1>
 
-              <p className="text-lg text-text-secondary max-w-2xl mx-auto mb-12 leading-relaxed">
-                We match your brand with vetted TikTok Shop creators, manage the entire campaign,
-                and deliver real results \u2014 all on a fixed retainer. No guesswork, no wasted budget.
+              <p className="text-lg text-text-secondary max-w-2xl mx-auto mb-4 leading-relaxed">
+                Join a vetted creator network, get matched to brand campaigns, and grow with structured retainers and real agency support.
+              </p>
+              <p className="text-sm text-text-muted max-w-xl mx-auto mb-10">
+                Already on a campaign? Use{' '}
+                <a href="/tracker/" className="text-accent-teal hover:underline font-medium">Creator login</a>
+                {' '}for retainer tracking, deliverables, and phase updates.
               </p>
 
-              {/* Stats */}
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-14">
+                <a
+                  href="#join"
+                  className="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-accent-teal to-accent-purple text-titan-bg font-semibold rounded-xl hover:opacity-90 transition-opacity text-sm shadow-lg glow-teal"
+                >
+                  Get started
+                </a>
+                <a
+                  href="#brands"
+                  className="w-full sm:w-auto px-8 py-3.5 glass-panel border border-titan-border-light text-text-primary font-semibold rounded-xl hover:border-accent-teal/40 transition-colors text-sm"
+                >
+                  I am a brand
+                </a>
+              </div>
+
               <div className="grid grid-cols-3 gap-6 max-w-lg mx-auto">
                 <div ref={creatorsRef} className="text-center">
                   <div className="text-3xl font-bold text-gradient">{creatorsCount}+</div>
-                  <div className="text-xs text-text-muted mt-1">Vetted Creators</div>
+                  <div className="text-xs text-text-muted mt-1">Vetted creators</div>
                 </div>
                 <div ref={videosRef} className="text-center">
                   <div className="text-3xl font-bold text-gradient">{videosCount.toLocaleString()}+</div>
-                  <div className="text-xs text-text-muted mt-1">Videos Delivered</div>
+                  <div className="text-xs text-text-muted mt-1">Videos delivered</div>
                 </div>
                 <div ref={gmvRef} className="text-center">
                   <div className="text-3xl font-bold text-gradient">${gmvCount}M+</div>
-                  <div className="text-xs text-text-muted mt-1">GMV Generated</div>
+                  <div className="text-xs text-text-muted mt-1">GMV driven</div>
                 </div>
               </div>
             </div>
           </section>
+        );
+      }
+
+      // ─── Why join (features) ─────────────────────────────────────
+      function FeaturesDiscover() {
+        return (
+          <section id="discover" className="py-20 px-6 scroll-mt-28">
+            <div className="max-w-6xl mx-auto">
+              <div className="text-center mb-14">
+                <h2 className="text-3xl sm:text-4xl font-bold mb-4">
+                  Why creators choose <span className="text-gradient">Titans</span>
+                </h2>
+                <p className="text-text-secondary max-w-2xl mx-auto">
+                  Discovery is the front door. Behind it, our team runs retainers, samples, and reporting so you can ship content with confidence.
+                </p>
+              </div>
+              <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                {FEATURES_DISCOVER.map((f, i) => (
+                  <div
+                    key={i}
+                    className="glass-panel rounded-2xl p-6 border border-titan-border hover:border-accent-teal/25 transition-all group"
+                  >
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-accent-teal/15 to-accent-purple/15 border border-titan-border flex items-center justify-center mb-4 group-hover:border-accent-teal/35">
+                      <Icon name={f.icon} size={22} className="text-accent-teal" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-text-primary mb-2">{f.title}</h3>
+                    <p className="text-sm text-text-secondary leading-relaxed">{f.desc}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+        );
+      }
+
+      // ─── Creator journey ─────────────────────────────────────────
+      function CreatorJourney() {
+        return (
+          <section id="journey" className="py-20 px-6 border-t border-titan-border scroll-mt-28">
+            <div className="max-w-5xl mx-auto">
+              <div className="text-center mb-14">
+                <h2 className="text-3xl sm:text-4xl font-bold mb-4">Your journey</h2>
+                <p className="text-text-secondary max-w-xl mx-auto">From application to scale—clear steps, Titans colors at every phase.</p>
+              </div>
+              <div className="grid md:grid-cols-3 gap-6">
+                {CREATOR_STEPS.map((s, i) => (
+                  <div key={i} className="relative glass-panel rounded-2xl p-8 overflow-hidden">
+                    <div className="absolute top-0 left-0 right-0 h-1" style={{ background: s.color }} />
+                    <div className="text-5xl font-bold opacity-20 mb-4" style={{ color: s.color }}>
+                      {s.step}
+                    </div>
+                    <h3 className="text-xl font-bold text-text-primary mb-3">{s.title}</h3>
+                    <p className="text-sm text-text-secondary leading-relaxed">{s.desc}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+        );
+      }
+
+      // ─── Team ────────────────────────────────────────────────────
+      function TeamTitans() {
+        return (
+          <section id="team" className="py-20 px-6 scroll-mt-28">
+            <div className="max-w-5xl mx-auto">
+              <div className="text-center mb-12">
+                <h2 className="text-3xl sm:text-4xl font-bold mb-4">Meet the team</h2>
+                <p className="text-text-secondary max-w-xl mx-auto">The people building the creator network and brand programs at Titans Agency.</p>
+              </div>
+              <div className="grid sm:grid-cols-2 gap-8 max-w-3xl mx-auto">
+                <div className="glass-panel rounded-2xl p-8 text-center border border-titan-border hover:border-accent-teal/30 transition-colors">
+                  <img
+                    src="assets/hollie.png"
+                    alt="Hollie"
+                    className="w-36 h-36 rounded-full object-cover mx-auto mb-5 ring-2 ring-accent-teal/40 shadow-lg"
+                  />
+                  <div className="font-semibold text-lg text-text-primary">Hollie</div>
+                  <div className="text-xs text-text-muted uppercase tracking-widest mt-2">Titans Agency</div>
+                </div>
+                <div className="glass-panel rounded-2xl p-8 text-center border border-titan-border hover:border-accent-fuchsia/30 transition-colors">
+                  <img
+                    src="assets/haley.png"
+                    alt="Haley"
+                    className="w-36 h-36 rounded-full object-cover mx-auto mb-5 ring-2 ring-accent-fuchsia/40 shadow-lg"
+                  />
+                  <div className="font-semibold text-lg text-text-primary">Haley</div>
+                  <div className="text-xs text-text-muted uppercase tracking-widest mt-2">Titans Agency</div>
+                </div>
+              </div>
+            </div>
+          </section>
+        );
+      }
+
+      // ─── Join CTA cards ───────────────────────────────────────────
+      function JoinCTA() {
+        return (
+          <section id="join" className="py-20 px-6 border-t border-titan-border scroll-mt-28">
+            <div className="max-w-5xl mx-auto">
+              <div className="text-center mb-12">
+                <h2 className="text-3xl sm:text-4xl font-bold mb-4">Join the network</h2>
+                <p className="text-text-secondary max-w-xl mx-auto">Pick a path—community, application, or jump straight to the retainer tracker if you are already live.</p>
+              </div>
+              <div className="grid sm:grid-cols-2 gap-5">
+                {JOIN_LINKS.map((card, i) => (
+                  <a
+                    key={i}
+                    href={card.href}
+                    className="glass-panel rounded-2xl p-6 border border-titan-border hover:border-accent-teal/30 transition-all flex gap-4 items-start group"
+                  >
+                    <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${card.gradient} flex items-center justify-center flex-shrink-0 opacity-90 group-hover:opacity-100`}>
+                      <Icon name={card.icon} size={22} className="text-titan-bg" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-text-primary mb-1">{card.title}</h3>
+                      <p className="text-sm text-text-secondary">{card.desc}</p>
+                    </div>
+                  </a>
+                ))}
+              </div>
+            </div>
+          </section>
+        );
+      }
+
+      // ─── Brands section intro ────────────────────────────────────
+      function BrandsSectionIntro() {
+        return (
+          <div id="brands" className="scroll-mt-28 pt-8 px-6">
+            <div className="max-w-5xl mx-auto text-center border-t border-titan-border pt-20 pb-4">
+              <p className="text-xs font-semibold tracking-widest uppercase text-accent-fuchsia mb-3">For TikTok Shop brands</p>
+              <h2 className="text-3xl sm:text-4xl font-bold mb-4">Retainer campaigns that scale</h2>
+              <p className="text-text-secondary max-w-2xl mx-auto leading-relaxed">
+                Our platform is built for retainer tracking and campaign ops day to day. This section is for brands evaluating a fixed-fee creator program—how we run a {CAMPAIGN_DURATION}-day cycle end to end.
+              </p>
+            </div>
+          </div>
         );
       }
 
@@ -557,10 +768,15 @@
                 </button>
               </div>
 
-              <div className="flex flex-col sm:flex-row items-center justify-between pt-8 border-t border-titan-border text-xs text-text-muted">
-                <div className="flex items-center gap-2 mb-2 sm:mb-0">
-                  <div className="w-6 h-6 rounded bg-gradient-to-br from-accent-teal to-accent-purple flex items-center justify-center font-bold text-[10px] text-titan-bg">T</div>
-                  <span>Titans Agency</span>
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-8 border-t border-titan-border text-xs text-text-muted">
+                <div className="flex items-center gap-3 mb-2 sm:mb-0">
+                  <img src="assets/icon.png" alt="" className="w-8 h-8 rounded-lg object-cover ring-1 ring-titan-border-light" />
+                  <div>
+                    <div className="text-text-primary font-medium">Titans Agency</div>
+                    <a href="/tracker/" className="text-accent-teal hover:underline">Creator login</a>
+                    <span className="text-text-muted"> · </span>
+                    <a href="#brands" className="hover:text-text-primary">Brand programs</a>
+                  </div>
                 </div>
                 <div>&copy; {new Date().getFullYear()} Titans Agency. All rights reserved.</div>
               </div>
@@ -578,7 +794,12 @@
         return (
           <div className="min-h-screen bg-titan-bg">
             <NavBar onContactClick={openContact} />
-            <Hero />
+            <HeroDiscover />
+            <FeaturesDiscover />
+            <CreatorJourney />
+            <TeamTitans />
+            <JoinCTA />
+            <BrandsSectionIntro />
             <HowItWorks />
             <Deliverables />
             <Pricing onContactClick={openContact} />
