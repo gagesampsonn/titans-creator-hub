@@ -6,7 +6,17 @@
       "permanent": true
     },
     {
+      "source": "/generator/index.html",
+      "destination": "/generator/",
+      "permanent": true
+    },
+    {
       "source": "/prompt/",
+      "destination": "/prompt",
+      "permanent": true
+    },
+    {
+      "source": "/prompt/index.html",
       "destination": "/prompt",
       "permanent": true
     }
