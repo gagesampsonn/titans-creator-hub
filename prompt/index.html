@@ -860,8 +860,8 @@
         camera: 'stabilized against a candle jar on a dresser at the foot of an unmade bed, angled slightly downward',
         framing: 'mid-torso up, subject sitting cross-legged on bed four feet away, positioned slightly right of center',
         lighting: 'soft amber lamp casting uneven shadows, deepening shadows beneath eyes and warming fabric textures',
-        ambient: 'baby monitor humming quietly, wind pressing against bedroom window, distant household sounds filtering through walls',
-        details: 'unmade bedsheets bunching naturally, clothes draped over furniture, personal items scattered, white crib partially visible'
+        ambient: 'soft room tone with a distant HVAC hum and faint outside noise through a closed window',
+        details: 'unmade bedsheets bunching naturally, a nightstand with a candle jar, clothing draped over a chair, subtle lived-in clutter'
       },
       'podcast-setup': {
         camera: 'propped at eye-level on a microphone stand in a small home studio, stabilized and focused',
@@ -893,6 +893,222 @@
       }
     };
 
+    function fnv1a32(str) {
+      let h = 0x811c9dc5;
+      for (let i = 0; i < str.length; i++) {
+        h ^= str.charCodeAt(i);
+        h = Math.imul(h, 0x01000193);
+      }
+      return h >>> 0;
+    }
+
+    function mulberry32(seed) {
+      return function () {
+        let t = (seed += 0x6d2b79f5);
+        t = Math.imul(t ^ (t >>> 15), t | 1);
+        t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+      };
+    }
+
+    function getAgeBucket(avatarType) {
+      if (!avatarType) return 'adult';
+      if (avatarType.includes('young')) return 'young';
+      if (avatarType.includes('adult')) return 'adult';
+      if (avatarType.includes('mature')) return 'mature';
+      if (avatarType.includes('older')) return 'older';
+      if (avatarType.includes('senior')) return 'senior';
+      return 'adult';
+    }
+
+    // ~20 strong American "where they're from" voice anchors (do not say "accent" explicitly)
+    const US_REGION_VOICES = [
+      {
+        id: 'south_georgia',
+        place: 'South Georgia',
+        line: 'raised in small-town South Georgia—warm vowels, slower vowel glide, friendly directness',
+        ages: ['young', 'adult', 'mature', 'older', 'senior'],
+        tones: ['grateful-warm', 'intimate-honest', 'casual-chill', 'confident-direct']
+      },
+      {
+        id: 'manhattan_nyc',
+        place: 'Manhattan, New York',
+        line: 'from Manhattan, New York—fast, clipped cadence, sharp stress patterns, confident timing',
+        ages: ['young', 'adult', 'mature', 'older'],
+        tones: ['excited-urgent', 'confident-direct', 'passionate-fired-up', 'casual-chill']
+      },
+      {
+        id: 'socal_college',
+        place: 'Orange County / SoCal college-town energy',
+        line: 'SoCal college-town vibe (OC)—upbeat, breezy phrasing, casual confidence, modern slang without trying hard',
+        ages: ['young', 'adult'],
+        tones: ['excited-urgent', 'casual-chill', 'grateful-warm', 'passionate-fired-up']
+      },
+      {
+        id: 'san_fernando_valley',
+        place: 'San Fernando Valley, California',
+        line: 'Valley-raised cadence—relaxed intonation, slightly sing-song emphasis, very natural on-camera',
+        ages: ['young', 'adult', 'mature'],
+        tones: ['casual-chill', 'grateful-warm', 'intimate-honest']
+      },
+      {
+        id: 'boston_ma',
+        place: 'Boston, Massachusetts',
+        line: 'Boston-area speech habits—crisp consonants, distinctive vowel color, blunt honesty',
+        ages: ['young', 'adult', 'mature', 'older'],
+        tones: ['confident-direct', 'passionate-fired-up', 'excited-urgent']
+      },
+      {
+        id: 'chicago_il',
+        place: 'Chicago, Illinois',
+        line: 'Chicago-raised—blue-collar warmth, straightforward delivery, grounded humor timing',
+        ages: ['adult', 'mature', 'older', 'senior'],
+        tones: ['confident-direct', 'grateful-warm', 'passionate-fired-up', 'casual-chill']
+      },
+      {
+        id: 'philly_pa',
+        place: 'Philadelphia, Pennsylvania',
+        line: 'Philly edge—quick rhythm, blunt sincerity, expressive emphasis without sounding theatrical',
+        ages: ['young', 'adult', 'mature', 'older'],
+        tones: ['passionate-fired-up', 'confident-direct', 'excited-urgent']
+      },
+      {
+        id: 'nola_la',
+        place: 'New Orleans, Louisiana',
+        line: 'New Orleans musicality—melodic phrasing, warm pacing, storytelling rhythm',
+        ages: ['adult', 'mature', 'older', 'senior'],
+        tones: ['grateful-warm', 'intimate-honest', 'casual-chill', 'passionate-fired-up']
+      },
+      {
+        id: 'appalachia_ky',
+        place: 'Eastern Kentucky (Appalachia)',
+        line: 'Appalachian-influenced English—steady, plainspoken, strong emotional sincerity',
+        ages: ['adult', 'mature', 'older', 'senior'],
+        tones: ['intimate-honest', 'grateful-warm', 'confident-direct']
+      },
+      {
+        id: 'texas_hill_country',
+        place: 'Texas Hill Country',
+        line: 'Texas Hill Country—drawled vowels on key words, confident calm, friendly authority',
+        ages: ['young', 'adult', 'mature', 'older', 'senior'],
+        tones: ['confident-direct', 'grateful-warm', 'casual-chill', 'passionate-fired-up']
+      },
+      {
+        id: 'miami_fl',
+        place: 'Miami, Florida',
+        line: 'Miami bilingual-city rhythm—fast expressive English, lively emphasis, high-energy clarity',
+        ages: ['young', 'adult', 'mature'],
+        tones: ['excited-urgent', 'passionate-fired-up', 'confident-direct']
+      },
+      {
+        id: 'nashville_tn',
+        place: 'Nashville, Tennessee',
+        line: 'Nashville storyteller cadence—smooth pacing, emotional honesty, slightly musical line endings',
+        ages: ['young', 'adult', 'mature', 'older', 'senior'],
+        tones: ['grateful-warm', 'intimate-honest', 'passionate-fired-up']
+      },
+      {
+        id: 'detroit_mi',
+        place: 'Detroit, Michigan',
+        line: 'Detroit directness—no-nonsense delivery, grounded confidence, sharp emotional turns',
+        ages: ['young', 'adult', 'mature', 'older'],
+        tones: ['confident-direct', 'passionate-fired-up', 'excited-urgent']
+      },
+      {
+        id: 'minneapolis_mn',
+        place: 'Minneapolis–Saint Paul, Minnesota',
+        line: 'Upper Midwest clarity—friendly, measured, slightly nasal color, honest and calm',
+        ages: ['adult', 'mature', 'older', 'senior'],
+        tones: ['grateful-warm', 'intimate-honest', 'casual-chill', 'confident-direct']
+      },
+      {
+        id: 'seattle_wa',
+        place: 'Seattle, Washington',
+        line: 'Pacific Northwest understatement—soft attack, thoughtful pauses, dry sincerity',
+        ages: ['young', 'adult', 'mature', 'older'],
+        tones: ['intimate-honest', 'casual-chill', 'grateful-warm']
+      },
+      {
+        id: 'baltimore_md',
+        place: 'Baltimore, Maryland',
+        line: 'Baltimore attitude—quick, real talk, expressive emphasis, street-smart warmth',
+        ages: ['young', 'adult', 'mature', 'older'],
+        tones: ['passionate-fired-up', 'confident-direct', 'excited-urgent']
+      },
+      {
+        id: 'atlanta_ga',
+        place: 'Atlanta, Georgia',
+        line: 'Atlanta metro blend—modern Southern English, smooth confidence, influencer-natural pacing',
+        ages: ['young', 'adult', 'mature'],
+        tones: ['excited-urgent', 'confident-direct', 'casual-chill', 'passionate-fired-up']
+      },
+      {
+        id: 'salt_lake_city_ut',
+        place: 'Salt Lake City, Utah',
+        line: 'Salt Lake clarity—clean articulation, polite directness, earnest emotional build',
+        ages: ['young', 'adult', 'mature', 'older', 'senior'],
+        tones: ['grateful-warm', 'confident-direct', 'intimate-honest']
+      },
+      {
+        id: 'rural_iowa',
+        place: 'Rural Iowa',
+        line: 'rural Midwest plainspoken—simple word choice, steady sincerity, no fluff',
+        ages: ['mature', 'older', 'senior'],
+        tones: ['grateful-warm', 'intimate-honest', 'casual-chill', 'confident-direct']
+      },
+      {
+        id: 'honolulu_hi',
+        place: 'Honolulu, Hawaii',
+        line: 'Honolulu English—relaxed melodic rhythm, warm openness, island-time pacing',
+        ages: ['young', 'adult', 'mature', 'older', 'senior'],
+        tones: ['casual-chill', 'grateful-warm', 'intimate-honest']
+      },
+      {
+        id: 'anchorage_ak',
+        place: 'Anchorage, Alaska',
+        line: 'Anchorage practical tone—steady, resilient delivery, calm confidence under emotion',
+        ages: ['adult', 'mature', 'older', 'senior'],
+        tones: ['intimate-honest', 'confident-direct', 'grateful-warm']
+      },
+      {
+        id: 'phoenix_az',
+        place: 'Phoenix, Arizona',
+        line: 'Southwest Sun Belt English—dry warmth, straightforward honesty, slightly stretched vowels',
+        ages: ['young', 'adult', 'mature', 'older', 'senior'],
+        tones: ['passionate-fired-up', 'confident-direct', 'casual-chill']
+      }
+    ];
+
+    function scoreRegion(region, ageBucket, tone) {
+      let score = 0;
+      if (region.ages.includes(ageBucket)) score += 3;
+      if (tone && region.tones.includes(tone)) score += 2;
+      // Light nudges so younger reads more "campus/coastal metro" without hard-locking
+      if (ageBucket === 'young') {
+        if (region.id === 'socal_college' || region.id === 'manhattan_nyc' || region.id === 'atlanta_ga') score += 1;
+      }
+      if (ageBucket === 'senior' || ageBucket === 'older') {
+        if (region.id === 'rural_iowa' || region.id === 'appalachia_ky' || region.id === 'nola_la') score += 1;
+      }
+      return score;
+    }
+
+    function pickUsRegionalVoice(avatarType, emotionalTone, userGoal) {
+      const ageBucket = getAgeBucket(avatarType);
+      const tone = emotionalTone || '';
+      const seed = fnv1a32(`${avatarType || 'any'}|${tone}|${userGoal || ''}|regional-v1`);
+      const rand = mulberry32(seed);
+
+      const scored = US_REGION_VOICES.map((r) => ({ r, s: scoreRegion(r, ageBucket, tone) }));
+      scored.sort((a, b) => b.s - a.s);
+
+      const topScore = scored[0]?.s ?? 0;
+      const pool = scored.filter((x) => x.s === topScore).map((x) => x.r);
+      const pick = pool[Math.floor(rand() * pool.length)] || US_REGION_VOICES[0];
+      // Return only the "where they're from" cue (avoid labeling it explicitly).
+      return pick.line;
+    }
+
     function getRandomElement(arr) {
       return arr[Math.floor(Math.random() * arr.length)];
     }
@@ -913,6 +1129,7 @@
       const avatarDesc = getRandomElement(avatar.descriptions);
       const styling = getRandomElement(avatar.styling);
       const accent = getRandomElement(avatar.accents);
+      const regionalVoice = pickUsRegionalVoice(avatarType, emotionalTone, userGoal);
 
       // Select environment
       const environment = settingEnvironments[setting] || {
@@ -933,9 +1150,10 @@
       prompt += `wearing a ${styling}. `;
       prompt += `${environment.details} fill the background naturally. `;
       prompt += `Audio is simple and realistic: ${environment.ambient}. `;
-      prompt += `Keep it photoreal and grounded: natural skin texture, normal smartphone dynamic range, no exaggerated glow, no heavy bloom, no lens flares, no on-screen text.\n\n`;
+      prompt += `Keep it photoreal and grounded: natural skin texture, normal smartphone dynamic range, crisp sharp focus, high detail (4K feel), no blur, no compression smear, no waxy/plastic skin, no exaggerated glow, no heavy bloom, no lens flares, no on-screen text.\n\n`;
 
       // PARAGRAPH 2: Voice Behavior + Movement + Emotional Energy  
+      prompt += `Voice roots: ${regionalVoice}. `;
       prompt += `They are already mid-thought and speak directly to the lens with ${accent.description}. `;
       prompt += `Delivery is concrete and observable: ${accent.behavior}. `;
       prompt += `Energy reads as ${emotionalTone || 'genuine and authentic'} through pacing, pauses, and emphasis (not “performed”). `;
@@ -944,6 +1162,7 @@
 
       // PARAGRAPH 3: Message Settles + Body Anchors Scene Ending
       prompt += `As they continue, their voice ${accent.intensity} while staying natural and conversational. `;
+      prompt += `Keep the regional voice consistent with the same hometown roots and speech habits established above (still never label it explicitly as an accent). `;
       prompt += `Topic: ${userGoal}. `;
       prompt += `Dialogue (2–4 short sentences, no quotes, no subtitles): speak as if talking to a friend, with one specific detail and one emotional beat, not a generic monologue. `;
       prompt += `They adjust posture once (a small shoulder shift or seatbelt tug), fabric rustles, and the take stays continuous with no cuts. `;
