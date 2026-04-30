@@ -1117,7 +1117,36 @@
       return score;
     }
 
+    function inferVoiceRootsOverride(userGoal) {
+      const t = String(userGoal || '').toLowerCase();
+      // If the user explicitly names a place, always honor it.
+      if (/\bsouth\s+georgia\b/.test(t) || /\b(south ga|south-ga)\b/.test(t)) return 'south_georgia';
+      if (/\bgeorgia\b/.test(t)) return 'atlanta_ga';
+      if (/\bmanhattan\b/.test(t) || /\bnyc\b/.test(t) || /\bnew york\b/.test(t)) return 'manhattan_nyc';
+      if (/\bboston\b/.test(t)) return 'boston_ma';
+      if (/\bchicago\b/.test(t)) return 'chicago_il';
+      if (/\bphiladelphia\b/.test(t) || /\bphilly\b/.test(t)) return 'philly_pa';
+      if (/\bnew orleans\b/.test(t) || /\bnola\b/.test(t)) return 'nola_la';
+      if (/\btexas\b/.test(t)) return 'texas_hill_country';
+      if (/\bmiami\b/.test(t)) return 'miami_fl';
+      if (/\bnashville\b/.test(t)) return 'nashville_tn';
+      if (/\bdetroit\b/.test(t)) return 'detroit_mi';
+      if (/\bseattle\b/.test(t)) return 'seattle_wa';
+      if (/\bbaltimore\b/.test(t)) return 'baltimore_md';
+      if (/\bminneapolis\b/.test(t) || /\bst\.?\s*paul\b/.test(t)) return 'minneapolis_mn';
+      if (/\bphoenix\b/.test(t) || /\barizona\b/.test(t)) return 'phoenix_az';
+      if (/\bhonolulu\b/.test(t) || /\bhawaii\b/.test(t)) return 'honolulu_hi';
+      if (/\banchorage\b/.test(t) || /\balaska\b/.test(t)) return 'anchorage_ak';
+      return '';
+    }
+
     function pickUsRegionalVoice(avatarType, emotionalTone, userGoal) {
+      const forcedId = inferVoiceRootsOverride(userGoal);
+      if (forcedId) {
+        const forced = US_REGION_VOICES.find((r) => r.id === forcedId);
+        if (forced) return forced.line;
+      }
+
       const ageBucket = getAgeBucket(avatarType);
       const tone = emotionalTone || '';
       const seed = fnv1a32(`${avatarType || 'any'}|${tone}|${userGoal || ''}|regional-v1`);
@@ -1146,7 +1175,11 @@
     function inferSettingFromGoal(userGoal) {
       const t = String(userGoal || '').toLowerCase();
       const hasReporter = /\b(reporter|interview|interviewed|news|press|journalist|mic|microphone)\b/.test(t);
-      const hasConstruction = /\b(construction|job ?site|worksite|site|hard hat|excavator|bulldozer|crane)\b/.test(t);
+      // Avoid generic "site" matching; only treat as construction when construction/worksite cues are present.
+      const hasConstruction =
+        /\bconstruction\b/.test(t) ||
+        /\b(job ?site|jobsite|work ?site|worksite)\b/.test(t) ||
+        /\b(hard hat|excavator|bulldozer|crane|forklift|dump truck|cement|concrete)\b/.test(t);
       if (hasReporter && hasConstruction) return 'construction-site-interview';
       if (hasReporter) return 'street-interview';
       return '';
@@ -1203,7 +1236,11 @@
       prompt += `As they continue, their voice ${accent.intensity} while staying natural and conversational. `;
       prompt += `Keep the regional voice consistent with the same hometown roots and speech habits established above (still never label it explicitly as an accent). `;
       prompt += `Topic: ${userGoal}. `;
-      prompt += `Dialogue (2–4 short sentences, no quotes, no subtitles): speak as if talking to a friend, with one specific detail and one emotional beat, not a generic monologue. `;
+      if (setting === 'street-interview' || setting === 'construction-site-interview' || setting === 'press-scrum') {
+        prompt += `Dialogue (2–4 short sentences, no quotes, no subtitles): the reporter asks one direct question, and the subject answers clearly to camera + mic with one concrete detail and one emotional beat (short, punchy, not a speech). `;
+      } else {
+        prompt += `Dialogue (2–4 short sentences, no quotes, no subtitles): speak as if talking to a friend, with one specific detail and one emotional beat, not a generic monologue. `;
+      }
       prompt += `They adjust posture once (a small shoulder shift or seatbelt tug), fabric rustles, and the take stays continuous with no cuts. `;
       prompt += `No logos, no branded text, no product placement unless it comes up incidentally. End the clip mid-sentence as if the conversation continues past the cutoff.`;
 
