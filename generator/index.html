@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
   <title>Titans AI Prompt Builder</title>
   <script>
     // GitHub Pages can expose `/folder/index.html` directly; keep the address bar clean.
@@ -421,6 +421,10 @@
       }
     }
     @media (max-width: 768px) {
+      .main-container {
+        /* keep content above the floating Flow button */
+        padding-bottom: calc(110px + env(safe-area-inset-bottom, 0px));
+      }
       .main-card {
         padding: 30px 25px;
         margin: 20px;
@@ -450,6 +454,30 @@
           rgba(20, 20, 20, 0.85) 0%,
           rgba(41, 41, 41, 0.8) 100%
         );
+      }
+
+      /* Mobile UX: avoid top-right collisions + respect iOS safe areas */
+      .guidelines-btn {
+        top: calc(14px + env(safe-area-inset-top, 0px));
+        right: calc(14px + env(safe-area-inset-right, 0px));
+        left: auto;
+        padding: 10px 12px;
+        font-size: 13px;
+        max-width: calc(100vw - 110px);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .flow-fab {
+        right: calc(14px + env(safe-area-inset-right, 0px));
+        bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+        width: 58px;
+        height: 58px;
+      }
+      .flow-fab svg {
+        width: 26px;
+        height: 26px;
       }
     }
   </style>
