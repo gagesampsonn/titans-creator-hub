@@ -1212,43 +1212,49 @@
         details: 'comfortable indoor space with lived-in authenticity'
       };
 
-      // Build the three-paragraph prompt following Veo 3 guidelines
+      // Build a compact 2-paragraph prompt (tighter than the old 3-paragraph template)
       let prompt = '';
 
-      // PARAGRAPH 1: Camera Placement + Physical Setup
-      const isSelfie =
-        setting === 'car-selfie' ||
-        setting === 'bathroom-mirror';
+      const isSelfie = setting === 'car-selfie' || setting === 'bathroom-mirror';
+      const isInterview =
+        setting === 'street-interview' ||
+        setting === 'construction-site-interview' ||
+        setting === 'press-scrum';
+
+      const qualityLine =
+        'Photoreal, real human (not CGI), no beauty filter, crisp sharp focus, high detail (4K feel), no blur/smear, no waxy skin, no face warping, no AI artifacts, no bloom/flare, no on-screen text.';
+
+      // PARAGRAPH 1: Scene + camera + look
       if (isSelfie) {
-        prompt += `The video begins with a phone already recording, ${environment.camera}. `;
+        prompt += `A hyperrealistic video: ${avatarDesc}, wearing a ${styling}. The video begins with a phone already recording, ${environment.camera}. `;
       } else {
-        prompt += `A hyperrealistic video of ${avatarDesc}. ${sentenceCase(environment.camera)}. `;
+        prompt += `A hyperrealistic video: ${avatarDesc}, wearing a ${styling}. ${sentenceCase(environment.camera)}. `;
       }
-      prompt += `The framing is ${environment.framing}. Lighting is ${environment.lighting}. `;
-      prompt += `They are wearing a ${styling}. `;
-      prompt += `${sentenceCase(environment.details)} fill the background naturally. `;
-      prompt += `Audio is simple and realistic: ${sentenceCase(environment.ambient)}. `;
-      prompt += `Keep it photoreal and grounded: real human (not CGI), no beauty filter, natural pores/skin texture, normal smartphone dynamic range, crisp sharp focus, high detail (4K feel), no blur, no compression smear, no waxy/plastic skin, no face warping, no AI artifacting, no exaggerated glow, no heavy bloom, no lens flares, no on-screen text.\n\n`;
+      prompt += `Framing: ${environment.framing}. Lighting: ${environment.lighting}. `;
+      prompt += `Background: ${sentenceCase(environment.details)}. `;
+      prompt += `Audio: ${sentenceCase(environment.ambient)}. `;
+      prompt += `${qualityLine}\n\n`;
 
-      // PARAGRAPH 2: Voice Behavior + Movement + Emotional Energy  
+      // PARAGRAPH 2: Voice + performance + content
       prompt += `Voice roots: ${regionalVoice}. `;
-      prompt += `They are already mid-thought and speak directly to the lens with ${accent.description}. `;
-      prompt += `Delivery is concrete and observable: ${accent.behavior}. `;
-      prompt += `Energy reads as ${emotionalTone || 'genuine and authentic'} through pacing, pauses, and emphasis (not “performed”). `;
-      prompt += `${accent.breathPattern}. `;
-      prompt += `Small, natural gestures enter the bottom edge of frame once or twice; one brief pause lands a key line; eye contact holds steady; blinking stays natural.\n\n`;
+      prompt += `They speak to camera with ${accent.description}—${accent.behavior}. `;
+      prompt += `Tone reads as ${emotionalTone || 'genuine and authentic'}; ${accent.breathPattern}; their voice ${accent.intensity}. `;
 
-      // PARAGRAPH 3: Message Settles + Body Anchors Scene Ending
-      prompt += `As they continue, their voice ${accent.intensity} while staying natural and conversational. `;
-      prompt += `Keep the regional voice consistent with the same hometown roots and speech habits established above (still never label it explicitly as an accent). `;
-      prompt += `Topic: ${userGoal}. `;
-      if (setting === 'street-interview' || setting === 'construction-site-interview' || setting === 'press-scrum') {
-        prompt += `Dialogue (2–4 short sentences, no quotes, no subtitles): the reporter asks one direct question, and the subject answers clearly to camera + mic with one concrete detail and one emotional beat (short, punchy, not a speech). `;
+      if (isInterview) {
+        prompt += `Dialogue (2–4 short sentences, no quotes, no subtitles): reporter asks one direct question; subject answers with one concrete detail + one emotional beat. `;
       } else {
-        prompt += `Dialogue (2–4 short sentences, no quotes, no subtitles): speak as if talking to a friend, with one specific detail and one emotional beat, not a generic monologue. `;
+        prompt += `Dialogue (2–4 short sentences, no quotes, no subtitles): natural talk-to-camera, one concrete detail + one emotional beat. `;
       }
-      prompt += `They adjust posture once (a small shoulder shift or seatbelt tug), fabric rustles, and the take stays continuous with no cuts. `;
-      prompt += `No logos, no branded text, no product placement unless it comes up incidentally. End the clip mid-sentence as if the conversation continues past the cutoff.`;
+
+      prompt += `Topic: ${userGoal}. `;
+      if (isInterview) {
+        prompt += `One subtle posture shift + one small hand gesture; continuous take, no cuts. `;
+      } else if (setting === 'car-selfie') {
+        prompt += `One subtle posture shift (seatbelt tug okay); continuous take, no cuts. `;
+      } else {
+        prompt += `One subtle posture shift; continuous take, no cuts. `;
+      }
+      prompt += `No logos/branded text/product placement unless incidental. End mid-sentence.`;
 
       return prompt;
     }
