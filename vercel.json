@@ -1,0 +1,10 @@
+{
+  "redirects": [
+    {
+      "source": "/generator",
+      "destination": "/generator/",
+      "permanent": true
+    }
+  ]
+}
+
