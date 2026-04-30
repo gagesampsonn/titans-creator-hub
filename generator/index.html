@@ -926,9 +926,9 @@
       'press-scrum': {
         camera: 'shot by a camera operator from within a tight media cluster, handheld and slightly jostled as people lean in with mics and cameras',
         framing: 'tight chest-up framing because the crowd is physically close; 1× wide lens with microphones and phones entering frame from multiple angles',
-        lighting: 'mixed outdoor light with realistic exposure shifts as bodies block the sun',
-        ambient: 'overlapping questions, camera shutters, short mic handling noise, crowd murmurs behind the subject',
-        details: 'several microphones, phones held up close, lanyards, press badges, quick movements at frame edges'
+        lighting: 'mixed light with realistic exposure shifts as bodies and phones block overhead light',
+        ambient: 'overlapping questions, camera shutters, mic handling noise, shoe squeaks, echo from a hallway or lobby',
+        details: 'several microphones, phones held up close, press badges, suit jackets brushing frame edges, office hallway/lobby in the background'
       },
       'bedroom-setdown': {
         camera: 'stabilized against a candle jar on a dresser at the foot of an unmade bed, angled slightly downward',
@@ -1223,14 +1223,21 @@
 
     function inferSettingFromGoal(userGoal) {
       const t = String(userGoal || '').toLowerCase();
-      const hasReporter = /\b(reporter|interview|interviewed|news|press|journalist|mic|microphone)\b/.test(t);
+      const hasReporter =
+        /\b(reporter|interview|interviewed|news|press|journalist|mic|microphone)\b/.test(t) ||
+        /\b(paparazzi|media|reporters|cameras|camera crew|hounding|swarm)\b/.test(t);
       // Avoid generic "site" matching; only treat as construction when construction/worksite cues are present.
       const hasConstruction =
         /\bconstruction\b/.test(t) ||
         /\b(job ?site|jobsite|work ?site|worksite)\b/.test(t) ||
         /\b(hard hat|excavator|bulldozer|crane|forklift|dump truck|cement|concrete)\b/.test(t);
       if (hasReporter && hasConstruction) return 'construction-site-interview';
-      if (hasReporter) return 'street-interview';
+      if (hasReporter) {
+        const indoorOffice =
+          /\b(office|hallway|lobby|elevator|conference room|boardroom)\b/.test(t);
+        if (indoorOffice) return 'press-scrum';
+        return 'street-interview';
+      }
       return '';
     }
 
@@ -1281,6 +1288,9 @@
         /\b(man|guy|male|he|his|billionaire)\b/.test(t) &&
         !/\b(woman|female|she|her)\b/.test(t);
       const wantsInterview = /\b(reporter|interview|interviewed|press|journalist|mic|microphone)\b/.test(t);
+      const wantsCeo = /\b(ceo|cfo|founder|executive|chairman|board|investors?)\b/.test(t);
+      const wantsManhattan = /\b(manhattan|nyc|new york)\b/.test(t);
+      const wantsAgitated = /\b(agitated|angry|irritated|frustrated|snaps?|heated)\b/.test(t);
 
       if (wantsMale && wantsOlder) {
         return {
@@ -1294,10 +1304,22 @@
           }]
         };
       }
+      if (wantsMale && wantsCeo) {
+        return {
+          descriptions: ['mid-40s CEO with sharp, tired focus and controlled intensity, clearly high-status'],
+          styling: ['tailored suit jacket, open-collar shirt, quality watch'],
+          accents: [{
+            description: wantsManhattan ? 'fast, clipped Manhattan cadence with confident timing' : 'polished executive delivery with quick turns of phrase',
+            behavior: wantsAgitated ? 'short, technical sentences, talking over interruptions, irritation leaking through' : 'dense, technical phrasing with quick clarifications',
+            intensity: wantsAgitated ? 'gets sharper as questions pile on, then clamps back down' : 'stays controlled while accelerating on details',
+            breathPattern: 'quick inhales between phrases, real pauses when choosing words'
+          }]
+        };
+      }
 
       return {
         descriptions: ['authentic person with genuine presence and natural confidence'],
-        styling: ['casual clothing'],
+        styling: ['casual outfit'],
         accents: [{
           description: 'natural and regionally authentic',
           behavior: 'clear, conversational delivery',
