@@ -860,22 +860,22 @@
         details: 'center console visible with phone charger, seatbelt across chest, steering wheel edge in frame, keys dangling'
       },
       'street-interview': {
-        camera: 'filmed by a reporter’s phone on a small handheld gimbal at chest height, with a second phone occasionally visible off to the side',
-        framing: 'mid-torso up, two-shot that favors the subject, with the reporter’s shoulder or mic entering frame naturally',
+        camera: 'shot by a camera operator on a phone or compact camera at chest height, with small handheld stabilization and natural micro-movement',
+        framing: 'mid-torso up on the subject, with the reporter standing beside them and the handheld mic entering frame naturally',
         lighting: 'bright outdoor daylight with realistic contrast and accurate exposure (no bloom, no lens flare, no HDR glow)',
         ambient: 'city street bed: distant traffic, a few footsteps, a light wind across the mic, occasional far-off siren',
         details: 'a small handheld microphone with a foam windscreen, reporter notepad, passing cars out of focus, realistic sidewalk background'
       },
       'construction-site-interview': {
-        camera: 'filmed on a phone by a reporter standing a few feet away, handheld with slight natural sway as they ask questions',
-        framing: 'mid-torso up on the subject with the reporter’s mic visible at frame edge; shallow depth of field keeps the background softly blurred',
+        camera: 'shot by a camera operator on a phone or compact camera, handheld with slight natural sway during the interview',
+        framing: 'mid-torso up on the subject with the reporter standing beside them; the handheld mic enters at frame edge; shallow depth of field keeps the background softly blurred',
         lighting: 'hard midday sun with realistic shadows and sweat sheen (no bloom, no lens flare, no HDR glow)',
         ambient: 'construction ambience: distant machinery hum, occasional tool clanks, reverse beeps far away, wind gusts',
         details: 'hi-vis safety vests in the background, orange cones, chain-link fence, heavy equipment shapes out of focus, dust in the air'
       },
       'press-scrum': {
-        camera: 'shot on a phone in a tight media cluster, handheld and slightly jostled as people lean in with mics and phones',
-        framing: 'tight chest-up framing with microphones and phone cameras entering frame from multiple angles',
+        camera: 'shot by a camera operator from within a tight media cluster, handheld and slightly jostled as people lean in with mics and cameras',
+        framing: 'tight chest-up framing with microphones and cameras entering frame from multiple angles',
         lighting: 'mixed outdoor light with realistic exposure shifts as bodies block the sun (no bloom, no lens flare, no HDR glow)',
         ambient: 'overlapping questions, camera shutters, short mic handling noise, crowd murmurs behind the subject',
         details: 'several microphones, phones held up close, lanyards, press badges, quick movements at frame edges'
@@ -1215,10 +1215,16 @@
       let prompt = '';
 
       // PARAGRAPH 1: Camera Placement + Physical Setup
-      prompt += `The video begins with a phone already recording, ${environment.camera}. `;
+      const isSelfie =
+        setting === 'car-selfie' ||
+        setting === 'bathroom-mirror';
+      if (isSelfie) {
+        prompt += `The video begins with a phone already recording, ${environment.camera}. `;
+      } else {
+        prompt += `A hyperrealistic video of ${avatarDesc}. ${sentenceCase(environment.camera)}. `;
+      }
       prompt += `The framing is ${environment.framing}. Lighting is ${environment.lighting}. `;
-      prompt += `The frame captures a ${avatarDesc}, `;
-      prompt += `wearing a ${styling}. `;
+      prompt += `They are wearing a ${styling}. `;
       prompt += `${sentenceCase(environment.details)} fill the background naturally. `;
       prompt += `Audio is simple and realistic: ${sentenceCase(environment.ambient)}. `;
       prompt += `Keep it photoreal and grounded: real human (not CGI), no beauty filter, natural pores/skin texture, normal smartphone dynamic range, crisp sharp focus, high detail (4K feel), no blur, no compression smear, no waxy/plastic skin, no face warping, no AI artifacting, no exaggerated glow, no heavy bloom, no lens flares, no on-screen text.\n\n`;
