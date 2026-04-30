@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Titans AI Prompt Builder</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      /* Background Gradient */
+      --grad-top: #1A1A1A;
+      --grad-bottom: #111111;
+
+      /* Glass Panel Overlays */
+      --glass-charcoal: rgba(26, 26, 26, 0.15);
+      --glass-plum: rgba(40, 10, 35, 0.15);
+
+      /* Primary Accent */
+      --primary: #E9584F;
+      --primary-hover: #F2A65A;
+
+      /* Secondary Accent & Text */
+      --header-peach: #F5B6AB;
+      --header-peach-glow: #FFD7C5;
+      --subhead-cream: #FFFAF0;
+      --text-main: #EAEAEA;
+      --text-minor: #B0B0B0;
+
+      /* Borders & Inputs */
+      --border-slate: #3E4752;
+      --border-teal: #2D4F5D;
+      --focus-glow: rgba(233, 88, 79, 0.5);
+
+      /* Links & CTAs */
+      --upgrade-start: #F5B6AB;
+      --upgrade-end: #F2A65A;
+      --upgrade-text: #141414;
+
+      /* Shadows & Dividers */
+      --divider-charcoal: #2A2A2A;
+      --divider-near-black: #101010;
+      --shadow-deep-navy: rgba(0, 0, 18, 0.5);
+      --shadow-plum: rgba(32, 0, 34, 0.5);
+
+      /* Focus / Highlights */
+      --focus-border: #FFC94D;
+      --validation-yellow: #FFD700;
+    }
+
+    /* BODY & BACKGROUND */
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(to bottom, var(--grad-top), var(--grad-bottom));
+      color: var(--text-main);
+      overflow-x: hidden;
+      min-height: 100vh;
+      position: relative;
+    }
+
+    /* VIDEO BACKGROUND CONTAINER */
+    .video-background-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: -2;
+      overflow: hidden;
+    }
+    .background-video {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 100vw;
+      height: 56.25vw; /* 16:9 aspect ratio */
+      min-height: 100vh;
+      min-width: 177.77vh; /* 16:9 aspect ratio */
+      transform: translate(-50%, -50%);
+      opacity: 0.4;
+      transition: opacity 2s ease-in-out;
+      pointer-events: none;
+    }
+    .background-video.active {
+      opacity: 0.4;
+    }
+    .video-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(
+        135deg,
+        rgba(20, 20, 20, 0.6) 0%,
+        rgba(41, 41, 41, 0.5) 50%,
+        rgba(20, 20, 20, 0.7) 100%
+      );
+      z-index: -1;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    /* MAIN CONTAINER & CARD (updated width) */
+    .main-container {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+      position: relative;
+      z-index: 10;
+    }
+    .main-card {
+      background-color: var(--glass-charcoal);
+      /* If you prefer a subtle plum tint, switch to --glass-plum */
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-radius: 20px;
+      padding: 40px 50px;
+      box-shadow: 0px 8px 25px var(--shadow-deep-navy);
+
+      /* ↑↑ Increased max-width from 650px to 800px so bubbles never overflow ↓↓ */
+      max-width: 800px;
+      width: 90%;
+      text-align: center;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    /* HEADINGS */
+    .main-heading {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 8px;
+      line-height: 1.2;
+    }
+    .main-heading:hover {
+      color: var(--primary-hover);
+    }
+    .sub-heading {
+      font-size: 20px;
+      font-weight: 400;
+      color: var(--text-minor);
+      margin-bottom: 30px;
+      line-height: 1.3;
+    }
+
+    /* SEARCH INPUT */
+    .search-container {
+      display: flex;
+      align-items: center;
+      background-color: rgba(234, 234, 234, 0.1);
+      border-radius: 25px;
+      padding: 12px 20px;
+      margin-bottom: 25px;
+      border: 1px solid var(--border-slate);
+      transition: all 0.3s ease;
+    }
+    .search-container:focus-within {
+      box-shadow: 0 0 0 3px rgba(233, 88, 79, 0.1);
+      border-color: var(--primary);
+    }
+    .search-icon {
+      color: var(--text-minor);
+      margin-right: 12px;
+      width: 18px;
+      height: 18px;
+    }
+    .search-input {
+      border: none;
+      outline: none;
+      background-color: transparent;
+      font-family: inherit;
+      font-size: 16px;
+      color: var(--text-main);
+      width: 100%;
+      flex: 1;
+    }
+    .search-input::placeholder {
+      color: var(--text-minor);
+    }
+    .send-icon {
+      color: var(--primary);
+      cursor: pointer;
+      width: 20px;
+      height: 20px;
+      margin-left: 12px;
+      transition: all 0.3s ease;
+    }
+    .send-icon:hover {
+      transform: scale(1.1);
+      color: #d94741;
+    }
+    .send-icon.generating {
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0% { opacity: 1; }
+      50% { opacity: 0.7; }
+      100% { opacity: 1; }
+    }
+
+    /* SUGGESTION PILLS */
+    .suggestions-container {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    .suggestion-pill {
+      background-color: rgba(234, 234, 234, 0.1);
+      border-radius: 15px;
+      padding: 8px 16px;
+      font-size: 13px;
+      color: var(--text-main);
+      border: 1px solid var(--border-slate);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      transition: all 0.3s ease;
+      font-weight: 500;
+    }
+    .suggestion-pill:hover {
+      background-color: var(--primary);
+      color: var(--subhead-cream);
+      transform: translateY(-1px);
+    }
+    .suggestion-icon {
+      margin-right: 6px;
+      font-size: 14px;
+    }
+
+    /* FORM GRID & SELECTS */
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 15px;
+      margin: 20px 0;
+    }
+    .form-select {
+      background-color: rgba(234, 234, 234, 0.1);
+      border: 1px solid var(--border-slate);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 14px;
+      color: var(--text-main) !important;      /* Force off-white for selected value */
+      outline: none;
+      transition: all 0.3s ease;
+    }
+    .form-select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(233, 88, 79, 0.1);
+      color: var(--text-main) !important;
+    }
+    /* Ensure dropdown options use off-white on dark background */
+    .form-select option {
+      color: var(--text-main) !important;
+      background-color: #2A2A2A; /* Dark background for clarity */
+    }
+    .form-select option:hover,
+    .form-select option:checked {
+      background-color: var(--primary-hover);
+      color: var(--text-main) !important;
+    }
+    .form-label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-minor);
+      margin-bottom: 6px;
+      text-align: left;
+    }
+
+    /* GENERATED RESULT CARD */
+    .result-card {
+      background-color: var(--glass-charcoal);
+      backdrop-filter: blur(15px);
+      border-radius: 15px;
+      padding: 25px;
+      margin-top: 20px;
+      border: 1px solid rgba(233, 88, 79, 0.2);
+      text-align: left;
+    }
+    .copy-btn {
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      font-size: 14px;
+    }
+    .copy-btn:hover {
+      background-color: #d94741;
+      transform: translateY(-1px);
+    }
+    .copy-btn.copied {
+      background-color: #10b981;
+    }
+
+    /* Make generated prompt text bright/off‐white for readability */
+    #resultOutput {
+      color: var(--text-main); /* #EAEAEA */
+    }
+
+    /* GUIDELINES PANEL */
+    .guidelines-btn {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background-color: var(--glass-charcoal);
+      backdrop-filter: blur(15px);
+      border-radius: 10px;
+      padding: 10px 16px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      color: var(--text-main);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      z-index: 100;
+      font-size: 14px;
+    }
+    .guidelines-btn:hover {
+      background-color: var(--primary);
+      color: white;
+      transform: translateY(-1px);
+    }
+    .guidelines-panel {
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: 400px;
+      height: 100vh;
+      background-color: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      padding: 30px;
+      overflow-y: auto;
+      transform: translateX(100%);
+      transition: transform 0.3s ease;
+      z-index: 1000;
+      box-shadow: -5px 0 25px rgba(0, 0, 0, 0.1);
+    }
+    .guidelines-panel.open {
+      transform: translateX(0);
+    }
+    .guidelines-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.3);
+      z-index: 999;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+    }
+    .guidelines-overlay.open {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 1024px) {
+      .form-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+    @media (max-width: 768px) {
+      .main-card {
+        padding: 30px 25px;
+        margin: 20px;
+      }
+      .main-heading {
+        font-size: 26px;
+      }
+      .sub-heading {
+        font-size: 18px;
+      }
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+      .guidelines-panel {
+        width: 90vw;
+        right: 5vw;
+      }
+      .suggestions-container {
+        gap: 8px;
+      }
+      .background-video.active {
+        opacity: 0.25;
+      }
+      .video-overlay {
+        background: linear-gradient(
+          135deg,
+          rgba(20, 20, 20, 0.85) 0%,
+          rgba(41, 41, 41, 0.8) 100%
+        );
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Full‐Screen YouTube Video Background -->
+  <div class="video-background-container">
+    <iframe
+      class="background-video active"
+      src="https://www.youtube.com/embed/MkGujuiwNek?autoplay=1&mute=1&loop=1&playlist=MkGujuiwNek&controls=0&showinfo=0&rel=0&iv_load_policy=3&modestbranding=1&disablekb=1&fs=0&cc_load_policy=0&playsinline=1&enablejsapi=1"
+      frameborder="0"
+      allow="autoplay; encrypted-media"
+      allowfullscreen>
+    </iframe>
+  </div>
+  <!-- Overlay to Darken/Fade Video -->
+  <div class="video-overlay"></div>
+
+  <!-- Guidelines Overlay & Button -->
+  <div id="guidelinesOverlay" class="guidelines-overlay"></div>
+  <button id="toggleGuidelines" class="guidelines-btn">📋 How to Write Your Prompt</button>
+  <div id="guidelines" class="guidelines-panel">
+    <div class="flex justify-between items-center mb-6">
+      <h2 class="text-xl font-bold text-gray-800">Writing Your Prompt</h2>
+      <button id="closeGuidelines" class="text-2xl text-gray-600 hover:text-gray-800">&times;</button>
+    </div>
+    <div class="text-sm text-gray-700 space-y-4">
+      <div>
+        <h3 class="font-semibold text-red-600 mb-2">• Be Specific & Visual</h3>
+        <p class="text-xs ml-4">
+          Describe exactly what you want: a clear location (e.g., "in the car," "at the gym"), a character (e.g., "Gen Z woman," "middle-aged dad"), or a mood (e.g., "hyped," "nostalgic"). The more concrete the scene (lighting, props, ambient sounds), the more realistic the AI output will be.
+        </p>
+      </div>
+      <div>
+        <h3 class="font-semibold text-red-600 mb-2">• Choose Avatar & Setting</h3>
+        <p class="text-xs ml-4">
+          Pick an avatar type (age, gender, background) and a setting (car selfie, bedroom, podcast mic). Matching those selections to your idea (e.g., "Gen Z rant in her car") helps the AI nail the right tone.
+        </p>
+      </div>
+      <div>
+        <h3 class="font-semibold text-red-600 mb-2">• Set Emotional Energy</h3>
+        <p class="text-xs ml-4">
+          Decide how intense or calm you want the clip: "excited/urgent," "intimate/honest," or "casual/chill." This guides the AI in building matching vocal cadence, breathing, and gestures.
+        </p>
+      </div>
+      <div>
+        <h3 class="font-semibold text-red-600 mb-2">• Frame Around One Focus</h3>
+        <p class="text-xs ml-4">
+          Keep your prompt centered on one clear idea (a rant about an ex, a pre-workout hype, a testimonial about ashwagandha). This ensures the script flows naturally without jumping between topics.
+        </p>
+      </div>
+      <div>
+        <h3 class="font-semibold text-red-600 mb-2">• Ask for One Continuous Take</h3>
+        <p class="text-xs ml-4">
+          Request "one continuous shot—no cuts." That makes the final video feel raw and authentic.
+        </p>
+      </div>
+      <div>
+        <h3 class="font-semibold text-red-600 mb-2">• Avoid Brand/Logo Overload</h3>
+        <p class="text-xs ml-4">
+          If you need a product mentioned, let it appear organically (e.g., "ripping open the ashwagandha bottle"). Avoid "show me a logo" or "zoom on brand name"—we want it to feel like a real person talking.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-container">
+    <div class="main-card">
+      <h1 class="main-heading">How can I help you create</h1>
+      <h2 class="sub-heading">hyper-realistic Veo 3 prompts?</h2>
+
+      <!-- Search Input -->
+      <div class="search-container">
+        <svg class="search-icon" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/>
+        </svg>
+        <input type="text" id="videoGoal" class="search-input" placeholder="Describe your video goal or outline…" />
+        <svg class="send-icon" id="generateBtn" fill="currentColor" viewBox="0 0 20 20">
+          <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"/>
+        </svg>
+      </div>
+
+      <!-- Custom Suggestion Pills -->
+      <div class="suggestions-container">
+        <button class="suggestion-pill" data-suggestion="man in the gym hyped after taking pre-workout">
+          <span class="suggestion-icon">💪</span>
+          Man in the gym hyped (pre-workout)
+        </button>
+        <button class="suggestion-pill" data-suggestion="Gen Z rant in her car about an ex">
+          <span class="suggestion-icon">🚗</span>
+          Gen Z rant in her car about ex
+        </button>
+        <button class="suggestion-pill" data-suggestion="Testimonial podcast about ashwagandha benefits">
+          <span class="suggestion-icon">🎙️</span>
+          Ashwagandha testimonial podcast
+        </button>
+        <button class="suggestion-pill" data-suggestion="First-person unboxing of a new sneaker drop">
+          <span class="suggestion-icon">👟</span>
+          First-person sneaker unboxing
+        </button>
+      </div>
+
+      <!-- Form Grid -->
+      <div class="form-grid">
+        <div>
+          <label class="form-label" for="avatarType">Avatar Demographics</label>
+          <select id="avatarType" class="form-select">
+            <option value="">Select avatar…</option>
+            <option value="female-young">Female (18-25)</option>
+            <option value="female-adult">Female (26-35)</option>
+            <option value="female-mature">Female (36-45)</option>
+            <option value="female-older">Female (46-60)</option>
+            <option value="female-senior">Female (60+)</option>
+            <option value="male-young">Male (18-25)</option>
+            <option value="male-adult">Male (26-35)</option>
+            <option value="male-mature">Male (36-45)</option>
+            <option value="male-older">Male (46-60)</option>
+            <option value="male-senior">Male (60+)</option>
+          </select>
+        </div>
+        <div>
+          <label class="form-label" for="setting">Setting/Environment</label>
+          <select id="setting" class="form-select">
+            <option value="">Select setting…</option>
+            <option value="car-selfie">Car (Selfie Style)</option>
+            <option value="bedroom-setdown">Bedroom (Phone Set Down)</option>
+            <option value="podcast-setup">Podcast-Style Setup</option>
+            <option value="kitchen-counter">Kitchen Counter</option>
+            <option value="living-room-couch">Living Room/Couch</option>
+            <option value="bathroom-mirror">Bathroom Mirror</option>
+          </select>
+        </div>
+        <div>
+          <label class="form-label" for="emotionalTone">Emotional Energy</label>
+          <select id="emotionalTone" class="form-select">
+            <option value="">Select tone…</option>
+            <option value="excited-urgent">Excited/Urgent</option>
+            <option value="grateful-warm">Grateful/Warm</option>
+            <option value="confident-direct">Confident/Direct</option>
+            <option value="intimate-honest">Intimate/Honest</option>
+            <option value="passionate-fired-up">Passionate/Fired Up</option>
+            <option value="casual-chill">Casual/Chill</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Generated Prompt Result -->
+      <div id="resultContainer" class="result-card hidden">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-lg font-bold text-gray-800">Generated Veo 3 Prompt:</h3>
+          <button id="copyBtn" class="copy-btn">📋 Copy</button>
+        </div>
+        <pre id="resultOutput" class="text-sm whitespace-pre-wrap leading-relaxed"></pre>
+      </div>
+
+      <div class="mt-6 text-xs text-gray-500">Powered by Titans AI</div>
+    </div>
+  </div>
+
+  <script>
+    // SIMPLIFIED AVATAR PROFILES - Gender and Age Based
+    const avatarProfiles = {
+      'female-young': {
+        descriptions: [
+          '22-year-old woman with youthful energy and expressive features, confidence radiating naturally',
+          '24-year-old woman with animated presence and bright eyes, casual authenticity in every gesture',
+          '19-year-old woman with genuine enthusiasm and natural charisma'
+        ],
+        styling: ['oversized hoodie', 'crop top', 'messy bun', 'minimal jewelry', 'denim jacket'],
+        accents: [
+          {
+            description: 'Gen Z energy with uptalk and vocal fry — authentic enthusiasm that cuts through any stereotypes',
+            behavior: 'conversational flow with strategic filler words, rapid pace when excited, genuine rather than polished',
+            intensity: 'builds excitement through pitch variation, authenticity over performance, voice brightening with conviction',
+            breathPattern: 'natural and unguarded, breath catching with excitement, exhales mixing with laughter'
+          },
+          {
+            description: 'urban flow with street-smart confidence and intelligent articulation',
+            behavior: 'rhythmic delivery with natural code-switching, emphasis through tone shifts, confident pacing',
+            intensity: 'builds power through controlled delivery, words hitting with purpose, voice strengthening with conviction',
+            breathPattern: 'controlled but animated, breath used for emphasis, strategic inhales before key points'
+          }
+        ]
+      },
+      'female-adult': {
+        descriptions: [
+          '29-year-old woman with confident presence and professional energy, experience showing in her posture',
+          '32-year-old woman with natural charisma and polished appearance, authenticity refined by experience',
+          '27-year-old woman with engaging personality and mature confidence'
+        ],
+        styling: ['fitted blazer', 'statement earrings', 'sleek hair', 'casual cardigan', 'structured top'],
+        accents: [
+          {
+            description: 'polished professional with clear articulation and warm authority',
+            behavior: 'measured delivery with strategic emphasis, commanding without harshness, natural confidence',
+            intensity: 'strengthens through controlled emphasis, power in precision rather than volume',
+            breathPattern: 'professional and steady, breath supporting authority, thoughtful pauses'
+          },
+          {
+            description: 'regional authenticity with melodic cadence and expressive delivery',
+            behavior: 'musical rhythm with emotional inflection, natural storytelling pace, genuine warmth',
+            intensity: 'builds passion through rhythm and pace, voice dancing with emotional truth',
+            breathPattern: 'expressive and natural, breath fueling animated delivery, inhales supporting passion'
+          }
+        ]
+      },
+      'female-mature': {
+        descriptions: [
+          '41-year-old woman with sophisticated presence and earned confidence, wisdom evident in her bearing',
+          '38-year-old woman with professional authority and warm approachability, experience radiating naturally',
+          '44-year-old woman with refined style and authentic gravitas'
+        ],
+        styling: ['elegant blouse', 'pearl accessories', 'tailored blazer', 'sophisticated cardigan', 'classic styling'],
+        accents: [
+          {
+            description: 'refined authority with cultivated warmth and sophisticated delivery',
+            behavior: 'measured pace with deliberate word choice, consonants clear, each phrase purposeful',
+            intensity: 'deepens with conviction while maintaining composure, voice warming with passion',
+            breathPattern: 'controlled and graceful, strategic pauses, breathing that supports rather than interrupts'
+          }
+        ]
+      },
+      'female-older': {
+        descriptions: [
+          '52-year-old woman with distinguished presence and natural authority earned through decades of experience',
+          '48-year-old woman with confident bearing and warm wisdom, comfort in her own skin',
+          '55-year-old woman with elegant poise and authentic gravitas'
+        ],
+        styling: ['classic blouse', 'quality jewelry', 'professional attire', 'timeless style', 'refined accessories'],
+        accents: [
+          {
+            description: 'authoritative warmth with clear articulation and measured wisdom',
+            behavior: 'deliberate pacing with thoughtful emphasis, every word carrying weight, natural gravitas',
+            intensity: 'commands respect through authenticity and experience, power in measured delivery',
+            breathPattern: 'controlled and authoritative, breath supporting wisdom, strategic emphasis'
+          }
+        ]
+      },
+      'female-senior': {
+        descriptions: [
+          '64-year-old woman with dignified presence and lifetime of stories, wisdom evident in every gesture',
+          '67-year-old woman with gentle authority and warm intelligence, comfort with her accumulated knowledge',
+          '62-year-old woman with graceful confidence and authentic perspective'
+        ],
+        styling: ['comfortable blouse', 'meaningful jewelry', 'classic cardigan', 'dignified appearance', 'timeless elegance'],
+        accents: [
+          {
+            description: 'wise authority with gentle cadence and lifetime of authentic experience',
+            behavior: 'thoughtful delivery with natural pauses, each word chosen with care, genuine warmth',
+            intensity: 'builds conviction through lived truth, voice carrying decades of authentic experience',
+            breathPattern: 'steady and grounded, breath supporting wisdom, natural rhythm of someone who knows'
+          }
+        ]
+      },
+      'male-young': {
+        descriptions: [
+          '23-year-old man with youthful confidence and natural charisma, energy radiating from relaxed posture',
+          '21-year-old man with genuine enthusiasm and athletic presence, authenticity over performance',
+          '25-year-old man with casual confidence and engaging personality'
+        ],
+        styling: ['fitted hoodie', 'graphic tee', 'baseball cap', 'casual jeans', 'sneakers'],
+        accents: [
+          {
+            description: 'youthful energy with authentic relatability and honest delivery',
+            behavior: 'natural rhythm with conversational flow, genuine enthusiasm, emphasis through sincerity',
+            intensity: 'builds connection through authenticity, voice strengthening with conviction',
+            breathPattern: 'natural and unguarded, breath supporting genuine emotion, catching with enthusiasm'
+          },
+          {
+            description: 'urban confidence with intelligent articulation and street credibility',
+            behavior: 'rhythmic delivery with strategic pauses, natural code-switching, confident pacing',
+            intensity: 'builds authority through controlled power, respect earned through authenticity',
+            breathPattern: 'controlled and confident, breath supporting natural authority, strategic emphasis'
+          }
+        ]
+      },
+      'male-adult': {
+        descriptions: [
+          '31-year-old man with professional confidence and approachable energy, experience showing in his bearing',
+          '28-year-old man with natural authority and genuine presence, maturity earned through experience',
+          '34-year-old man with confident demeanor and authentic charisma'
+        ],
+        styling: ['polo shirt', 'casual blazer', 'henley shirt', 'simple watch', 'clean-cut appearance'],
+        accents: [
+          {
+            description: 'professional confidence with clear articulation and natural authority',
+            behavior: 'measured delivery with purposeful emphasis, wisdom flowing through words, controlled power',
+            intensity: 'commands respect through authenticity, power residing in truth rather than volume',
+            breathPattern: 'controlled and authoritative, breath supporting wisdom, strategic pauses'
+          },
+          {
+            description: 'regional authenticity with relaxed confidence and natural storytelling ability',
+            behavior: 'comfortable pace with natural rhythm, friendly yet authoritative, genuine warmth',
+            intensity: 'strengthens through authentic conviction, power in simplicity and truth',
+            breathPattern: 'steady and grounded, breath flowing naturally, deepening with conviction'
+          }
+        ]
+      },
+      'male-mature': {
+        descriptions: [
+          '42-year-old man with distinguished presence and thoughtful demeanor, natural respect through experience',
+          '39-year-old man with professional authority and warm approachability, wisdom evident in gestures',
+          '45-year-old man with refined confidence and authentic gravitas'
+        ],
+        styling: ['professional shirt', 'quality watch', 'tailored clothing', 'sophisticated casual', 'mature styling'],
+        accents: [
+          {
+            description: 'cultivated authority with articulate precision and understated confidence',
+            behavior: 'deliberate delivery with thoughtful pacing, strategic emphasis, natural gravitas',
+            intensity: 'builds credibility through measured delivery, power in precision and restraint',
+            breathPattern: 'professional and controlled, breath supporting authority, purposeful pauses'
+          }
+        ]
+      },
+      'male-older': {
+        descriptions: [
+          '53-year-old man with seasoned confidence and natural authority earned through decades of experience',
+          '49-year-old man with distinguished bearing and warm wisdom, comfortable in his expertise',
+          '57-year-old man with mature presence and authentic leadership'
+        ],
+        styling: ['quality shirt', 'sophisticated watch', 'professional attire', 'distinguished appearance', 'refined casual'],
+        accents: [
+          {
+            description: 'seasoned authority with clear articulation and earned wisdom',
+            behavior: 'measured delivery with natural gravitas, every word carrying weight of experience',
+            intensity: 'commands respect through lifetime of authenticity, power in measured truth',
+            breathPattern: 'controlled and wise, breath supporting decades of knowledge, authoritative pauses'
+          }
+        ]
+      },
+      'male-senior': {
+        descriptions: [
+          '65-year-old man with dignified presence and lifetime of wisdom, authority that needs no proving',
+          '68-year-old man with gentle strength and accumulated knowledge, comfort with his experience',
+          '63-year-old man with graceful confidence and authentic perspective'
+        ],
+        styling: ['comfortable shirt', 'meaningful accessories', 'classic styling', 'dignified appearance', 'timeless quality'],
+        accents: [
+          {
+            description: 'wise authority with gentle strength and lifetime of authentic experience',
+            behavior: 'thoughtful delivery with natural wisdom, each word chosen with care, genuine gravitas',
+            intensity: 'builds conviction through lived truth, voice carrying decades of genuine experience',
+            breathPattern: 'steady and grounded, breath supporting lifetime of wisdom, natural rhythm of experience'
+          }
+        ]
+      }
+    };
+
+    // ENHANCED SETTING ENVIRONMENTS - Following Veo 3 Camera Guidelines
+    const settingEnvironments = {
+      'car-selfie': {
+        camera: 'held in selfie mode by the driver in a parked car, arm extended just beyond the bottom of the screen',
+        framing: 'chest-up, slightly off-center and angled upward, with subtle arm tension creating natural camera shake',
+        lighting: 'golden hour sunlight streaming through the windshield, highlighting the edge of cheek and soft folds of clothing',
+        ambient: 'muffled outside traffic, AC humming softly, occasional car door closing in distance, wind through cracked window',
+        details: 'center console visible with phone charger, seatbelt across chest, steering wheel edge in frame, keys dangling'
+      },
+      'bedroom-setdown': {
+        camera: 'stabilized against a candle jar on a dresser at the foot of an unmade bed, angled slightly downward',
+        framing: 'mid-torso up, subject sitting cross-legged on bed four feet away, positioned slightly right of center',
+        lighting: 'soft amber lamp casting uneven shadows, deepening shadows beneath eyes and warming fabric textures',
+        ambient: 'baby monitor humming quietly, wind pressing against bedroom window, distant household sounds filtering through walls',
+        details: 'unmade bedsheets bunching naturally, clothes draped over furniture, personal items scattered, white crib partially visible'
+      },
+      'podcast-setup': {
+        camera: 'propped at eye-level on a microphone stand in a small home studio, stabilized and focused',
+        framing: 'head-and-shoulders with microphone slightly in frame, professional but intimate setup',
+        lighting: 'LED panel with softbox diffusers creating cool-white tone, eliminating harsh shadows',
+        ambient: 'quiet room hum, occasional mic pop, sound-treated foam visible, keyboard clicking distance',
+        details: 'desk clutter with notepad and coffee cup, laptop screen glowing, pop filter catching light, headphones hung nearby'
+      },
+      'kitchen-counter': {
+        camera: 'placed on marble counter at waist-height, angled upward slightly toward subject',
+        framing: 'waist-up with counter surface visible, natural kitchen environment surrounding',
+        lighting: 'overhead warm kitchen lights mixed with natural window glow creating complex shadows',
+        ambient: 'dishes clinking softly, distant refrigerator humming, water occasionally running in sink, natural kitchen sounds',
+        details: 'marble countertop with natural veining, fruit bowl at corner, cabinet handles catching light, utensils scattered naturally'
+      },
+      'living-room-couch': {
+        camera: 'set on a tripod at low angle in front of a couch, creating intimate living space feel',
+        framing: 'torso-up with couch cushions and coffee table naturally visible in background',
+        lighting: 'daylight from side window with sheer curtains creating soft, natural illumination',
+        ambient: 'soft TV noise in background, fan oscillating quietly, distant street chatter filtering through windows',
+        details: 'throw pillows arranged casually, coffee table with laptop and water glass, plant beside couch, lived-in comfort'
+      },
+      'bathroom-mirror': {
+        camera: 'propped on sink counter under LED vanity lights, reflecting natural bathroom environment',
+        framing: 'shoulders-up with mirror reflection visible, intimate bathroom setting',
+        lighting: 'bright LED vanity lights creating even illumination with slight backshadow for depth',
+        ambient: 'water dripping slowly, faucet creaking occasionally, faint bathroom fan humming, natural acoustics',
+        details: 'toiletries arranged on counter, toothbrush holder, mirror frame catching light, tiles reflecting LED glow'
+      }
+    };
+
+    function getRandomElement(arr) {
+      return arr[Math.floor(Math.random() * arr.length)];
+    }
+
+    function generateHyperRealisticPrompt(userGoal, avatarType, setting, emotionalTone) {
+      // Select avatar attributes
+      const avatar = avatarProfiles[avatarType] || {
+        descriptions: ['authentic person with genuine presence and natural confidence'],
+        styling: ['casual clothing'],
+        accents: [{
+          description: 'natural and regionally authentic with emotional depth',
+          behavior: 'clear pronunciation with emotional variation and authentic rhythm',
+          intensity: 'adjusts naturally with feeling, building conviction through authentic delivery',
+          breathPattern: 'natural and unguarded, supporting genuine emotion'
+        }]
+      };
+      
+      const avatarDesc = getRandomElement(avatar.descriptions);
+      const styling = getRandomElement(avatar.styling);
+      const accent = getRandomElement(avatar.accents);
+
+      // Select environment
+      const environment = settingEnvironments[setting] || {
+        camera: 'held in front-facing mode with natural handheld movement',
+        framing: 'chest-up at natural angle with authentic positioning',
+        lighting: 'natural indoor lighting creating realistic atmosphere',
+        ambient: 'quiet room tone with natural environmental sounds',
+        details: 'comfortable indoor space with lived-in authenticity'
+      };
+
+      // Build the three-paragraph prompt following Veo 3 guidelines
+      let prompt = '';
+
+      // PARAGRAPH 1: Camera Placement + Physical Setup
+      prompt += `The video begins with a phone already recording, ${environment.camera}. `;
+      prompt += `The ${environment.framing}, with ${environment.lighting}. `;
+      prompt += `The frame captures a ${avatarDesc}, `;
+      prompt += `wearing a ${styling}. `;
+      prompt += `${environment.details} create the natural background environment. `;
+      prompt += `${environment.ambient} establish the authentic audio landscape. `;
+      prompt += `Their posture is relaxed but engaged, already mid-thought as if the camera never interrupted a natural moment.\n\n`;
+
+      // PARAGRAPH 2: Voice Behavior + Movement + Emotional Energy  
+      prompt += `Their voice hits immediately with ${accent.description}. `;
+      prompt += `The vocal behavior shows ${accent.behavior}, `;
+      prompt += `building with a ${emotionalTone || 'genuine and authentic'} energy that escalates organically. `;
+      prompt += `${accent.breathPattern}. `;
+      prompt += `Hand gestures flicker naturally in and out of frame — palm flicks, subtle wrist snaps emphasizing phrases without conscious performance. `;
+      prompt += `Eye contact remains unwavering, the lens becoming a direct connection as though the viewer is part of this intimate conversation. `;
+      prompt += `Their facial expressions shift subtly with the rhythm of their words, blinking pace syncing with emotional intensity.\n\n`;
+
+      // PARAGRAPH 3: Message Settles + Body Anchors Scene Ending
+      prompt += `As they continue, their voice ${accent.intensity}, `;
+      prompt += `certain words hitting with calculated weight while others flow seamlessly through their natural cadence. `;
+      prompt += `The content revolves around ${userGoal}, `;
+      prompt += `emerging authentically through lived experience and genuine conviction rather than scripted performance. `;
+      prompt += `Their posture shifts once — shoulders adjusting naturally, fabric rustling softly — just as they reach the emotional core of their message. `;
+      prompt += `Any product mention flows organically through conversation, never breaking the intimate reality of someone speaking their truth. `;
+      prompt += `There are no visual brands, no strategic product placement, only authentic human connection through shared experience. `;
+      prompt += `The shot never breaks, and the video ends with them still speaking, voice carrying forward into the next unspoken moment as the frame naturally concludes.`;
+
+      return prompt;
+    }
+
+    // HANDLE GUIDELINES PANEL
+    document.getElementById('toggleGuidelines').addEventListener('click', () => {
+      document.getElementById('guidelines').classList.add('open');
+      document.getElementById('guidelinesOverlay').classList.add('open');
+    });
+    document.getElementById('closeGuidelines').addEventListener('click', closeGuidelines);
+    document.getElementById('guidelinesOverlay').addEventListener('click', closeGuidelines);
+    function closeGuidelines() {
+      document.getElementById('guidelines').classList.remove('open');
+      document.getElementById('guidelinesOverlay').classList.remove('open');
+    }
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeGuidelines();
+    });
+
+    // SUGGESTION PILL CLICK
+    document.querySelectorAll('.suggestion-pill').forEach(pill => {
+      pill.addEventListener('click', () => {
+        const suggestion = pill.dataset.suggestion;
+        document.getElementById('videoGoal').value = suggestion;
+      });
+    });
+
+    // GENERATE BUTTON & CTRL+ENTER
+    document.getElementById('generateBtn').addEventListener('click', generatePrompt);
+    document.getElementById('videoGoal').addEventListener('keydown', (e) => {
+      if ((e.key === 'Enter') && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        generatePrompt();
+      }
+    });
+
+    function generatePrompt() {
+      const userGoal = document.getElementById('videoGoal').value.trim();
+      const avatarType = document.getElementById('avatarType').value;
+      const setting = document.getElementById('setting').value;
+      const emotionalTone = document.getElementById('emotionalTone').value;
+
+      if (!userGoal) {
+        alert('Please enter a video goal to generate your Veo 3 prompt.');
+        return;
+      }
+
+      const sendIcon = document.getElementById('generateBtn');
+      sendIcon.classList.add('generating');
+
+      setTimeout(() => {
+        try {
+          const finalPrompt = generateHyperRealisticPrompt(userGoal, avatarType, setting, emotionalTone);
+          document.getElementById('resultOutput').textContent = finalPrompt;
+          document.getElementById('resultContainer').classList.remove('hidden');
+          document.getElementById('resultContainer').scrollIntoView({ behavior: 'smooth' });
+        } catch (err) {
+          console.error('Error generating prompt:', err);
+          alert('Failed to generate prompt. Please try again.');
+        } finally {
+          sendIcon.classList.remove('generating');
+        }
+      }, 1500);
+    }
+
+    // COPY BUTTON
+    document.getElementById('copyBtn').addEventListener('click', () => {
+      const text = document.getElementById('resultOutput').textContent;
+      navigator.clipboard.writeText(text).then(() => {
+        const btn = document.getElementById('copyBtn');
+        btn.textContent = '✅ Copied!';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.textContent = '📋 Copy';
+          btn.classList.remove('copied');
+        }, 2000);
+      }).catch(err => {
+        console.error('Copy failed:', err);
+        alert('Copy failed—please select and copy manually.');
+      });
+    });
+
+    // YOUTUBE BACKGROUND SETUP & SCROLL FADE
+    document.addEventListener('DOMContentLoaded', () => {
+      const iframe = document.querySelector('.background-video');
+      iframe.addEventListener('load', () => {
+        console.log('YouTube background loaded');
+      });
+      iframe.addEventListener('error', (e) => {
+        console.log('YouTube background error:', e);
+      });
+
+      window.addEventListener('scroll', () => {
+        const scrolled = window.pageYOffset;
+        const rate = scrolled * -0.001;
+        let overlayOpacity = Math.max(0.2, 1 + rate);
+        let videoOpacity = Math.min(0.8, 0.4 + Math.abs(rate));
+        document.querySelector('.video-overlay').style.opacity = overlayOpacity;
+        document.querySelector('.background-video').style.opacity = videoOpacity;
+      });
+    });
+  </script>
+</body>
+</html>

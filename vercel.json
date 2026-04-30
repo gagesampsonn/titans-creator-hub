@@ -4,6 +4,11 @@
       "source": "/generator",
       "destination": "/generator/",
       "permanent": true
+    },
+    {
+      "source": "/prompt",
+      "destination": "/prompt/",
+      "permanent": true
     }
   ]
 }
