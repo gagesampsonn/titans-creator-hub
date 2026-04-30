@@ -1113,6 +1113,12 @@
       return arr[Math.floor(Math.random() * arr.length)];
     }
 
+    function sentenceCase(input) {
+      const s = String(input || '').trim();
+      if (!s) return s;
+      return s.charAt(0).toUpperCase() + s.slice(1);
+    }
+
     function generateHyperRealisticPrompt(userGoal, avatarType, setting, emotionalTone) {
       // Select avatar attributes
       const avatar = avatarProfiles[avatarType] || {
@@ -1148,9 +1154,9 @@
       prompt += `The framing is ${environment.framing}. Lighting is ${environment.lighting}. `;
       prompt += `The frame captures a ${avatarDesc}, `;
       prompt += `wearing a ${styling}. `;
-      prompt += `${environment.details} fill the background naturally. `;
-      prompt += `Audio is simple and realistic: ${environment.ambient}. `;
-      prompt += `Keep it photoreal and grounded: natural skin texture, normal smartphone dynamic range, crisp sharp focus, high detail (4K feel), no blur, no compression smear, no waxy/plastic skin, no exaggerated glow, no heavy bloom, no lens flares, no on-screen text.\n\n`;
+      prompt += `${sentenceCase(environment.details)} fill the background naturally. `;
+      prompt += `Audio is simple and realistic: ${sentenceCase(environment.ambient)}. `;
+      prompt += `Keep it photoreal and grounded: real human (not CGI), no beauty filter, natural pores/skin texture, normal smartphone dynamic range, crisp sharp focus, high detail (4K feel), no blur, no compression smear, no waxy/plastic skin, no face warping, no AI artifacting, no exaggerated glow, no heavy bloom, no lens flares, no on-screen text.\n\n`;
 
       // PARAGRAPH 2: Voice Behavior + Movement + Emotional Energy  
       prompt += `Voice roots: ${regionalVoice}. `;
