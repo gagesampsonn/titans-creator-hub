@@ -6,8 +6,8 @@
       "permanent": true
     },
     {
-      "source": "/prompt",
-      "destination": "/prompt/",
+      "source": "/prompt/",
+      "destination": "/prompt",
       "permanent": true
     }
   ]
