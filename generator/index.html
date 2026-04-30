@@ -1378,7 +1378,7 @@
         } else {
           prompt += `They speak naturally to camera with one concrete detail and one human beat (not a speech). `;
         }
-        prompt += `Topic: ${userGoal}. Continuous take, no cuts. `;
+        prompt += `${sentenceCase(userGoal)}. Continuous take, no cuts. `;
         prompt += `${qualityLine} No logos unless incidental. End mid-sentence.`;
         return prompt;
       }
@@ -1406,7 +1406,7 @@
         prompt += `Dialogue (2–4 short sentences, no quotes, no subtitles): natural talk-to-camera, one concrete detail + one emotional beat. `;
       }
 
-      prompt += `Topic: ${userGoal}. `;
+      prompt += `${sentenceCase(userGoal)}. `;
       if (isInterview) {
         prompt += `One subtle posture shift + one small hand gesture; continuous take, no cuts. `;
       } else if (setting === 'car-selfie') {
