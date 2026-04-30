@@ -377,6 +377,39 @@
       visibility: visible;
     }
 
+    /* FLOW / VEO LAUNCH BUTTON */
+    .flow-fab {
+      position: fixed;
+      right: 20px;
+      bottom: 22px;
+      width: 64px;
+      height: 64px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      background: linear-gradient(135deg, var(--upgrade-start), var(--upgrade-end));
+      color: var(--upgrade-text);
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      box-shadow: 0 14px 35px rgba(0, 0, 0, 0.45);
+      z-index: 200;
+      transition: transform 0.2s ease, filter 0.2s ease, box-shadow 0.2s ease;
+    }
+    .flow-fab:hover {
+      transform: translateY(-2px);
+      filter: brightness(1.03);
+      box-shadow: 0 18px 45px rgba(0, 0, 0, 0.55);
+    }
+    .flow-fab:active {
+      transform: translateY(0px);
+      filter: brightness(0.98);
+    }
+    .flow-fab svg {
+      width: 28px;
+      height: 28px;
+    }
+
     .hidden {
       display: none;
     }
@@ -577,7 +610,27 @@
     </div>
   </div>
 
+  <a
+    id="flowFab"
+    class="flow-fab hidden"
+    href="https://labs.google/fx/tools/flow?gad_source=1&gad_campaignid=23723143563&gbraid=0AAAABDRA0IWZIhU955BDMZqlZNWIQiOrS&gclid=EAIaIQobChMIhvanrvyVlAMVE3F_AB1BzBqOEAAYASAAEgLT2vD_BwE"
+    target="_blank"
+    rel="noopener noreferrer"
+    aria-label="Open Google Flow to create your video"
+    title="Open Google Flow (Veo)"
+  >
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M8 5v14l11-7-11-7z"
+        fill="currentColor"
+      />
+    </svg>
+  </a>
+
   <script>
+    const FLOW_URL =
+      'https://labs.google/fx/tools/flow?gad_source=1&gad_campaignid=23723143563&gbraid=0AAAABDRA0IWZIhU955BDMZqlZNWIQiOrS&gclid=EAIaIQobChMIhvanrvyVlAMVE3F_AB1BzBqOEAAYASAAEgLT2vD_BwE';
+
     // SIMPLIFIED AVATAR PROFILES - Gender and Age Based
     const avatarProfiles = {
       'female-young': {
@@ -915,7 +968,9 @@
       }
 
       const sendIcon = document.getElementById('generateBtn');
+      const flowFab = document.getElementById('flowFab');
       sendIcon.classList.add('generating');
+      if (flowFab) flowFab.classList.add('hidden');
 
       setTimeout(() => {
         try {
@@ -923,6 +978,10 @@
           document.getElementById('resultOutput').textContent = finalPrompt;
           document.getElementById('resultContainer').classList.remove('hidden');
           document.getElementById('resultContainer').scrollIntoView({ behavior: 'smooth' });
+          if (flowFab) {
+            flowFab.setAttribute('href', FLOW_URL);
+            flowFab.classList.remove('hidden');
+          }
         } catch (err) {
           console.error('Error generating prompt:', err);
           alert('Failed to generate prompt. Please try again.');
