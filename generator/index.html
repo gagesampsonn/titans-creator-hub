@@ -757,8 +757,8 @@
       'car-selfie': {
         camera: 'held in selfie mode by the driver in a parked car, arm extended just beyond the bottom of the screen',
         framing: 'chest-up, slightly off-center and angled upward, with subtle arm tension creating natural camera shake',
-        lighting: 'golden hour sunlight streaming through the windshield, highlighting the edge of cheek and soft folds of clothing',
-        ambient: 'muffled outside traffic, AC humming softly, occasional car door closing in distance, wind through cracked window',
+        lighting: 'soft late-afternoon sunlight filtered through the windshield with realistic falloff and natural exposure (no bloom, no lens flare, no HDR glow)',
+        ambient: 'soft AC hum and muffled traffic outside, with a light breeze through a cracked window',
         details: 'center console visible with phone charger, seatbelt across chest, steering wheel edge in frame, keys dangling'
       },
       'bedroom-setdown': {
@@ -778,7 +778,7 @@
       'kitchen-counter': {
         camera: 'placed on marble counter at waist-height, angled upward slightly toward subject',
         framing: 'waist-up with counter surface visible, natural kitchen environment surrounding',
-        lighting: 'overhead warm kitchen lights mixed with natural window glow creating complex shadows',
+        lighting: 'overhead warm kitchen lights mixed with soft window light creating natural, imperfect shadows',
         ambient: 'dishes clinking softly, distant refrigerator humming, water occasionally running in sink, natural kitchen sounds',
         details: 'marble countertop with natural veining, fruit bowl at corner, cabinet handles catching light, utensils scattered naturally'
       },
@@ -833,31 +833,26 @@
 
       // PARAGRAPH 1: Camera Placement + Physical Setup
       prompt += `The video begins with a phone already recording, ${environment.camera}. `;
-      prompt += `The ${environment.framing}, with ${environment.lighting}. `;
+      prompt += `The framing is ${environment.framing}. Lighting is ${environment.lighting}. `;
       prompt += `The frame captures a ${avatarDesc}, `;
       prompt += `wearing a ${styling}. `;
-      prompt += `${environment.details} create the natural background environment. `;
-      prompt += `${environment.ambient} establish the authentic audio landscape. `;
-      prompt += `Their posture is relaxed but engaged, already mid-thought as if the camera never interrupted a natural moment.\n\n`;
+      prompt += `${environment.details} fill the background naturally. `;
+      prompt += `Audio is simple and realistic: ${environment.ambient}. `;
+      prompt += `Keep it photoreal and grounded: natural skin texture, normal smartphone dynamic range, no exaggerated glow, no heavy bloom, no lens flares, no on-screen text.\n\n`;
 
       // PARAGRAPH 2: Voice Behavior + Movement + Emotional Energy  
-      prompt += `Their voice hits immediately with ${accent.description}. `;
-      prompt += `The vocal behavior shows ${accent.behavior}, `;
-      prompt += `building with a ${emotionalTone || 'genuine and authentic'} energy that escalates organically. `;
+      prompt += `They are already mid-thought and speak directly to the lens with ${accent.description}. `;
+      prompt += `Delivery is concrete and observable: ${accent.behavior}. `;
+      prompt += `Energy reads as ${emotionalTone || 'genuine and authentic'} through pacing, pauses, and emphasis (not “performed”). `;
       prompt += `${accent.breathPattern}. `;
-      prompt += `Hand gestures flicker naturally in and out of frame — palm flicks, subtle wrist snaps emphasizing phrases without conscious performance. `;
-      prompt += `Eye contact remains unwavering, the lens becoming a direct connection as though the viewer is part of this intimate conversation. `;
-      prompt += `Their facial expressions shift subtly with the rhythm of their words, blinking pace syncing with emotional intensity.\n\n`;
+      prompt += `Small, natural gestures enter the bottom edge of frame once or twice; one brief pause lands a key line; eye contact holds steady; blinking stays natural.\n\n`;
 
       // PARAGRAPH 3: Message Settles + Body Anchors Scene Ending
-      prompt += `As they continue, their voice ${accent.intensity}, `;
-      prompt += `certain words hitting with calculated weight while others flow seamlessly through their natural cadence. `;
-      prompt += `The content revolves around ${userGoal}, `;
-      prompt += `emerging authentically through lived experience and genuine conviction rather than scripted performance. `;
-      prompt += `Their posture shifts once — shoulders adjusting naturally, fabric rustling softly — just as they reach the emotional core of their message. `;
-      prompt += `Any product mention flows organically through conversation, never breaking the intimate reality of someone speaking their truth. `;
-      prompt += `There are no visual brands, no strategic product placement, only authentic human connection through shared experience. `;
-      prompt += `The shot never breaks, and the video ends with them still speaking, voice carrying forward into the next unspoken moment as the frame naturally concludes.`;
+      prompt += `As they continue, their voice ${accent.intensity} while staying natural and conversational. `;
+      prompt += `Topic: ${userGoal}. `;
+      prompt += `Dialogue (2–4 short sentences, no quotes, no subtitles): speak as if talking to a friend, with one specific detail and one emotional beat, not a generic monologue. `;
+      prompt += `They adjust posture once (a small shoulder shift or seatbelt tug), fabric rustles, and the take stays continuous with no cuts. `;
+      prompt += `No logos, no branded text, no product placement unless it comes up incidentally. End the clip mid-sentence as if the conversation continues past the cutoff.`;
 
       return prompt;
     }
