@@ -604,6 +604,9 @@
           <select id="setting" class="form-select">
             <option value="">Select setting…</option>
             <option value="car-selfie">Car (Selfie Style)</option>
+            <option value="street-interview">Street Interview (Reporter)</option>
+            <option value="construction-site-interview">Construction Site Interview (Reporter)</option>
+            <option value="press-scrum">Press Scrum (Media Cluster)</option>
             <option value="bedroom-setdown">Bedroom (Phone Set Down)</option>
             <option value="podcast-setup">Podcast-Style Setup</option>
             <option value="kitchen-counter">Kitchen Counter</option>
@@ -855,6 +858,27 @@
         lighting: 'soft late-afternoon sunlight filtered through the windshield with realistic falloff and natural exposure (no bloom, no lens flare, no HDR glow)',
         ambient: 'soft AC hum and muffled traffic outside, with a light breeze through a cracked window',
         details: 'center console visible with phone charger, seatbelt across chest, steering wheel edge in frame, keys dangling'
+      },
+      'street-interview': {
+        camera: 'filmed by a reporter’s phone on a small handheld gimbal at chest height, with a second phone occasionally visible off to the side',
+        framing: 'mid-torso up, two-shot that favors the subject, with the reporter’s shoulder or mic entering frame naturally',
+        lighting: 'bright outdoor daylight with realistic contrast and accurate exposure (no bloom, no lens flare, no HDR glow)',
+        ambient: 'city street bed: distant traffic, a few footsteps, a light wind across the mic, occasional far-off siren',
+        details: 'a small handheld microphone with a foam windscreen, reporter notepad, passing cars out of focus, realistic sidewalk background'
+      },
+      'construction-site-interview': {
+        camera: 'filmed on a phone by a reporter standing a few feet away, handheld with slight natural sway as they ask questions',
+        framing: 'mid-torso up on the subject with the reporter’s mic visible at frame edge; shallow depth of field keeps the background softly blurred',
+        lighting: 'hard midday sun with realistic shadows and sweat sheen (no bloom, no lens flare, no HDR glow)',
+        ambient: 'construction ambience: distant machinery hum, occasional tool clanks, reverse beeps far away, wind gusts',
+        details: 'hi-vis safety vests in the background, orange cones, chain-link fence, heavy equipment shapes out of focus, dust in the air'
+      },
+      'press-scrum': {
+        camera: 'shot on a phone in a tight media cluster, handheld and slightly jostled as people lean in with mics and phones',
+        framing: 'tight chest-up framing with microphones and phone cameras entering frame from multiple angles',
+        lighting: 'mixed outdoor light with realistic exposure shifts as bodies block the sun (no bloom, no lens flare, no HDR glow)',
+        ambient: 'overlapping questions, camera shutters, short mic handling noise, crowd murmurs behind the subject',
+        details: 'several microphones, phones held up close, lanyards, press badges, quick movements at frame edges'
       },
       'bedroom-setdown': {
         camera: 'stabilized against a candle jar on a dresser at the foot of an unmade bed, angled slightly downward',
@@ -1119,6 +1143,15 @@
       return s.charAt(0).toUpperCase() + s.slice(1);
     }
 
+    function inferSettingFromGoal(userGoal) {
+      const t = String(userGoal || '').toLowerCase();
+      const hasReporter = /\b(reporter|interview|interviewed|news|press|journalist|mic|microphone)\b/.test(t);
+      const hasConstruction = /\b(construction|job ?site|worksite|site|hard hat|excavator|bulldozer|crane)\b/.test(t);
+      if (hasReporter && hasConstruction) return 'construction-site-interview';
+      if (hasReporter) return 'street-interview';
+      return '';
+    }
+
     function generateHyperRealisticPrompt(userGoal, avatarType, setting, emotionalTone) {
       // Select avatar attributes
       const avatar = avatarProfiles[avatarType] || {
@@ -1212,12 +1245,21 @@
     function generatePrompt() {
       const userGoal = document.getElementById('videoGoal').value.trim();
       const avatarType = document.getElementById('avatarType').value;
-      const setting = document.getElementById('setting').value;
+      let setting = document.getElementById('setting').value;
       const emotionalTone = document.getElementById('emotionalTone').value;
 
       if (!userGoal) {
         alert('Please enter a video goal to generate your Veo 3 prompt.');
         return;
+      }
+
+      if (!setting) {
+        const inferred = inferSettingFromGoal(userGoal);
+        if (inferred) {
+          setting = inferred;
+          const settingSelect = document.getElementById('setting');
+          if (settingSelect) settingSelect.value = inferred;
+        }
       }
 
       const sendIcon = document.getElementById('generateBtn');
