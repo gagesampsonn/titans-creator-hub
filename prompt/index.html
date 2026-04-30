@@ -4,6 +4,20 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Titans AI Prompt Builder</title>
+  <script>
+    // GitHub Pages can expose `/folder/index.html` directly; keep the address bar clean.
+    (function () {
+      try {
+        var p = window.location.pathname || '';
+        if (!p.endsWith('/index.html')) return;
+        var next = p.slice(0, -'index.html'.length);
+        if (!next.endsWith('/')) next += '/';
+        window.history.replaceState({}, '', next + window.location.search + window.location.hash);
+      } catch (e) {
+        // no-op
+      }
+    })();
+  </script>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet"/>
   <style>
