@@ -118,6 +118,24 @@
         opacity: 0.98;
         filter: drop-shadow(0 10px 22px rgba(0, 0, 0, 0.55));
       }
+      @media (min-width: 1024px) {
+        .logo-track {
+          gap: 34px;
+          padding: 12px 22px;
+        }
+        .logo-slot {
+          height: 92px;
+          min-width: 190px;
+        }
+        .logo-slot img {
+          max-height: 78px;
+          max-width: 320px;
+        }
+        .logo-marquee::before,
+        .logo-marquee::after {
+          width: 160px;
+        }
+      }
       @media (prefers-reduced-motion: reduce) {
         .logo-track {
           animation: none;
