@@ -100,26 +100,24 @@
           transform: translateX(-50%);
         }
       }
-      .logo-pill {
+      .logo-slot {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        height: 38px;
-        padding: 0 16px;
-        border-radius: 9999px;
+        height: 48px;
+        min-width: 96px;
+        padding: 8px 16px;
+        border-radius: 14px;
         border: 1px solid rgba(255, 255, 255, 0.12);
         background: rgba(0, 0, 0, 0.35);
-        color: rgba(244, 244, 245, 0.9);
-        font-size: 12px;
-        font-weight: 700;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-        white-space: nowrap;
+        flex-shrink: 0;
       }
-      .logo-pill.is-accent {
-        border-color: rgba(232, 99, 67, 0.45);
-        color: rgba(255, 255, 255, 0.92);
-        background: rgba(232, 99, 67, 0.08);
+      .logo-slot img {
+        max-height: 36px;
+        width: auto;
+        max-width: 160px;
+        object-fit: contain;
+        opacity: 0.95;
       }
       @media (prefers-reduced-motion: reduce) {
         .logo-track {
@@ -405,34 +403,31 @@
         <div class="max-w-6xl mx-auto mt-10 sm:mt-12">
           <p class="text-center text-[10px] sm:text-xs uppercase tracking-widest text-zinc-500 font-semibold mb-5">Brands we've worked with</p>
           <div class="logo-marquee">
-            <div class="logo-track" aria-label="Brand logos carousel">
-              <span class="logo-pill is-accent">Goli</span>
-              <span class="logo-pill">Natural Stacks</span>
-              <span class="logo-pill">Beauty Brand</span>
-              <span class="logo-pill">Wellness Brand</span>
-              <span class="logo-pill">Supplement Brand</span>
-              <span class="logo-pill">Home Brand</span>
-              <span class="logo-pill">Lifestyle Brand</span>
-              <span class="logo-pill">Skincare Brand</span>
-              <span class="logo-pill">Haircare Brand</span>
-              <span class="logo-pill">DTC Brand</span>
+            <div class="logo-track" aria-label="Brand and product logos from partners we've worked with">
+              <span class="logo-slot"><img src="assets/brands/brand-01.png" alt="" loading="lazy" decoding="async" /></span>
+              <span class="logo-slot"><img src="assets/brands/brand-02.png" alt="" loading="lazy" decoding="async" /></span>
+              <span class="logo-slot"><img src="assets/brands/brand-03.png" alt="" loading="lazy" decoding="async" /></span>
+              <span class="logo-slot"><img src="assets/brands/brand-04.png" alt="" loading="lazy" decoding="async" /></span>
+              <span class="logo-slot"><img src="assets/brands/brand-05.png" alt="" loading="lazy" decoding="async" /></span>
+              <span class="logo-slot"><img src="assets/brands/brand-06.png" alt="" loading="lazy" decoding="async" /></span>
+              <span class="logo-slot"><img src="assets/brands/brand-07.png" alt="" loading="lazy" decoding="async" /></span>
+              <span class="logo-slot"><img src="assets/brands/brand-08.png" alt="" loading="lazy" decoding="async" /></span>
+              <span class="logo-slot"><img src="assets/brands/brand-09.png" alt="" loading="lazy" decoding="async" /></span>
+              <span class="logo-slot"><img src="assets/brands/brand-10.png" alt="" loading="lazy" decoding="async" /></span>
 
-              <!-- duplicate list for seamless scroll -->
-              <span class="logo-pill is-accent">Goli</span>
-              <span class="logo-pill">Natural Stacks</span>
-              <span class="logo-pill">Beauty Brand</span>
-              <span class="logo-pill">Wellness Brand</span>
-              <span class="logo-pill">Supplement Brand</span>
-              <span class="logo-pill">Home Brand</span>
-              <span class="logo-pill">Lifestyle Brand</span>
-              <span class="logo-pill">Skincare Brand</span>
-              <span class="logo-pill">Haircare Brand</span>
-              <span class="logo-pill">DTC Brand</span>
+              <!-- duplicate row for seamless infinite scroll -->
+              <span class="logo-slot"><img src="assets/brands/brand-01.png" alt="" loading="lazy" decoding="async" /></span>
+              <span class="logo-slot"><img src="assets/brands/brand-02.png" alt="" loading="lazy" decoding="async" /></span>
+              <span class="logo-slot"><img src="assets/brands/brand-03.png" alt="" loading="lazy" decoding="async" /></span>
+              <span class="logo-slot"><img src="assets/brands/brand-04.png" alt="" loading="lazy" decoding="async" /></span>
+              <span class="logo-slot"><img src="assets/brands/brand-05.png" alt="" loading="lazy" decoding="async" /></span>
+              <span class="logo-slot"><img src="assets/brands/brand-06.png" alt="" loading="lazy" decoding="async" /></span>
+              <span class="logo-slot"><img src="assets/brands/brand-07.png" alt="" loading="lazy" decoding="async" /></span>
+              <span class="logo-slot"><img src="assets/brands/brand-08.png" alt="" loading="lazy" decoding="async" /></span>
+              <span class="logo-slot"><img src="assets/brands/brand-09.png" alt="" loading="lazy" decoding="async" /></span>
+              <span class="logo-slot"><img src="assets/brands/brand-10.png" alt="" loading="lazy" decoding="async" /></span>
             </div>
           </div>
-          <p class="mt-4 text-center text-xs text-zinc-500">
-            Swap these placeholders for logo image tags later (e.g. <span class="text-zinc-400">assets/brands/&lt;logo&gt;.png</span>).
-          </p>
         </div>
       </section>
 
