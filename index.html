@@ -60,6 +60,76 @@
         -webkit-text-fill-color: transparent;
         background-clip: text;
       }
+      .logo-marquee {
+        position: relative;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 9999px;
+        background: rgba(255, 255, 255, 0.03);
+      }
+      .logo-marquee::before,
+      .logo-marquee::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 120px;
+        z-index: 2;
+        pointer-events: none;
+      }
+      .logo-marquee::before {
+        left: 0;
+        background: linear-gradient(90deg, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0) 100%);
+      }
+      .logo-marquee::after {
+        right: 0;
+        background: linear-gradient(270deg, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0) 100%);
+      }
+      .logo-track {
+        display: flex;
+        gap: 14px;
+        width: max-content;
+        padding: 12px 14px;
+        animation: logo-scroll 28s linear infinite;
+      }
+      @keyframes logo-scroll {
+        from {
+          transform: translateX(0);
+        }
+        to {
+          transform: translateX(-50%);
+        }
+      }
+      .logo-pill {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        height: 38px;
+        padding: 0 16px;
+        border-radius: 9999px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: rgba(0, 0, 0, 0.35);
+        color: rgba(244, 244, 245, 0.9);
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        white-space: nowrap;
+      }
+      .logo-pill.is-accent {
+        border-color: rgba(232, 99, 67, 0.45);
+        color: rgba(255, 255, 255, 0.92);
+        background: rgba(232, 99, 67, 0.08);
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .logo-track {
+          animation: none;
+        }
+        .logo-marquee {
+          overflow-x: auto;
+          -webkit-overflow-scrolling: touch;
+        }
+      }
     </style>
     <script type="application/ld+json">
       {
@@ -330,6 +400,39 @@
             <span class="text-zinc-500" aria-hidden="true">·</span>
             <span class="text-zinc-300">Lifestyle</span>
           </div>
+        </div>
+
+        <div class="max-w-6xl mx-auto mt-10 sm:mt-12">
+          <p class="text-center text-[10px] sm:text-xs uppercase tracking-widest text-zinc-500 font-semibold mb-5">Brands we've worked with</p>
+          <div class="logo-marquee">
+            <div class="logo-track" aria-label="Brand logos carousel">
+              <span class="logo-pill is-accent">Goli</span>
+              <span class="logo-pill">Natural Stacks</span>
+              <span class="logo-pill">Beauty Brand</span>
+              <span class="logo-pill">Wellness Brand</span>
+              <span class="logo-pill">Supplement Brand</span>
+              <span class="logo-pill">Home Brand</span>
+              <span class="logo-pill">Lifestyle Brand</span>
+              <span class="logo-pill">Skincare Brand</span>
+              <span class="logo-pill">Haircare Brand</span>
+              <span class="logo-pill">DTC Brand</span>
+
+              <!-- duplicate list for seamless scroll -->
+              <span class="logo-pill is-accent">Goli</span>
+              <span class="logo-pill">Natural Stacks</span>
+              <span class="logo-pill">Beauty Brand</span>
+              <span class="logo-pill">Wellness Brand</span>
+              <span class="logo-pill">Supplement Brand</span>
+              <span class="logo-pill">Home Brand</span>
+              <span class="logo-pill">Lifestyle Brand</span>
+              <span class="logo-pill">Skincare Brand</span>
+              <span class="logo-pill">Haircare Brand</span>
+              <span class="logo-pill">DTC Brand</span>
+            </div>
+          </div>
+          <p class="mt-4 text-center text-xs text-zinc-500">
+            Swap these placeholders for logo image tags later (e.g. <span class="text-zinc-400">assets/brands/&lt;logo&gt;.png</span>).
+          </p>
         </div>
       </section>
 
