@@ -220,6 +220,18 @@
         object-fit: cover;
         object-position: center top;
       }
+      /* Payout proof cards: show full receipt, no crop */
+      .wins-feed-card.is-payout {
+        width: 320px;
+        height: 520px;
+        background: rgba(255, 255, 255, 0.06);
+        border-color: rgba(255, 255, 255, 0.14);
+      }
+      .wins-feed-card.is-payout img {
+        object-fit: contain;
+        object-position: center center;
+        background: rgba(0, 0, 0, 0.25);
+      }
       .wins-feed-nav {
         position: absolute;
         top: 50%;
@@ -273,6 +285,10 @@
         }
         .wins-feed-edge {
           width: 96px;
+        }
+        .wins-feed-card.is-payout {
+          width: 420px;
+          height: 640px;
         }
       }
     </style>
@@ -986,7 +1002,7 @@
             var frag = document.createDocumentFragment();
             for (var i = 0; i < paths.length; i++) {
               var card = document.createElement('div');
-              card.className = 'wins-feed-card';
+              card.className = opts.cardClassName || 'wins-feed-card';
               card.setAttribute('role', 'listitem');
               var img = document.createElement('img');
               img.src = paths[i];
@@ -1016,7 +1032,8 @@
           scrollerId: 'communityWinsScroller',
           prevId: 'communityWinsPrev',
           nextId: 'communityWinsNext',
-          manifestPath: 'assets/community-wins/manifest.json'
+          manifestPath: 'assets/community-wins/manifest.json',
+          cardClassName: 'wins-feed-card'
         });
 
         initHorizontalFeed({
@@ -1024,7 +1041,8 @@
           scrollerId: 'payoutsScroller',
           prevId: 'payoutsPrev',
           nextId: 'payoutsNext',
-          manifestPath: 'assets/creator-payouts/manifest.json'
+          manifestPath: 'assets/creator-payouts/manifest.json',
+          cardClassName: 'wins-feed-card is-payout'
         });
       });
     </script>
