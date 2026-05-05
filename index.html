@@ -144,62 +144,75 @@
           overflow-x: auto;
           -webkit-overflow-scrolling: touch;
         }
-        .wins-feed-track {
-          animation: none;
-        }
-        .wins-feed-marquee {
-          overflow-x: auto;
-          -webkit-overflow-scrolling: touch;
+        .wins-feed-scroller {
+          scroll-behavior: auto;
         }
       }
 
-      /* Community wins — continuous horizontal feed */
-      .wins-feed-marquee {
+      /* Community wins — horizontal gallery (user-controlled scroll, no auto-play) */
+      .wins-feed-controls {
         position: relative;
-        overflow: hidden;
+        max-width: 72rem;
+        margin-left: auto;
+        margin-right: auto;
+        padding-left: max(1rem, env(safe-area-inset-left));
+        padding-right: max(1rem, env(safe-area-inset-right));
       }
-      .wins-feed-marquee::before,
-      .wins-feed-marquee::after {
-        content: '';
-        position: absolute;
-        top: 0;
-        bottom: 0;
-        width: 80px;
-        z-index: 2;
+      .wins-feed-scroller {
+        position: relative;
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
+        scroll-snap-type: x mandatory;
+        scroll-behavior: smooth;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(232, 99, 67, 0.55) rgba(255, 255, 255, 0.06);
+        padding: 12px 0 18px;
+      }
+      .wins-feed-scroller::-webkit-scrollbar {
+        height: 8px;
+      }
+      .wins-feed-scroller::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.06);
+        border-radius: 9999px;
+      }
+      .wins-feed-scroller::-webkit-scrollbar-thumb {
+        background: rgba(232, 99, 67, 0.55);
+        border-radius: 9999px;
+      }
+      .wins-feed-edge {
         pointer-events: none;
+        position: absolute;
+        top: 12px;
+        bottom: 18px;
+        width: 48px;
+        z-index: 2;
       }
-      .wins-feed-marquee::before {
+      .wins-feed-edge--left {
         left: 0;
         background: linear-gradient(90deg, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0) 100%);
       }
-      .wins-feed-marquee::after {
+      .wins-feed-edge--right {
         right: 0;
         background: linear-gradient(270deg, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0) 100%);
       }
       .wins-feed-track {
         display: flex;
-        gap: 10px;
+        gap: 16px;
         width: max-content;
-        padding: 10px 0 14px;
-        animation: wins-feed-scroll 260s linear infinite;
-      }
-      @keyframes wins-feed-scroll {
-        from {
-          transform: translateX(0);
-        }
-        to {
-          transform: translateX(-50%);
-        }
+        padding-left: max(0.5rem, env(safe-area-inset-left));
+        padding-right: max(0.5rem, env(safe-area-inset-right));
       }
       .wins-feed-card {
         flex-shrink: 0;
-        width: 168px;
-        height: 300px;
-        border-radius: 16px;
+        scroll-snap-align: center;
+        width: 238px;
+        height: 424px;
+        border-radius: 18px;
         overflow: hidden;
         border: 1px solid rgba(255, 255, 255, 0.1);
         background: rgba(255, 255, 255, 0.02);
-        box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+        box-shadow: 0 22px 48px rgba(0, 0, 0, 0.5);
       }
       .wins-feed-card img {
         width: 100%;
@@ -207,14 +220,59 @@
         object-fit: cover;
         object-position: center top;
       }
+      .wins-feed-nav {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 3;
+        width: 44px;
+        height: 44px;
+        border-radius: 9999px;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        background: rgba(0, 0, 0, 0.65);
+        color: #fff;
+        font-size: 22px;
+        line-height: 1;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: background 0.2s ease, border-color 0.2s ease;
+      }
+      .wins-feed-nav:hover {
+        background: rgba(232, 99, 67, 0.35);
+        border-color: rgba(232, 99, 67, 0.55);
+      }
+      .wins-feed-nav--prev {
+        left: 0.25rem;
+      }
+      .wins-feed-nav--next {
+        right: 0.25rem;
+      }
+      @media (min-width: 640px) {
+        .wins-feed-nav {
+          display: inline-flex;
+        }
+        .wins-feed-edge {
+          width: 64px;
+        }
+        .wins-feed-nav--prev {
+          left: 0.5rem;
+        }
+        .wins-feed-nav--next {
+          right: 0.5rem;
+        }
+      }
       @media (min-width: 1024px) {
         .wins-feed-card {
-          width: 210px;
-          height: 374px;
+          width: 292px;
+          height: 520px;
         }
-        .wins-feed-marquee::before,
-        .wins-feed-marquee::after {
-          width: 120px;
+        .wins-feed-track {
+          gap: 20px;
+        }
+        .wins-feed-edge {
+          width: 96px;
         }
       }
     </style>
@@ -451,16 +509,28 @@
         </div>
       </section>
 
-      <!-- Community wins feed (continuous scroll) -->
+      <!-- Community wins — horizontal gallery (you control the pace) -->
       <section id="community-wins" class="py-16 sm:py-24 border-t border-white/5 scroll-mt-20">
         <div class="max-w-6xl mx-auto px-5 sm:px-6 text-center mb-8 sm:mb-10">
           <h2 class="text-2xl sm:text-3xl font-bold text-white uppercase tracking-tight">Community wins feed</h2>
           <p class="mt-3 text-zinc-400 text-sm sm:text-base max-w-2xl mx-auto">
-            A live strip of real screenshots from Titans creators—payouts, dashboards, and wins shared in the community.
+            Real screenshots from Titans creators—payouts, dashboards, and wins from the community. Swipe or drag sideways, use the arrows on larger screens, or scroll the bar below—your pace, not ours.
           </p>
         </div>
-        <div class="wins-feed-marquee px-0">
-          <div class="wins-feed-track" id="communityWinsTrack" role="list" aria-label="Scrolling community win screenshots"></div>
+        <div class="wins-feed-controls">
+          <div
+            class="wins-feed-scroller"
+            id="communityWinsScroller"
+            tabindex="0"
+            role="region"
+            aria-label="Community win screenshots. Scroll horizontally to browse."
+          >
+            <div class="wins-feed-track" id="communityWinsTrack" role="list"></div>
+          </div>
+          <div class="wins-feed-edge wins-feed-edge--left" aria-hidden="true"></div>
+          <div class="wins-feed-edge wins-feed-edge--right" aria-hidden="true"></div>
+          <button type="button" class="wins-feed-nav wins-feed-nav--prev" id="communityWinsPrev" aria-label="Show previous screenshots">‹</button>
+          <button type="button" class="wins-feed-nav wins-feed-nav--next" id="communityWinsNext" aria-label="Show next screenshots">›</button>
         </div>
       </section>
 
@@ -883,26 +953,46 @@
         if (y) y.textContent = new Date().getFullYear();
 
         var winsTrack = document.getElementById('communityWinsTrack');
-        if (winsTrack) {
+        var winsScroller = document.getElementById('communityWinsScroller');
+        if (winsTrack && winsScroller) {
+          function scrollCommunityWinsBy(direction) {
+            var card = winsTrack.querySelector('.wins-feed-card');
+            if (!card) return;
+            var cs = window.getComputedStyle(winsTrack);
+            var gap = parseFloat(cs.columnGap || cs.gap || '16');
+            if (isNaN(gap)) gap = 16;
+            var step = card.getBoundingClientRect().width + gap;
+            winsScroller.scrollBy({ left: direction * step, behavior: 'smooth' });
+          }
+          var prevBtn = document.getElementById('communityWinsPrev');
+          var nextBtn = document.getElementById('communityWinsNext');
+          if (prevBtn) prevBtn.addEventListener('click', function () { scrollCommunityWinsBy(-1); });
+          if (nextBtn) nextBtn.addEventListener('click', function () { scrollCommunityWinsBy(1); });
+          winsScroller.addEventListener('keydown', function (e) {
+            if (e.key === 'ArrowLeft') {
+              e.preventDefault();
+              scrollCommunityWinsBy(-1);
+            } else if (e.key === 'ArrowRight') {
+              e.preventDefault();
+              scrollCommunityWinsBy(1);
+            }
+          });
+
           function buildCommunityWinsFeed(paths) {
             if (!paths || !paths.length) return;
             var frag = document.createDocumentFragment();
-            function appendCards(list) {
-              for (var i = 0; i < list.length; i++) {
-                var card = document.createElement('div');
-                card.className = 'wins-feed-card';
-                card.setAttribute('role', 'listitem');
-                var img = document.createElement('img');
-                img.src = list[i];
-                img.alt = '';
-                img.loading = 'lazy';
-                img.decoding = 'async';
-                card.appendChild(img);
-                frag.appendChild(card);
-              }
+            for (var i = 0; i < paths.length; i++) {
+              var card = document.createElement('div');
+              card.className = 'wins-feed-card';
+              card.setAttribute('role', 'listitem');
+              var img = document.createElement('img');
+              img.src = paths[i];
+              img.alt = '';
+              img.loading = 'lazy';
+              img.decoding = 'async';
+              card.appendChild(img);
+              frag.appendChild(card);
             }
-            appendCards(paths);
-            appendCards(paths);
             winsTrack.appendChild(frag);
           }
           fetch('assets/community-wins/manifest.json')
