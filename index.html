@@ -301,6 +301,7 @@
           <a href="#features" class="hover:text-white transition-colors">Features</a>
           <a href="#wins" class="hover:text-white transition-colors">Wins</a>
           <a href="#community-wins" class="hover:text-white transition-colors">Community feed</a>
+          <a href="#payouts" class="hover:text-white transition-colors">Payouts</a>
           <a href="#for-brands" class="hover:text-white transition-colors">For brands</a>
           <a href="#reviews" class="hover:text-white transition-colors">Reviews</a>
           <a href="#flow" class="hover:text-white transition-colors">Creator Flow</a>
@@ -504,6 +505,31 @@
           <div class="wins-feed-edge wins-feed-edge--right" aria-hidden="true"></div>
           <button type="button" class="wins-feed-nav wins-feed-nav--prev" id="communityWinsPrev" aria-label="Show previous screenshots">‹</button>
           <button type="button" class="wins-feed-nav wins-feed-nav--next" id="communityWinsNext" aria-label="Show next screenshots">›</button>
+        </div>
+      </section>
+
+      <!-- Titans payouts (separate from wins) -->
+      <section id="payouts" class="py-16 sm:py-24 border-t border-white/5 scroll-mt-20">
+        <div class="max-w-6xl mx-auto px-5 sm:px-6 text-center mb-8 sm:mb-10">
+          <h2 class="text-2xl sm:text-3xl font-bold text-white uppercase tracking-tight">Titans payouts</h2>
+          <p class="mt-3 text-zinc-300 text-sm sm:text-base max-w-2xl mx-auto">
+            Over <strong class="text-white font-semibold">$220,000+</strong> paid out to creators in Titans over the last 12 months—retainers, bonuses, and brand opportunities.
+          </p>
+        </div>
+        <div class="wins-feed-controls">
+          <div
+            class="wins-feed-scroller"
+            id="payoutsScroller"
+            tabindex="0"
+            role="region"
+            aria-label="Titans creator payout proof screenshots. Scroll horizontally to browse."
+          >
+            <div class="wins-feed-track" id="payoutsTrack" role="list"></div>
+          </div>
+          <div class="wins-feed-edge wins-feed-edge--left" aria-hidden="true"></div>
+          <div class="wins-feed-edge wins-feed-edge--right" aria-hidden="true"></div>
+          <button type="button" class="wins-feed-nav wins-feed-nav--prev" id="payoutsPrev" aria-label="Show previous payout screenshots">‹</button>
+          <button type="button" class="wins-feed-nav wins-feed-nav--next" id="payoutsNext" aria-label="Show next payout screenshots">›</button>
         </div>
       </section>
 
@@ -902,6 +928,7 @@
           <a href="#features" class="hover:text-white transition-colors">Features</a>
           <a href="#wins" class="hover:text-white transition-colors">Wins</a>
           <a href="#community-wins" class="hover:text-white transition-colors">Feed</a>
+          <a href="#payouts" class="hover:text-white transition-colors">Payouts</a>
           <a href="#for-brands" class="hover:text-white transition-colors">For brands</a>
           <a href="#reviews" class="hover:text-white transition-colors">Reviews</a>
           <a href="#flow" class="hover:text-white transition-colors">Creator flow</a>
@@ -925,33 +952,36 @@
         var y = document.getElementById('y');
         if (y) y.textContent = new Date().getFullYear();
 
-        var winsTrack = document.getElementById('communityWinsTrack');
-        var winsScroller = document.getElementById('communityWinsScroller');
-        if (winsTrack && winsScroller) {
-          function scrollCommunityWinsBy(direction) {
-            var card = winsTrack.querySelector('.wins-feed-card');
+        function initHorizontalFeed(opts) {
+          var track = document.getElementById(opts.trackId);
+          var scroller = document.getElementById(opts.scrollerId);
+          if (!track || !scroller) return;
+
+          function scrollByOne(direction) {
+            var card = track.querySelector('.wins-feed-card');
             if (!card) return;
-            var cs = window.getComputedStyle(winsTrack);
+            var cs = window.getComputedStyle(track);
             var gap = parseFloat(cs.columnGap || cs.gap || '16');
             if (isNaN(gap)) gap = 16;
             var step = card.getBoundingClientRect().width + gap;
-            winsScroller.scrollBy({ left: direction * step, behavior: 'smooth' });
+            scroller.scrollBy({ left: direction * step, behavior: 'smooth' });
           }
-          var prevBtn = document.getElementById('communityWinsPrev');
-          var nextBtn = document.getElementById('communityWinsNext');
-          if (prevBtn) prevBtn.addEventListener('click', function () { scrollCommunityWinsBy(-1); });
-          if (nextBtn) nextBtn.addEventListener('click', function () { scrollCommunityWinsBy(1); });
-          winsScroller.addEventListener('keydown', function (e) {
+
+          var prevBtn = document.getElementById(opts.prevId);
+          var nextBtn = document.getElementById(opts.nextId);
+          if (prevBtn) prevBtn.addEventListener('click', function () { scrollByOne(-1); });
+          if (nextBtn) nextBtn.addEventListener('click', function () { scrollByOne(1); });
+          scroller.addEventListener('keydown', function (e) {
             if (e.key === 'ArrowLeft') {
               e.preventDefault();
-              scrollCommunityWinsBy(-1);
+              scrollByOne(-1);
             } else if (e.key === 'ArrowRight') {
               e.preventDefault();
-              scrollCommunityWinsBy(1);
+              scrollByOne(1);
             }
           });
 
-          function buildCommunityWinsFeed(paths) {
+          function build(paths) {
             if (!paths || !paths.length) return;
             var frag = document.createDocumentFragment();
             for (var i = 0; i < paths.length; i++) {
@@ -966,19 +996,36 @@
               card.appendChild(img);
               frag.appendChild(card);
             }
-            winsTrack.appendChild(frag);
+            track.appendChild(frag);
           }
-          fetch('assets/community-wins/manifest.json')
+
+          fetch(opts.manifestPath)
             .then(function (r) {
               if (!r.ok) throw new Error('manifest');
               return r.json();
             })
-            .then(buildCommunityWinsFeed)
+            .then(build)
             .catch(function () {
-              winsTrack.innerHTML =
-                '<p class="text-center text-zinc-500 text-sm w-full px-6 py-8">Couldn&apos;t load community wins. Refresh or check your connection.</p>';
+              track.innerHTML =
+                '<p class="text-center text-zinc-500 text-sm w-full px-6 py-8">Couldn&apos;t load this feed. Refresh or check your connection.</p>';
             });
         }
+
+        initHorizontalFeed({
+          trackId: 'communityWinsTrack',
+          scrollerId: 'communityWinsScroller',
+          prevId: 'communityWinsPrev',
+          nextId: 'communityWinsNext',
+          manifestPath: 'assets/community-wins/manifest.json'
+        });
+
+        initHorizontalFeed({
+          trackId: 'payoutsTrack',
+          scrollerId: 'payoutsScroller',
+          prevId: 'payoutsPrev',
+          nextId: 'payoutsNext',
+          manifestPath: 'assets/creator-payouts/manifest.json'
+        });
       });
     </script>
   </body>
