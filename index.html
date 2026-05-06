@@ -295,13 +295,45 @@
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
-        "@type": "Organization",
-        "name": "TikTok Titans",
-        "url": "https://titansagency.co/",
-        "description": "TikTok Titans: TikTok Shop creator network for affiliates and brands. Discord, Whop training, and campaign execution.",
-        "sameAs": [
-          "https://discord.gg/tiktoktitans",
-          "https://whop.com/tiktoktitan"
+        "@graph": [
+          {
+            "@type": "Organization",
+            "@id": "https://titansagency.co/#organization",
+            "name": "TikTok Titans",
+            "alternateName": [
+              "Titans Agency",
+              "Titans Management",
+              "Titans Management LLC"
+            ],
+            "url": "https://titansagency.co/",
+            "logo": {
+              "@type": "ImageObject",
+              "url": "https://titansagency.co/assets/icon.png"
+            },
+            "description": "TikTok Shop affiliate marketing agency and creator network",
+            "knowsAbout": "Digital marketing",
+            "founder": {
+              "@id": "https://gagesampson.com/#person"
+            },
+            "sameAs": [
+              "https://www.wikidata.org/wiki/Q139680495",
+              "https://x.com/tiktoktitans",
+              "https://www.instagram.com/tiktoktitans_tts/",
+              "https://discord.gg/tiktoktitans",
+              "https://whop.com/tiktoktitan"
+            ]
+          },
+          {
+            "@type": "Person",
+            "@id": "https://gagesampson.com/#person",
+            "name": "Gage Sampson",
+            "url": "https://gagesampson.com/",
+            "sameAs": ["https://www.wikidata.org/wiki/Q139680649"],
+            "jobTitle": "Founder",
+            "worksFor": {
+              "@id": "https://titansagency.co/#organization"
+            }
+          }
         ]
       }
     </script>
