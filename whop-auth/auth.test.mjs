@@ -1,7 +1,11 @@
 import assert from "node:assert/strict";
 import { afterEach, describe, it } from "node:test";
 
-import { createAuthServer, normalizeNextPath } from "./server.mjs";
+import {
+  createAuthServer,
+  isMainModule,
+  normalizeNextPath,
+} from "./server.mjs";
 
 const AI_PRODUCT_ID = "prod_ai";
 const EXCLUSIVE_PRODUCT_ID = "prod_exclusive";
@@ -89,6 +93,19 @@ describe("redirect safety", () => {
     assert.equal(normalizeNextPath("https://evil.example/"), "/prompt/");
     assert.equal(normalizeNextPath("//evil.example/"), "/prompt/");
     assert.equal(normalizeNextPath("/account"), "/prompt/");
+  });
+});
+
+describe("production entrypoint", () => {
+  it("recognizes the executable when systemd starts it through a release symlink", () => {
+    assert.equal(
+      isMainModule(
+        "file:///C:/opt/titans-whop-auth/releases/123/server.mjs",
+        "C:\\opt\\titans-whop-auth\\current\\server.mjs",
+        () => "/opt/titans-whop-auth/releases/123/server.mjs",
+      ),
+      true,
+    );
   });
 });
 

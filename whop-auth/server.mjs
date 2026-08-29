@@ -1,6 +1,7 @@
 import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
+import { realpathSync } from "node:fs";
 import http from "node:http";
-import { pathToFileURL } from "node:url";
+import { fileURLToPath } from "node:url";
 
 const WHOP_AUTHORIZE_URL = "https://api.whop.com/oauth/authorize";
 const WHOP_TOKEN_URL = "https://api.whop.com/oauth/token";
@@ -477,7 +478,20 @@ export function createAuthServer(config, { fetchFn = fetch } = {}) {
   });
 }
 
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+export function isMainModule(
+  importUrl,
+  argvPath,
+  resolveRealPath = realpathSync,
+) {
+  if (!argvPath) return false;
+  try {
+    return resolveRealPath(fileURLToPath(importUrl)) === resolveRealPath(argvPath);
+  } catch {
+    return false;
+  }
+}
+
+if (isMainModule(import.meta.url, process.argv[1])) {
   const config = loadConfig();
   createAuthServer(config).listen(config.port, "127.0.0.1");
 }
