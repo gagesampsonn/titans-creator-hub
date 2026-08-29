@@ -25,6 +25,8 @@ const offers = {
 };
 
 const failures = [];
+const searchable = (html) =>
+  html.replaceAll("&amp;", "&").replace(/\s+/g, " ").toLowerCase();
 const load = (relativePath) => {
   const absolutePath = resolve(root, relativePath);
   if (!existsSync(absolutePath)) {
@@ -59,8 +61,10 @@ for (const removedHomepageElement of [
     );
   }
 }
-if (!home.includes('href="https://wins.85.239.242.45.nip.io/"')) {
-  failures.push("Homepage Results link does not point to the Wall of Wins");
+if (!home.includes('href="/results/"')) {
+  failures.push(
+    "Homepage Results link does not point to the first-party Wall of Wins",
+  );
 }
 if (!home.includes('aria-expanded="false"'))
   failures.push("Homepage is missing an accessible mobile navigation toggle");
@@ -102,7 +106,57 @@ if (ai && !ai.includes('data-community-access="false"')) {
   );
 }
 
-const resultsUrl = "https://wins.85.239.242.45.nip.io/";
+const aiVideo = load("assets/ai/titans-ai-results.mp4");
+if (ai) {
+  const proofPosition = ai.indexOf('id="ai-results"');
+  const checkoutPosition = ai.indexOf('id="checkout"');
+  if (proofPosition < 0 || proofPosition > checkoutPosition) {
+    failures.push("AI result video is not public before checkout");
+  }
+  for (const requiredVideoMarkup of [
+    'src="/assets/ai/titans-ai-results.mp4"',
+    "controls",
+    "playsinline",
+    'preload="metadata"',
+  ]) {
+    if (!ai.includes(requiredVideoMarkup)) {
+      failures.push(`AI result video is missing: ${requiredVideoMarkup}`);
+    }
+  }
+  for (const requiredAiCopy of [
+    "Create high-quality, realistic AI videos for TikTok Shop",
+    "Full step-by-step guide",
+    "does not include subscriptions or credits for third-party AI software",
+  ]) {
+    if (!searchable(ai).includes(requiredAiCopy.toLowerCase())) {
+      failures.push(
+        `AI page is missing required product copy: ${requiredAiCopy}`,
+      );
+    }
+  }
+}
+if (!aiVideo) failures.push("AI result video is missing");
+
+const exclusive = load(offers.exclusive.file);
+for (const requiredExclusiveBenefit of [
+  "Free Product Samples",
+  "Paid Brand Retainer Opportunities",
+  "Increased Commission Opportunities",
+  "Titans AI Prompting Tool",
+  "Coaching & Creator Support",
+  "Private Discord Community",
+]) {
+  if (
+    exclusive &&
+    !searchable(exclusive).includes(requiredExclusiveBenefit.toLowerCase())
+  ) {
+    failures.push(
+      `Exclusive page is missing required benefit: ${requiredExclusiveBenefit}`,
+    );
+  }
+}
+
+const resultsUrl = "/results/";
 for (const relativePath of [
   "index.html",
   ...Object.values(offers).map((offer) => offer.file),
@@ -111,6 +165,9 @@ for (const relativePath of [
   const html = load(relativePath);
   if (!html.includes(`href="${resultsUrl}"`)) {
     failures.push(`${relativePath} does not link Results to the Wall of Wins`);
+  }
+  if (html.includes("wins.85.239.242.45.nip.io")) {
+    failures.push(`${relativePath} still exposes the IP-based Wall of Wins URL`);
   }
   if (html.includes('href="/#wins"') || html.includes('href="/#story"')) {
     failures.push(`${relativePath} still links to removed homepage sections`);
@@ -131,7 +188,7 @@ const localFiles = [
   ...Object.values(offers).map((offer) => offer.file),
   "brands/index.html",
 ];
-const serverRoutedPaths = new Set(["/sign-in"]);
+const serverRoutedPaths = new Set(["/sign-in", "/results/"]);
 for (const relativePath of localFiles) {
   const html = load(relativePath);
   if (!html) continue;
