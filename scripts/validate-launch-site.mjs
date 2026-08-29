@@ -193,7 +193,7 @@ const localFiles = [
   ...Object.values(offers).map((offer) => offer.file),
   "brands/index.html",
 ];
-const serverRoutedPaths = new Set(["/sign-in", "/results/"]);
+const serverRoutedPaths = new Set(["/auth/whop/login", "/results/"]);
 for (const relativePath of localFiles) {
   const html = load(relativePath);
   if (!html) continue;
@@ -217,6 +217,32 @@ for (const relativePath of localFiles) {
       failures.push(
         `${relativePath} references missing local target: ${target}`,
       );
+  }
+}
+
+for (const relativePath of localFiles) {
+  const html = load(relativePath);
+  if (html.includes('href="/sign-in')) {
+    failures.push(
+      `${relativePath} still links to the disconnected legacy sign-in`,
+    );
+  }
+  if (!html.includes('href="/auth/whop/login')) {
+    failures.push(`${relativePath} does not link sign-in to Whop OAuth`);
+  }
+}
+
+for (const protectedTool of ["prompt/index.html", "generator/index.html"]) {
+  load(protectedTool);
+}
+
+const authServer = load("whop-auth/server.mjs");
+for (const requiredAccessResource of [
+  "WHOP_AI_PRODUCT_ID",
+  "WHOP_EXCLUSIVE_PRODUCT_ID",
+]) {
+  if (!authServer.includes(requiredAccessResource)) {
+    failures.push(`Whop auth gateway is missing ${requiredAccessResource}`);
   }
 }
 

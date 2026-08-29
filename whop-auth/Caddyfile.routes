@@ -1,0 +1,22 @@
+# Place these handlers before the generic static-site handler for
+# titansagency.co. Caddy sends the original URL to check-ai as
+# X-Forwarded-Uri and copies any non-2xx auth response back to the visitor.
+
+# Keep OAuth transaction cookies host-only by canonicalizing www before login.
+www.titansagency.co {
+	redir https://titansagency.co{uri} permanent
+}
+
+handle /auth/whop/* {
+	reverse_proxy 127.0.0.1:8091
+}
+
+@ai_tools path /prompt /prompt/* /generator /generator/*
+handle @ai_tools {
+	forward_auth 127.0.0.1:8091 {
+		uri /auth/whop/check-ai
+	}
+	root * /srv/titans-marketing/current
+	try_files {path} {path}/index.html
+	file_server
+}

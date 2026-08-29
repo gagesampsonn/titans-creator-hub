@@ -24,7 +24,7 @@
           ></a
         >
         <div class="commerce-actions">
-          <a class="button-quiet" href="/sign-in">Sign in</a>
+          <a class="button-quiet" href="/auth/whop/login">Sign in</a>
         </div>
       </div>
     </header>
@@ -47,7 +47,11 @@
             to Whop to open what you purchased.
           </p>
           <div class="hero-actions" style="justify-content: center">
-            <a class="button-primary" href="https://whop.com/hub" rel="noopener"
+            <a
+              id="access-link"
+              class="button-primary"
+              href="https://whop.com/hub"
+              rel="noopener"
               >Open my Whop</a
             ><a id="product-link" class="button-secondary" href="/"
               >Back to Titans</a
@@ -76,6 +80,7 @@
         var title = document.getElementById("checkout-title");
         var message = document.getElementById("checkout-message");
         var link = document.getElementById("product-link");
+        var accessLink = document.getElementById("access-link");
         if (product) {
           title.textContent =
             status === "error"
@@ -92,6 +97,15 @@
             status === "error"
               ? "Return to checkout"
               : "Review product details";
+          if (
+            status !== "error" &&
+            (params.get("product") === "ai" ||
+              params.get("product") === "exclusive")
+          ) {
+            accessLink.href = "/auth/whop/login?next=%2Fprompt%2F";
+            accessLink.removeAttribute("rel");
+            accessLink.textContent = "Open the Prompt Builder";
+          }
         }
       })();
     </script>
