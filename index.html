@@ -1,29 +1,27 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>TikTok Titans | Community, AI &amp; Creator Opportunities</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>TikTok Titans | Choose Your Creator Product</title>
     <meta
       name="description"
-      content="Learn, create, and earn with TikTok Titans. Choose Titans Weekly, standalone AI Content, or the complete Titans Exclusive creator ecosystem."
-    />
-    <meta
-      name="keywords"
-      content="TikTok Titans, TikTok Shop affiliates, TikTok Shop affiliate, TikTok Shop creator, TikTok affiliate marketing, TikTok Shop community, TikTok Titans Discord"
+      content="Choose Titans Weekly, standalone AI Content, or the complete Titans Exclusive ecosystem for TikTok Shop creators."
     />
     <link rel="canonical" href="https://titansagency.co/" />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://titansagency.co/" />
-    <meta property="og:title" content="TikTok Titans | Built for TikTok Shop Creators" />
+    <meta
+      property="og:title"
+      content="TikTok Titans | Choose Your Creator Product"
+    />
     <meta
       property="og:description"
-      content="Community, education, creator opportunities, and practical AI content tools—choose the Titans access that fits how you create."
+      content="Community and education, standalone AI content tools, or the complete Titans creator ecosystem."
     />
     <meta property="og:site_name" content="TikTok Titans" />
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="TikTok Titans | Built for TikTok Shop Creators" />
-    <link rel="icon" type="image/png" href="assets/icon.png" />
+    <meta name="twitter:card" content="summary" />
+    <link rel="icon" type="image/png" href="/assets/icon.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -31,1132 +29,260 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="/assets/commerce.css" />
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            colors: {
-              coral: { DEFAULT: '#E86343', light: '#FF8A65', dark: '#C94E32' },
-            },
-            fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
-          },
-        },
-      };
-    </script>
-    <style>
-      body {
-        font-family: Inter, system-ui, sans-serif;
-        background: #000;
-        color: #fafafa;
-      }
-      .bg-hero {
-        background: radial-gradient(ellipse 80% 60% at 50% 40%, rgba(90, 35, 25, 0.35) 0%, #000000 55%),
-          radial-gradient(ellipse 50% 40% at 0% 100%, rgba(120, 45, 30, 0.2) 0%, transparent 50%),
-          radial-gradient(ellipse 50% 40% at 100% 100%, rgba(120, 45, 30, 0.2) 0%, transparent 50%);
-      }
-      .text-titans-gradient {
-        background: linear-gradient(90deg, #ffffff 0%, #ffffff 35%, #e86343 55%, #ff8a65 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-      }
-      .logo-marquee {
-        position: relative;
-        overflow: hidden;
-        border-radius: 9999px;
-      }
-      .logo-marquee::before,
-      .logo-marquee::after {
-        content: '';
-        position: absolute;
-        top: 0;
-        bottom: 0;
-        width: 120px;
-        z-index: 2;
-        pointer-events: none;
-      }
-      .logo-marquee::before {
-        left: 0;
-        background: linear-gradient(90deg, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0) 100%);
-      }
-      .logo-marquee::after {
-        right: 0;
-        background: linear-gradient(270deg, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0) 100%);
-      }
-      .logo-track {
-        display: flex;
-        gap: 16px;
-        width: max-content;
-        padding: 10px 18px;
-        animation: logo-scroll 28s linear infinite;
-      }
-      @keyframes logo-scroll {
-        from {
-          transform: translateX(0);
-        }
-        to {
-          transform: translateX(-50%);
-        }
-      }
-      .logo-slot {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        height: 66px;
-        min-width: 140px;
-        padding: 0;
-        border-radius: 0;
-        border: 0;
-        background: transparent;
-        flex-shrink: 0;
-      }
-      .logo-slot img {
-        max-height: 56px;
-        width: auto;
-        max-width: 220px;
-        object-fit: contain;
-        opacity: 0.98;
-        filter: drop-shadow(0 10px 22px rgba(0, 0, 0, 0.55));
-      }
-      @media (min-width: 1024px) {
-        .logo-track {
-          gap: 18px;
-          padding: 14px 24px;
-        }
-        .logo-slot {
-          height: 112px;
-          min-width: 220px;
-        }
-        .logo-slot img {
-          max-height: 96px;
-          max-width: 380px;
-        }
-        .logo-marquee::before,
-        .logo-marquee::after {
-          width: 160px;
-        }
-      }
-      @media (prefers-reduced-motion: reduce) {
-        .logo-track {
-          animation: none;
-        }
-        .logo-marquee {
-          overflow-x: auto;
-          -webkit-overflow-scrolling: touch;
-        }
-        .wins-feed-scroller {
-          scroll-behavior: auto;
-        }
-      }
-
-      /* Community wins — horizontal gallery (user-controlled scroll, no auto-play) */
-      .wins-feed-controls {
-        position: relative;
-        max-width: 72rem;
-        margin-left: auto;
-        margin-right: auto;
-        padding-left: max(1rem, env(safe-area-inset-left));
-        padding-right: max(1rem, env(safe-area-inset-right));
-      }
-      .wins-feed-scroller {
-        position: relative;
-        overflow-x: auto;
-        overflow-y: hidden;
-        -webkit-overflow-scrolling: touch;
-        scroll-snap-type: x mandatory;
-        scroll-behavior: smooth;
-        scrollbar-width: thin;
-        scrollbar-color: rgba(232, 99, 67, 0.55) rgba(255, 255, 255, 0.06);
-        padding: 12px 0 18px;
-      }
-      .wins-feed-scroller::-webkit-scrollbar {
-        height: 8px;
-      }
-      .wins-feed-scroller::-webkit-scrollbar-track {
-        background: rgba(255, 255, 255, 0.06);
-        border-radius: 9999px;
-      }
-      .wins-feed-scroller::-webkit-scrollbar-thumb {
-        background: rgba(232, 99, 67, 0.55);
-        border-radius: 9999px;
-      }
-      .wins-feed-edge {
-        pointer-events: none;
-        position: absolute;
-        top: 12px;
-        bottom: 18px;
-        width: 48px;
-        z-index: 2;
-      }
-      .wins-feed-edge--left {
-        left: 0;
-        background: linear-gradient(90deg, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0) 100%);
-      }
-      .wins-feed-edge--right {
-        right: 0;
-        background: linear-gradient(270deg, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0) 100%);
-      }
-      .wins-feed-track {
-        display: flex;
-        gap: 16px;
-        width: max-content;
-        padding-left: max(0.5rem, env(safe-area-inset-left));
-        padding-right: max(0.5rem, env(safe-area-inset-right));
-      }
-      .wins-feed-card {
-        flex-shrink: 0;
-        scroll-snap-align: center;
-        width: 238px;
-        height: 424px;
-        border-radius: 18px;
-        overflow: hidden;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        background: rgba(255, 255, 255, 0.02);
-        box-shadow: 0 22px 48px rgba(0, 0, 0, 0.5);
-      }
-      .wins-feed-card img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        object-position: center top;
-      }
-      /* Payout proof cards: show full receipt, no crop */
-      .wins-feed-card.is-payout {
-        width: 320px;
-        height: 520px;
-        background: rgba(255, 255, 255, 0.06);
-        border-color: rgba(255, 255, 255, 0.14);
-      }
-      .wins-feed-card.is-payout img {
-        object-fit: contain;
-        object-position: center center;
-        background: rgba(0, 0, 0, 0.25);
-      }
-      .wins-feed-nav {
-        position: absolute;
-        top: 50%;
-        transform: translateY(-50%);
-        z-index: 3;
-        width: 44px;
-        height: 44px;
-        border-radius: 9999px;
-        border: 1px solid rgba(255, 255, 255, 0.18);
-        background: rgba(0, 0, 0, 0.65);
-        color: #fff;
-        font-size: 22px;
-        line-height: 1;
-        display: none;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        transition: background 0.2s ease, border-color 0.2s ease;
-      }
-      .wins-feed-nav:hover {
-        background: rgba(232, 99, 67, 0.35);
-        border-color: rgba(232, 99, 67, 0.55);
-      }
-      .wins-feed-nav--prev {
-        left: 0.25rem;
-      }
-      .wins-feed-nav--next {
-        right: 0.25rem;
-      }
-      @media (min-width: 640px) {
-        .wins-feed-nav {
-          display: inline-flex;
-        }
-        .wins-feed-edge {
-          width: 64px;
-        }
-        .wins-feed-nav--prev {
-          left: 0.5rem;
-        }
-        .wins-feed-nav--next {
-          right: 0.5rem;
-        }
-      }
-      @media (min-width: 1024px) {
-        .wins-feed-card {
-          width: 292px;
-          height: 520px;
-        }
-        .wins-feed-track {
-          gap: 20px;
-        }
-        .wins-feed-edge {
-          width: 96px;
-        }
-        .wins-feed-card.is-payout {
-          width: 420px;
-          height: 640px;
-        }
-      }
-    </style>
+    <script src="/assets/commerce.js" defer></script>
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
-        "@graph": [
+        "@type": "ItemList",
+        "name": "TikTok Titans creator products",
+        "itemListElement": [
           {
-            "@type": "Organization",
-            "@id": "https://titansagency.co/#organization",
-            "name": "TikTok Titans",
-            "alternateName": [
-              "Titans Agency",
-              "Titans Management",
-              "Titans Management LLC"
-            ],
-            "url": "https://titansagency.co/",
-            "logo": {
-              "@type": "ImageObject",
-              "url": "https://titansagency.co/assets/icon.png"
-            },
-            "description": "TikTok Shop affiliate marketing agency and creator network",
-            "knowsAbout": "Digital marketing",
-            "founder": {
-              "@id": "https://gagesampson.com/#person"
-            },
-            "sameAs": [
-              "https://www.wikidata.org/wiki/Q139680495",
-              "https://x.com/tiktoktitans",
-              "https://www.instagram.com/tiktoktitans_tts/",
-              "https://discord.gg/tiktoktitans",
-              "https://whop.com/tiktoktitan"
-            ]
+            "@type": "ListItem",
+            "position": 1,
+            "url": "https://titansagency.co/weekly/",
+            "name": "Titans Weekly"
           },
           {
-            "@type": "Person",
-            "@id": "https://gagesampson.com/#person",
-            "name": "Gage Sampson",
-            "url": "https://gagesampson.com/",
-            "sameAs": ["https://www.wikidata.org/wiki/Q139680649"],
-            "jobTitle": "Founder",
-            "worksFor": {
-              "@id": "https://titansagency.co/#organization"
-            }
+            "@type": "ListItem",
+            "position": 2,
+            "url": "https://titansagency.co/ai/",
+            "name": "AI Content"
+          },
+          {
+            "@type": "ListItem",
+            "position": 3,
+            "url": "https://titansagency.co/exclusive/",
+            "name": "Titans Exclusive"
           }
         ]
       }
     </script>
   </head>
-  <body class="antialiased min-h-screen bg-black text-zinc-100">
+  <body>
     <a class="skip-link" href="#main-content">Skip to content</a>
     <header class="commerce-header">
       <div class="commerce-nav-shell">
         <a href="/" class="commerce-brand" aria-label="TikTok Titans home">
           <img src="/assets/icon.png" alt="" width="36" height="36" />
-          <span>Titans</span>
+          <span>TITANS</span>
         </a>
         <nav class="commerce-links" aria-label="Primary navigation">
-          <a href="/exclusive/">Exclusive</a>
           <a href="/weekly/">Weekly</a>
           <a href="/ai/">AI Content</a>
-          <a href="#wins">Results</a>
-          <a href="#story">About</a>
+          <a href="/exclusive/">Exclusive</a>
+          <a href="https://wins.85.239.242.45.nip.io/">Results</a>
         </nav>
         <div class="commerce-actions">
           <a class="button-quiet" href="/sign-in">Sign in</a>
-          <a class="button-primary" href="/exclusive/#checkout" data-cta="header-exclusive">Join Titans</a>
+          <a
+            class="button-primary"
+            href="/exclusive/"
+            data-cta
+            data-product="exclusive"
+            data-placement="header"
+            >Join Titans</a
+          >
         </div>
-        <button class="commerce-menu-button" type="button" aria-expanded="false" aria-controls="mobile-navigation" data-menu-button>
+        <button
+          class="commerce-menu-button"
+          type="button"
+          aria-expanded="false"
+          aria-controls="mobile-navigation"
+          data-menu-button
+        >
           <span class="sr-only">Open navigation</span>
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></svg>
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path
+              d="M4 7h16M4 12h16M4 17h16"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+            />
+          </svg>
         </button>
       </div>
-      <nav id="mobile-navigation" class="commerce-mobile-panel" aria-label="Mobile navigation" data-mobile-panel hidden>
-        <a href="/exclusive/">Titans Exclusive</a>
+      <nav
+        id="mobile-navigation"
+        class="commerce-mobile-panel"
+        aria-label="Mobile navigation"
+        data-mobile-panel
+        hidden
+      >
         <a href="/weekly/">Titans Weekly</a>
         <a href="/ai/">AI Content</a>
-        <a href="#wins">Results</a>
-        <a href="#story">About</a>
+        <a href="/exclusive/">Titans Exclusive</a>
+        <a href="https://wins.85.239.242.45.nip.io/">Results</a>
         <a href="/sign-in">Sign in</a>
-        <a class="button-primary" href="/exclusive/#checkout">Join Titans</a>
+        <a class="button-primary" href="/exclusive/">Join Titans</a>
       </nav>
     </header>
 
     <main id="main-content">
-      <!-- Hero -->
-      <section class="bg-hero min-h-[92dvh] flex flex-col justify-center pt-28 pb-16 px-5 sm:px-6">
-        <div class="max-w-4xl mx-auto text-center">
-          <div
-            class="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-2 text-xs sm:text-sm text-zinc-200 mb-8"
-          >
-            <span class="text-coral" aria-hidden="true">✦</span>
-            <span>Education · opportunities · AI content tools</span>
-          </div>
-
-          <h1 class="text-[clamp(1.9rem,5.6vw,3.6rem)] font-black leading-[1.05] tracking-tight uppercase text-white max-w-4xl mx-auto">
-            Learn. Create. Earn on TikTok Shop.
-          </h1>
-          <p class="mt-4 text-[clamp(1.1rem,2.2vw,1.6rem)] text-zinc-200 font-semibold tracking-tight max-w-3xl mx-auto">
-            One creator ecosystem. Three ways in.
-          </p>
-
-          <p class="mt-6 text-base sm:text-lg text-zinc-300 max-w-2xl mx-auto leading-relaxed font-medium">
-            Titans helps creators build better content, find real opportunities, and grow with the right level of community, training, and AI support.
-          </p>
-
-          <div class="mt-10 flex flex-col items-center gap-6">
-            <a
-              href="https://discord.gg/tiktoktitans"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="inline-flex h-12 w-12 items-center justify-center rounded-full border border-white/20 bg-white/5 text-[#5865F2] hover:bg-white/10 hover:border-white/30 transition-colors"
-              aria-label="Discord — join the community"
-              title="Discord"
-            >
-              <svg class="h-6 w-6" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                <path
-                  d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.074.074 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"
-                />
-              </svg>
-            </a>
-            <div class="flex w-full max-w-xl flex-col items-stretch justify-center gap-4 sm:mx-auto sm:flex-row sm:items-center">
-              <a
-              href="/exclusive/"
-                class="inline-flex items-center justify-center gap-2 rounded-full bg-coral hover:bg-coral-dark text-white font-semibold px-8 py-4 text-sm sm:text-base min-h-[52px] flex-1 transition-colors shadow-lg shadow-coral/25"
-              >
-                Explore Titans Exclusive
-                <span aria-hidden="true">→</span>
-              </a>
-              <a
-                href="#products"
-                class="inline-flex items-center justify-center gap-2 rounded-full border border-white/25 bg-white/5 text-white font-semibold px-8 py-4 text-sm sm:text-base min-h-[52px] flex-1 transition-colors hover:bg-white/10"
-              >
-                Compare all options
-                <span aria-hidden="true">→</span>
-              </a>
-            </div>
-          </div>
-
-          <!-- Stats -->
-          <div
-            class="mt-14 sm:mt-20 rounded-[2rem] border border-white/10 bg-white/[0.04] backdrop-blur-sm px-4 py-8 sm:px-10 sm:py-10"
-          >
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-8 sm:gap-4">
-              <div class="text-center">
-                <div class="text-2xl sm:text-3xl font-bold text-white tabular-nums">$10M+</div>
-                <div class="text-[10px] sm:text-xs uppercase tracking-widest text-zinc-500 mt-2 font-medium">historical tracked GMV</div>
-              </div>
-              <div class="text-center">
-                <div class="text-2xl sm:text-3xl font-bold text-white tabular-nums">500+</div>
-                <div class="text-[10px] sm:text-xs uppercase tracking-widest text-zinc-500 mt-2 font-medium">
-                  creators in the historical network
-                </div>
-              </div>
-              <div class="text-center">
-                <div class="text-2xl sm:text-3xl font-bold text-white tabular-nums">50+</div>
-                <div class="text-[10px] sm:text-xs uppercase tracking-widest text-zinc-500 mt-2 font-medium">
-                  brand partners
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section id="products" class="commerce-section border-t border-white/5 scroll-mt-20">
+      <section id="products" class="home-storefront">
         <div class="commerce-container">
-          <p class="eyebrow">Choose your Titans access</p>
-          <h2 class="section-heading">Three products. One clear next step.</h2>
-          <p class="section-copy">Start with community and education, buy the AI creator workflow by itself, or unlock the complete Titans ecosystem.</p>
-          <div class="product-selector">
+          <header class="home-storefront-intro">
+            <p class="eyebrow">TikTok Titans</p>
+            <h1>Choose your Titans product.</h1>
+            <p>
+              Start with the community, buy the AI content system by itself, or
+              get the complete Titans creator ecosystem.
+            </p>
+          </header>
+
+          <div class="product-selector" aria-label="TikTok Titans products">
             <article class="product-choice">
-              <p class="product-badge">Community starter</p>
-              <h3>Titans Weekly</h3>
-              <p class="product-price"><strong>$15</strong><span>/ week</span></p>
-              <p>For creators who want the Titans community, course, and core creator resources.</p>
+              <p class="product-badge">Community + education</p>
+              <h2>Titans Weekly</h2>
+              <p class="product-price">
+                <strong>$15</strong><span>/ week</span>
+              </p>
+              <p>
+                For creators who want the Titans community, TikTok Shop course,
+                and core creator resources.
+              </p>
               <ul class="feature-list">
-                <li><span class="check" aria-hidden="true">✓</span> Full Discord access</li>
-                <li><span class="check" aria-hidden="true">✓</span> TikTok Shop course</li>
-                <li><span class="dash" aria-hidden="true">—</span> No AI Prompt Builder</li>
+                <li>
+                  <span class="check" aria-hidden="true">✓</span> Full Discord
+                  access
+                </li>
+                <li>
+                  <span class="check" aria-hidden="true">✓</span> TikTok Shop
+                  course
+                </li>
+                <li>
+                  <span class="dash" aria-hidden="true">—</span> AI Prompt
+                  Builder not included
+                </li>
               </ul>
-              <a class="button-secondary" href="/weekly/">Explore Weekly</a>
+              <a
+                class="button-secondary"
+                href="/weekly/"
+                data-cta
+                data-product="weekly"
+                data-placement="homepage-card"
+                >Choose Titans Weekly <span aria-hidden="true">→</span></a
+              >
             </article>
+
             <article class="product-choice">
-              <p class="product-badge">Standalone tool</p>
-              <h3>AI Content</h3>
-              <p class="product-price"><strong>$29.99</strong><span> one-time</span></p>
-              <p>For creators who want repeatable AI video prompts and guidance without a membership.</p>
+              <p class="product-badge">Standalone AI product</p>
+              <h2>AI Content</h2>
+              <p class="product-price">
+                <strong>$29.99</strong><span> one-time</span>
+              </p>
+              <p>
+                For creators who want the Titans AI Prompt Builder and workflow
+                guide without a membership.
+              </p>
               <ul class="feature-list">
-                <li><span class="check" aria-hidden="true">✓</span> AI Prompt Builder</li>
-                <li><span class="check" aria-hidden="true">✓</span> Step-by-step AI guide</li>
-                <li><span class="dash" aria-hidden="true">—</span> No community membership</li>
+                <li>
+                  <span class="check" aria-hidden="true">✓</span> AI Prompt
+                  Builder
+                </li>
+                <li>
+                  <span class="check" aria-hidden="true">✓</span> Step-by-step
+                  content guide
+                </li>
+                <li>
+                  <span class="dash" aria-hidden="true">—</span> Community not
+                  included
+                </li>
               </ul>
-              <a class="button-secondary" href="/ai/">Explore AI Content</a>
+              <a
+                class="button-secondary"
+                href="/ai/"
+                data-cta
+                data-product="ai"
+                data-placement="homepage-card"
+                >Choose AI Content <span aria-hidden="true">→</span></a
+              >
             </article>
+
             <article class="product-choice featured">
               <p class="product-badge">Best overall</p>
-              <h3>Titans Exclusive</h3>
-              <p class="product-price"><strong>$50</strong><span>/ month</span></p>
-              <p>For creators who want the complete community, opportunity, education, and AI ecosystem.</p>
+              <h2>Titans Exclusive</h2>
+              <p class="product-price">
+                <strong>$50</strong><span>/ month</span>
+              </p>
+              <p>
+                For creators who want the full community, education,
+                opportunity, support, and AI ecosystem.
+              </p>
               <ul class="feature-list">
-                <li><span class="check" aria-hidden="true">✓</span> Full Titans community and course</li>
-                <li><span class="check" aria-hidden="true">✓</span> Samples and brand opportunities</li>
-                <li><span class="check" aria-hidden="true">✓</span> AI Prompt Builder included</li>
+                <li>
+                  <span class="check" aria-hidden="true">✓</span> Full Titans
+                  membership
+                </li>
+                <li>
+                  <span class="check" aria-hidden="true">✓</span> Samples and
+                  brand opportunities
+                </li>
+                <li>
+                  <span class="check" aria-hidden="true">✓</span> AI Prompt
+                  Builder included
+                </li>
               </ul>
-              <a class="button-primary" href="/exclusive/">Explore Exclusive</a>
-            </article>
-          </div>
-        </div>
-      </section>
-
-      <section id="compare" class="commerce-section border-t border-white/5 scroll-mt-20">
-        <div class="commerce-container">
-          <p class="eyebrow">Compare access</p>
-          <h2 class="section-heading">See exactly what you get.</h2>
-          <p class="section-copy">Prices and inclusions below reflect the currently available Whop plans.</p>
-          <div class="comparison-wrap">
-            <table class="comparison-table">
-              <caption>Compare Titans Weekly, AI Content, and Titans Exclusive</caption>
-              <thead>
-                <tr><th scope="col">Included access</th><th scope="col">Weekly<br /><small>$15/week</small></th><th scope="col">AI Content<br /><small>$29.99 once</small></th><th scope="col">Exclusive<br /><small>$50/month</small></th></tr>
-              </thead>
-              <tbody>
-                <tr><td>Community access</td><td class="comparison-yes"><span aria-hidden="true">✓</span><span class="sr-only">Included</span></td><td class="comparison-no"><span aria-hidden="true">—</span><span class="sr-only">Not included</span></td><td class="comparison-yes"><span aria-hidden="true">✓</span><span class="sr-only">Included</span></td></tr>
-                <tr><td>TikTok Shop course</td><td class="comparison-yes"><span aria-hidden="true">✓</span><span class="sr-only">Included</span></td><td class="comparison-no"><span aria-hidden="true">—</span><span class="sr-only">Not included</span></td><td class="comparison-yes"><span aria-hidden="true">✓</span><span class="sr-only">Included</span></td></tr>
-                <tr><td>Creator resources</td><td class="comparison-yes"><span aria-hidden="true">✓</span><span class="sr-only">Included</span></td><td class="comparison-yes"><span aria-hidden="true">✓</span><span class="sr-only">Included</span></td><td class="comparison-yes"><span aria-hidden="true">✓</span><span class="sr-only">Included</span></td></tr>
-                <tr><td>Free sample opportunities</td><td class="comparison-no"><span aria-hidden="true">—</span><span class="sr-only">Not included</span></td><td class="comparison-no"><span aria-hidden="true">—</span><span class="sr-only">Not included</span></td><td class="comparison-yes"><span aria-hidden="true">✓</span><span class="sr-only">Included</span></td></tr>
-                <tr><td>Brand and retainer opportunities</td><td class="comparison-no"><span aria-hidden="true">—</span><span class="sr-only">Not included</span></td><td class="comparison-no"><span aria-hidden="true">—</span><span class="sr-only">Not included</span></td><td class="comparison-yes"><span aria-hidden="true">✓</span><span class="sr-only">Included</span></td></tr>
-                <tr><td>AI Prompt Builder</td><td class="comparison-no"><span aria-hidden="true">—</span><span class="sr-only">Not included</span></td><td class="comparison-yes"><span aria-hidden="true">✓</span><span class="sr-only">Included</span></td><td class="comparison-yes"><span aria-hidden="true">✓</span><span class="sr-only">Included</span></td></tr>
-                <tr><td>AI workflow guide</td><td class="comparison-no"><span aria-hidden="true">—</span><span class="sr-only">Not included</span></td><td class="comparison-yes"><span aria-hidden="true">✓</span><span class="sr-only">Included</span></td><td class="comparison-yes"><span aria-hidden="true">✓</span><span class="sr-only">Included</span></td></tr>
-              </tbody>
-            </table>
-          </div>
-          <p class="comparison-note">Exclusive is the complete Titans option. AI Content is a standalone purchase and does not include community access.</p>
-        </div>
-      </section>
-
-      <!-- Creator wins -->
-      <section id="wins" class="py-20 sm:py-24 px-5 sm:px-6 border-t border-white/5 scroll-mt-20">
-        <div class="max-w-6xl mx-auto">
-          <div class="text-center mb-12 sm:mb-14">
-            <h2 class="text-2xl sm:text-3xl font-bold text-white uppercase tracking-tight">Creator wins</h2>
-            <p class="mt-3 text-zinc-400 text-sm sm:text-base max-w-2xl mx-auto">
-              Real screenshots from the existing Titans creator network. Your results scale with effort, niche, and how hard you ship.
-            </p>
-          </div>
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
-            <figure class="group relative rounded-2xl overflow-hidden border border-white/10 bg-white/[0.02] ring-1 ring-white/5 shadow-xl">
-              <div class="aspect-[4/5]"></div>
-              <img
-                src="assets/creator-win-1.png"
-                alt="Creator win screenshot"
-                class="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-300 group-hover:scale-[1.02]"
-                loading="lazy"
-                decoding="async"
-              />
-            </figure>
-            <figure class="group relative rounded-2xl overflow-hidden border border-white/10 bg-white/[0.02] ring-1 ring-white/5 shadow-xl">
-              <div class="aspect-[4/5]"></div>
-              <img
-                src="assets/creator-win-2.png"
-                alt="Creator win screenshot"
-                class="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-300 group-hover:scale-[1.02]"
-                loading="lazy"
-                decoding="async"
-              />
-            </figure>
-            <figure class="group relative rounded-2xl overflow-hidden border border-white/10 bg-white/[0.02] ring-1 ring-white/5 shadow-xl">
-              <div class="aspect-[4/5]"></div>
-              <img
-                src="assets/creator-win-3.png"
-                alt="Creator win screenshot"
-                class="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-300 group-hover:scale-[1.02]"
-                loading="lazy"
-                decoding="async"
-              />
-            </figure>
-            <figure class="group relative rounded-2xl overflow-hidden border border-white/10 bg-white/[0.02] ring-1 ring-white/5 shadow-xl">
-              <div class="aspect-[4/5]"></div>
-              <img
-                src="assets/creator-win-5.png"
-                alt="Creator win screenshot"
-                class="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-300 group-hover:scale-[1.02]"
-                loading="lazy"
-                decoding="async"
-              />
-            </figure>
-            <figure class="group relative rounded-2xl overflow-hidden border border-white/10 bg-white/[0.02] ring-1 ring-white/5 shadow-xl">
-              <div class="aspect-[4/5]"></div>
-              <img
-                src="assets/creator-win-6.png"
-                alt="Creator win screenshot"
-                class="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-300 group-hover:scale-[1.02]"
-                loading="lazy"
-                decoding="async"
-              />
-            </figure>
-            <figure class="group relative rounded-2xl overflow-hidden border border-white/10 bg-white/[0.02] ring-1 ring-white/5 shadow-xl">
-              <div class="aspect-[4/5]"></div>
-              <img
-                src="assets/creator-win-8.png"
-                alt="Creator win screenshot"
-                class="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-300 group-hover:scale-[1.02]"
-                loading="lazy"
-                decoding="async"
-              />
-            </figure>
-            <figure class="group relative rounded-2xl overflow-hidden border border-white/10 bg-white/[0.02] ring-1 ring-white/5 shadow-xl">
-              <div class="aspect-[4/5]"></div>
-              <img
-                src="assets/creator-win-10.png"
-                alt="Creator win screenshot"
-                class="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-300 group-hover:scale-[1.02]"
-                loading="lazy"
-                decoding="async"
-              />
-            </figure>
-            <figure class="group relative rounded-2xl overflow-hidden border border-white/10 bg-white/[0.02] ring-1 ring-white/5 shadow-xl">
-              <div class="aspect-[4/5]"></div>
-              <img
-                src="assets/creator-win-11.png"
-                alt="Creator win screenshot"
-                class="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-300 group-hover:scale-[1.02]"
-                loading="lazy"
-                decoding="async"
-              />
-            </figure>
-          </div>
-        </div>
-      </section>
-
-      <!-- Community wins — horizontal gallery (you control the pace) -->
-      <section id="community-wins" class="py-16 sm:py-24 border-t border-white/5 scroll-mt-20">
-        <div class="max-w-6xl mx-auto px-5 sm:px-6 text-center mb-8 sm:mb-10">
-          <h2 class="text-2xl sm:text-3xl font-bold text-white uppercase tracking-tight">Community wins feed</h2>
-          <p class="mt-3 text-zinc-400 text-sm sm:text-base max-w-2xl mx-auto">
-            Real screenshots from Titans creators—payouts, dashboards, and wins from the community. Swipe or drag sideways, use the arrows on larger screens, or scroll the bar below—your pace, not ours.
-          </p>
-        </div>
-        <div class="wins-feed-controls">
-          <div
-            class="wins-feed-scroller"
-            id="communityWinsScroller"
-            tabindex="0"
-            role="region"
-            aria-label="Community win screenshots. Scroll horizontally to browse."
-          >
-            <div class="wins-feed-track" id="communityWinsTrack" role="list"></div>
-          </div>
-          <div class="wins-feed-edge wins-feed-edge--left" aria-hidden="true"></div>
-          <div class="wins-feed-edge wins-feed-edge--right" aria-hidden="true"></div>
-          <button type="button" class="wins-feed-nav wins-feed-nav--prev" id="communityWinsPrev" aria-label="Show previous screenshots">‹</button>
-          <button type="button" class="wins-feed-nav wins-feed-nav--next" id="communityWinsNext" aria-label="Show next screenshots">›</button>
-        </div>
-      </section>
-
-      <!-- Titans payouts (separate from wins) -->
-      <section id="payouts" class="py-16 sm:py-24 border-t border-white/5 scroll-mt-20">
-        <div class="max-w-6xl mx-auto px-5 sm:px-6 text-center mb-8 sm:mb-10">
-          <h2 class="text-2xl sm:text-3xl font-bold text-white uppercase tracking-tight">Titans payouts</h2>
-          <p class="mt-3 text-zinc-300 text-sm sm:text-base max-w-2xl mx-auto">
-            More than <strong class="text-white font-semibold">$220,000</strong> in creator payouts documented across a previously reported 12-month period—retainers, bonuses, and brand opportunities.
-          </p>
-        </div>
-        <div class="wins-feed-controls">
-          <div
-            class="wins-feed-scroller"
-            id="payoutsScroller"
-            tabindex="0"
-            role="region"
-            aria-label="Titans creator payout proof screenshots. Scroll horizontally to browse."
-          >
-            <div class="wins-feed-track" id="payoutsTrack" role="list"></div>
-          </div>
-          <div class="wins-feed-edge wins-feed-edge--left" aria-hidden="true"></div>
-          <div class="wins-feed-edge wins-feed-edge--right" aria-hidden="true"></div>
-          <button type="button" class="wins-feed-nav wins-feed-nav--prev" id="payoutsPrev" aria-label="Show previous payout screenshots">‹</button>
-          <button type="button" class="wins-feed-nav wins-feed-nav--next" id="payoutsNext" aria-label="Show next payout screenshots">›</button>
-        </div>
-      </section>
-
-      <!-- For brands -->
-      <section id="for-brands" class="py-20 sm:py-24 px-5 sm:px-6 border-t border-white/5 scroll-mt-20">
-        <div class="max-w-3xl mx-auto text-center">
-          <h2 class="text-2xl sm:text-3xl font-bold text-white uppercase tracking-tight">For brands</h2>
-          <p class="mt-5 text-zinc-300 text-sm sm:text-base leading-relaxed">
-            The Titans network has included 500+ trained creators across beauty, wellness, supplements, home, and lifestyle. We handle creator matching, sample logistics, briefs, and content delivery.
-          </p>
-          <div class="mt-8 flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 sm:gap-4">
-            <a
-              href="mailto:Tiktoktitansmanagement@gmail.com?subject=Titans%20campaign%20results%20deck&body=Please%20send%20the%20public%20link%20to%20your%20Titans%20campaign%20results%20%28Notion%20or%20Google%20Doc%29%2C%20or%20paste%20highlights%20here.%0A"
-              class="inline-flex items-center justify-center gap-2 rounded-full bg-coral hover:bg-coral-dark text-white font-semibold px-8 py-3.5 text-sm sm:text-base transition-colors shadow-lg shadow-coral/20"
-            >
-              See campaign results
-              <span aria-hidden="true">→</span>
-            </a>
-            <a
-              href="mailto:Tiktoktitansmanagement@gmail.com?subject=Book%20a%20brand%20call%20%E2%80%94%20Titans&body=Product%20link%3A%0A%0ACampaign%20goals%3A%0A%0ATiming%3A%0A"
-              class="inline-flex items-center justify-center gap-2 rounded-full border border-white/20 bg-white/5 hover:bg-white/10 text-white font-semibold px-8 py-3.5 text-sm sm:text-base transition-colors"
-            >
-              Book a call
-              <span aria-hidden="true">→</span>
-            </a>
-          </div>
-        </div>
-        <div class="max-w-5xl mx-auto mt-12 sm:mt-14">
-          <p class="text-center text-[10px] sm:text-xs uppercase tracking-widest text-zinc-500 font-semibold mb-6">Categories we run with partners</p>
-          <div class="flex flex-wrap items-center justify-center gap-x-8 gap-y-4 sm:gap-x-12 text-sm sm:text-base text-zinc-400 font-medium">
-            <span class="text-zinc-300">Beauty</span>
-            <span class="text-zinc-500" aria-hidden="true">·</span>
-            <span class="text-zinc-300">Wellness</span>
-            <span class="text-zinc-500" aria-hidden="true">·</span>
-            <span class="text-zinc-300">Supplements</span>
-            <span class="text-zinc-500" aria-hidden="true">·</span>
-            <span class="text-zinc-300">Home</span>
-            <span class="text-zinc-500" aria-hidden="true">·</span>
-            <span class="text-zinc-300">Lifestyle</span>
-          </div>
-        </div>
-
-        <div class="max-w-6xl mx-auto mt-10 sm:mt-12">
-          <p class="text-center text-[10px] sm:text-xs uppercase tracking-widest text-zinc-500 font-semibold mb-5">Brands we've worked with</p>
-          <div class="logo-marquee">
-            <div class="logo-track" aria-label="Brand and product logos from partners we've worked with">
-              <span class="logo-slot"><img src="assets/brands/brand-01.png" alt="" loading="lazy" decoding="async" /></span>
-              <span class="logo-slot"><img src="assets/brands/brand-02.png" alt="" loading="lazy" decoding="async" /></span>
-              <span class="logo-slot"><img src="assets/brands/brand-03.png" alt="" loading="lazy" decoding="async" /></span>
-              <span class="logo-slot"><img src="assets/brands/brand-04.png" alt="" loading="lazy" decoding="async" /></span>
-              <span class="logo-slot"><img src="assets/brands/brand-05.png" alt="" loading="lazy" decoding="async" /></span>
-              <span class="logo-slot"><img src="assets/brands/brand-06.png" alt="" loading="lazy" decoding="async" /></span>
-              <span class="logo-slot"><img src="assets/brands/brand-07.png" alt="" loading="lazy" decoding="async" /></span>
-              <span class="logo-slot"><img src="assets/brands/brand-08.png" alt="" loading="lazy" decoding="async" /></span>
-              <span class="logo-slot"><img src="assets/brands/brand-09.png" alt="" loading="lazy" decoding="async" /></span>
-              <span class="logo-slot"><img src="assets/brands/brand-10.png" alt="" loading="lazy" decoding="async" /></span>
-
-              <!-- duplicate row for seamless infinite scroll -->
-              <span class="logo-slot"><img src="assets/brands/brand-01.png" alt="" loading="lazy" decoding="async" /></span>
-              <span class="logo-slot"><img src="assets/brands/brand-02.png" alt="" loading="lazy" decoding="async" /></span>
-              <span class="logo-slot"><img src="assets/brands/brand-03.png" alt="" loading="lazy" decoding="async" /></span>
-              <span class="logo-slot"><img src="assets/brands/brand-04.png" alt="" loading="lazy" decoding="async" /></span>
-              <span class="logo-slot"><img src="assets/brands/brand-05.png" alt="" loading="lazy" decoding="async" /></span>
-              <span class="logo-slot"><img src="assets/brands/brand-06.png" alt="" loading="lazy" decoding="async" /></span>
-              <span class="logo-slot"><img src="assets/brands/brand-07.png" alt="" loading="lazy" decoding="async" /></span>
-              <span class="logo-slot"><img src="assets/brands/brand-08.png" alt="" loading="lazy" decoding="async" /></span>
-              <span class="logo-slot"><img src="assets/brands/brand-09.png" alt="" loading="lazy" decoding="async" /></span>
-              <span class="logo-slot"><img src="assets/brands/brand-10.png" alt="" loading="lazy" decoding="async" /></span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Member reviews -->
-      <section id="reviews" class="py-20 sm:py-24 px-5 sm:px-6 border-t border-white/5 bg-[#0a0a0a] scroll-mt-20">
-        <div class="max-w-6xl mx-auto">
-          <div class="text-center mb-12 sm:mb-14">
-            <h2 class="text-2xl sm:text-3xl font-bold text-white uppercase tracking-tight">Member reviews</h2>
-            <p class="mt-3 text-zinc-400 text-sm sm:text-base max-w-2xl mx-auto">
-              Verified feedback from people inside the program: community, course, and Discord.
-            </p>
-            <div
-              class="mt-6 inline-flex flex-wrap items-center justify-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-5 py-2.5 text-sm text-zinc-200"
-            >
-              <span class="text-amber-400" aria-hidden="true">★</span>
-              <span class="font-bold text-white tabular-nums">4.8</span>
-              <span class="text-zinc-500">·</span>
-              <span class="text-zinc-400">66 reviews</span>
-            </div>
-          </div>
-
-          <div class="grid md:grid-cols-2 gap-4 sm:gap-5">
-            <article class="rounded-2xl border border-white/10 bg-white/[0.02] p-6 sm:p-8 flex gap-4">
-              <div
-                class="w-11 h-11 rounded-full bg-zinc-800 flex items-center justify-center text-xs font-bold text-white shrink-0 ring-1 ring-white/10"
-                aria-hidden="true"
-              >
-                JS
-              </div>
-              <div class="min-w-0 flex-1">
-                <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
-                  <span class="font-semibold text-white text-sm">Jayme Smith</span>
-                  <span class="text-amber-400 text-xs tracking-tight" aria-label="5 out of 5 stars">★★★★★</span>
-                </div>
-                <p class="mt-3 text-sm text-zinc-300 leading-relaxed">
-                  The amount of info you get out of the discord is unreal. You can get everything from retainer deals, higher
-                  commission, free samples, 1 on 1 coaching, feedback on videos. Everything you need to have success is in this
-                  course!
-                </p>
-                <p class="mt-3 text-xs text-zinc-500">November 8, 2024 · 1 month after purchase</p>
-              </div>
-            </article>
-
-            <article class="rounded-2xl border border-white/10 bg-white/[0.02] p-6 sm:p-8 flex gap-4">
-              <div
-                class="w-11 h-11 rounded-full bg-zinc-800 flex items-center justify-center text-xs font-bold text-white shrink-0 ring-1 ring-white/10"
-                aria-hidden="true"
-              >
-                DE
-              </div>
-              <div class="min-w-0 flex-1">
-                <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
-                  <span class="font-semibold text-white text-sm">deniseharris3857</span>
-                  <span class="text-amber-400 text-xs tracking-tight" aria-label="5 out of 5 stars">★★★★★</span>
-                </div>
-                <p class="mt-3 text-sm text-zinc-300 leading-relaxed">
-                  This whole company is unmatched 🙌 not only that but there is such an amazing community inside of this group.
-                  I had finally found my tribe.
-                </p>
-                <p class="mt-3 text-xs text-zinc-500">November 7, 2024 · 8 days after purchase</p>
-              </div>
-            </article>
-
-            <article class="rounded-2xl border border-white/10 bg-white/[0.02] p-6 sm:p-8 flex gap-4">
-              <div
-                class="w-11 h-11 rounded-full bg-zinc-800 flex items-center justify-center text-xs font-bold text-white shrink-0 ring-1 ring-white/10"
-                aria-hidden="true"
-              >
-                SM
-              </div>
-              <div class="min-w-0 flex-1">
-                <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
-                  <span class="font-semibold text-white text-sm">Sarah Mickelson</span>
-                  <span class="text-amber-400 text-xs tracking-tight" aria-label="5 out of 5 stars">★★★★★</span>
-                </div>
-                <p class="mt-3 text-sm text-zinc-300 leading-relaxed">
-                  I&apos;ve only been in this community a month and have already seen my sales increase using the tips I learned
-                  here. My favorite aspects are the ability to get feedback on creative and how positive everyone is. Every
-                  morning this community hypes me up. Worth every penny!
-                </p>
-                <p class="mt-3 text-xs text-zinc-500">November 6, 2024 · 1 month after purchase</p>
-              </div>
-            </article>
-
-            <article class="rounded-2xl border border-white/10 bg-white/[0.02] p-6 sm:p-8 flex gap-4">
-              <div
-                class="w-11 h-11 rounded-full bg-zinc-800 flex items-center justify-center text-xs font-bold text-white shrink-0 ring-1 ring-white/10"
-                aria-hidden="true"
-              >
-                JB
-              </div>
-              <div class="min-w-0 flex-1">
-                <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
-                  <span class="font-semibold text-white text-sm">jackie boyle</span>
-                  <span class="text-amber-400 text-xs tracking-tight" aria-label="5 out of 5 stars">★★★★★</span>
-                </div>
-                <p class="mt-3 text-sm text-zinc-300 leading-relaxed">
-                  Couldn&apos;t recommend this discord enough! Literally went from making nothing to actual money on TikTok just
-                  from the course and advice these creators give you. They are always adding new things and are always there to
-                  help you and answer any questions! I&apos;ve been in a few discords and taken a few courses. This one stands
-                  out.
-                </p>
-                <p class="mt-3 text-xs text-zinc-500">November 6, 2024 · 23 days after purchase</p>
-              </div>
-            </article>
-
-            <article class="rounded-2xl border border-white/10 bg-white/[0.02] p-6 sm:p-8 flex gap-4">
-              <div
-                class="w-11 h-11 rounded-full bg-zinc-800 flex items-center justify-center text-xs font-bold text-white shrink-0 ring-1 ring-white/10"
-                aria-hidden="true"
-              >
-                BR
-              </div>
-              <div class="min-w-0 flex-1">
-                <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
-                  <span class="font-semibold text-white text-sm">Britty Russell</span>
-                  <span class="text-amber-400 text-xs tracking-tight" aria-label="5 out of 5 stars">★★★★★</span>
-                </div>
-                <p class="mt-3 text-sm text-zinc-300 leading-relaxed">
-                  Amazing group! Have so much info in here and have helped my sales go way up. Can&apos;t recommend them enough.
-                </p>
-                <p class="mt-3 text-xs text-zinc-500">March 3, 2026 · 7 months after purchase</p>
-              </div>
-            </article>
-
-            <article class="rounded-2xl border border-white/10 bg-white/[0.02] p-6 sm:p-8 flex gap-4">
-              <div
-                class="w-11 h-11 rounded-full bg-zinc-800 flex items-center justify-center text-xs font-bold text-white shrink-0 ring-1 ring-white/10"
-                aria-hidden="true"
-              >
-                GC
-              </div>
-              <div class="min-w-0 flex-1">
-                <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
-                  <span class="font-semibold text-white text-sm">Gerrycap</span>
-                  <span class="text-amber-400 text-xs tracking-tight" aria-label="5 out of 5 stars">★★★★★</span>
-                </div>
-                <p class="mt-3 text-sm text-zinc-300 leading-relaxed">
-                  I fr love this group. The course changed my entire perspective on TikTok Shop and the weekly assignments they
-                  post make it easy to stay consistent. Plus seeing all the creators post the money they&apos;re making was a
-                  huge motivator for me.
-                </p>
-                <p class="mt-3 text-xs text-zinc-500">January 5, 2026 · 2 months after purchase</p>
-              </div>
-            </article>
-          </div>
-
-          <p class="mt-8 text-center text-xs text-zinc-500 max-w-2xl mx-auto">
-            Reviews shown as shared by members; wording may be lightly edited for readability. Your results will depend on your
-            own effort and execution.
-          </p>
-        </div>
-      </section>
-
-      <!-- For creators -->
-      <section id="for-creators" class="py-20 sm:py-24 px-5 sm:px-6 border-t border-white/5 scroll-mt-20">
-        <div class="max-w-3xl mx-auto text-center mb-14">
-          <h2 class="text-2xl sm:text-3xl font-bold text-white uppercase tracking-tight">Why creators join</h2>
-          <p class="mt-3 text-zinc-400 text-sm sm:text-base">
-            Built for <strong class="text-zinc-300 font-medium">TikTok Shop affiliates</strong> who want structure,
-            community, and growth with <strong class="text-zinc-300 font-medium">TikTok Titans</strong>, not guesswork.
-          </p>
-        </div>
-        <div class="max-w-5xl mx-auto grid sm:grid-cols-3 gap-6">
-          <div class="rounded-2xl border border-white/10 bg-white/[0.03] p-6 text-center sm:text-left">
-            <div class="text-coral font-bold text-sm uppercase tracking-wider mb-2">Systems</div>
-            <p class="text-zinc-300 text-sm leading-relaxed">
-              Playbooks and workflows so you know what to post, when, and how to scale. Not random tips.
-            </p>
-          </div>
-          <div class="rounded-2xl border border-white/10 bg-white/[0.03] p-6 text-center sm:text-left">
-            <div class="text-coral font-bold text-sm uppercase tracking-wider mb-2">Community</div>
-            <p class="text-zinc-300 text-sm leading-relaxed">
-              Titans has brought together 500+ creators. Daily wins, real feedback, and people building alongside you.
-            </p>
-          </div>
-          <div class="rounded-2xl border border-white/10 bg-white/[0.03] p-6 text-center sm:text-left">
-            <div class="text-coral font-bold text-sm uppercase tracking-wider mb-2">Training</div>
-            <p class="text-zinc-300 text-sm leading-relaxed">
-              YouTube and Whop resources to sharpen offers, content, and Shop performance on your schedule.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      <!-- Our story -->
-      <section id="story" class="py-20 sm:py-24 px-5 sm:px-6 border-t border-white/5 scroll-mt-20">
-        <div class="max-w-6xl mx-auto grid lg:grid-cols-2 gap-10 lg:gap-14 items-start">
-          <div>
-            <div class="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-xs text-zinc-300 mb-5">
-              <span class="text-coral font-bold" aria-hidden="true">✦</span>
-              <span>Our story</span>
-            </div>
-            <h2 class="text-2xl sm:text-3xl font-bold text-white uppercase tracking-tight">Built from the ground up</h2>
-            <p class="mt-4 text-zinc-400 text-sm sm:text-base leading-relaxed">
-              Titans started as a small operator style community focused on one thing: helping creators monetize TikTok Shop with a repeatable plan.
-              In under a year, the creator network scaled to <strong class="text-zinc-300 font-medium">$10M+</strong> in tracked GMV and earned TikTok Shop Partnered Agency status.
-            </p>
-            <p class="mt-4 text-zinc-400 text-sm sm:text-base leading-relaxed">
-              The mission is simple: give everyday affiliates the same playbooks, product signals, and brand relationships that the top performers use to win.
-            </p>
-            <div class="mt-7 flex flex-wrap gap-3">
               <a
-                href="https://markets.businessinsider.com/news/stocks/tiktok-titans-founders-reflect-on-humble-beginnings-while-celebrating-5m-gross-merchandise-value-milestone-for-brands-in-their-creator-network-1034497134"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="inline-flex items-center justify-center gap-2 rounded-full border border-white/15 bg-white/[0.04] hover:bg-white/[0.06] text-white font-semibold px-5 py-2.5 text-sm transition-colors"
+                class="button-primary"
+                href="/exclusive/"
+                data-cta
+                data-product="exclusive"
+                data-placement="homepage-card"
+                >Choose Titans Exclusive <span aria-hidden="true">→</span></a
               >
-                Read on Business Insider
-                <span aria-hidden="true">↗</span>
-              </a>
-              <a
-                href="https://www.barchart.com/story/news/31556734/tiktok-titans-founders-reflect-on-humble-beginnings-while-celebrating-5m-gross-merchandise-value-milestone-for-brands-in-their-creator-network"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="inline-flex items-center justify-center gap-2 rounded-full border border-white/15 bg-white/[0.04] hover:bg-white/[0.06] text-white font-semibold px-5 py-2.5 text-sm transition-colors"
-              >
-                Read on Barchart
-                <span aria-hidden="true">↗</span>
-              </a>
-            </div>
-            <p class="mt-3 text-xs text-zinc-500 leading-relaxed">
-              Articles linked above may mention individuals; this page focuses on the platform and community.
-            </p>
+            </article>
           </div>
 
-          <div class="rounded-3xl border border-white/10 bg-white/[0.03] p-6 sm:p-8">
-            <p class="text-xs text-zinc-500 uppercase tracking-widest font-semibold">What we&apos;re building</p>
-            <h3 class="mt-3 text-xl font-bold text-white">A real path to TikTok Shop income</h3>
-            <ul class="mt-6 space-y-4 text-sm text-zinc-300">
-              <li class="flex gap-3">
-                <span class="text-coral font-bold" aria-hidden="true">✓</span>
-                <span><strong class="text-white font-semibold">Systems</strong> that tell you what to do next (not just “motivation”).</span>
-              </li>
-              <li class="flex gap-3">
-                <span class="text-coral font-bold" aria-hidden="true">✓</span>
-                <span><strong class="text-white font-semibold">Community</strong> where wins, feedback, and accountability happen daily.</span>
-              </li>
-              <li class="flex gap-3">
-                <span class="text-coral font-bold" aria-hidden="true">✓</span>
-                <span><strong class="text-white font-semibold">Brand network</strong> that creates real opportunities for creators who execute.</span>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </section>
-
-      <!-- Creator flow -->
-      <section id="flow" class="py-20 sm:py-24 px-5 sm:px-6 bg-white/[0.02] border-y border-white/5 scroll-mt-20">
-        <div class="max-w-3xl mx-auto text-center mb-14">
-          <h2 class="text-2xl sm:text-3xl font-bold text-white uppercase tracking-tight">Creator flow</h2>
-          <p class="mt-3 text-zinc-400 text-sm sm:text-base">Three steps from curious to inside the network.</p>
-        </div>
-        <div class="max-w-4xl mx-auto grid md:grid-cols-3 gap-8">
-          <div class="text-center md:text-left">
-            <div class="text-4xl font-black text-white/10">01</div>
-            <h3 class="mt-2 font-semibold text-white">Discover</h3>
-            <p class="mt-2 text-sm text-zinc-400 leading-relaxed">Watch the channel, read the page, see if TikTok Titans fits your goals.</p>
-          </div>
-          <div class="text-center md:text-left">
-            <div class="text-4xl font-black text-white/10">02</div>
-            <h3 class="mt-2 font-semibold text-white">Join</h3>
-            <p class="mt-2 text-sm text-zinc-400 leading-relaxed">Hop into Discord or Whop whenever you&apos;re ready to start.</p>
-          </div>
-          <div class="text-center md:text-left">
-            <div class="text-4xl font-black text-white/10">03</div>
-            <h3 class="mt-2 font-semibold text-white">Build</h3>
-            <p class="mt-2 text-sm text-zinc-400 leading-relaxed">Use the systems, ship content, and grow with the community behind you.</p>
-          </div>
-        </div>
-      </section>
-
-      <!-- Join -->
-      <section id="join" class="py-20 sm:py-28 px-5 sm:px-6 scroll-mt-20">
-        <div class="max-w-2xl mx-auto text-center mb-12">
-          <h2 class="text-2xl sm:text-3xl font-bold text-white uppercase tracking-tight">Choose your way into Titans</h2>
-          <p class="mt-3 text-zinc-400 text-sm sm:text-base">
-            Get the complete ecosystem, start with weekly community access, or buy the AI creator workflow by itself.
-          </p>
-        </div>
-        <div class="max-w-lg mx-auto flex flex-col gap-4">
           <a
-            href="/exclusive/"
-            class="flex items-center justify-center gap-3 rounded-2xl bg-coral hover:bg-coral-dark text-white font-semibold py-4 px-6 transition-colors shadow-lg shadow-coral/20"
+            class="home-results-link"
+            href="https://wins.85.239.242.45.nip.io/"
           >
-            <span>Titans Exclusive</span>
-            <span class="text-white/80 text-sm">Best overall · $50/month</span>
-          </a>
-          <a
-            href="/weekly/"
-            class="flex items-center justify-center gap-3 rounded-2xl border border-white/20 bg-white/5 hover:bg-white/10 text-white font-semibold py-4 px-6 transition-colors"
-          >
-            <span>Titans Weekly</span>
-            <span class="text-zinc-400 text-sm">Community · $15/week</span>
-          </a>
-          <a
-            href="/ai/"
-            class="flex items-center justify-center gap-3 rounded-2xl border border-white/20 bg-white/5 hover:bg-white/10 text-white font-semibold py-4 px-6 transition-colors"
-          >
-            <span>AI Content</span>
-            <span class="text-zinc-400 text-sm">Standalone · $29.99 once</span>
+            <span
+              ><strong>Want the real numbers?</strong> View verified creator
+              wins and performance.</span
+            >
+            <span aria-hidden="true">View Results →</span>
           </a>
         </div>
-        <p class="text-center text-xs text-zinc-500 mt-8">
-          On a campaign already?
-          <a href="/tracker/" class="text-coral hover:underline ml-1">Tracker login</a>
-        </p>
       </section>
     </main>
 
-    <footer class="border-t border-white/10 py-12 px-5 sm:px-6">
-      <div class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-6 text-sm text-zinc-500">
-        <div class="flex items-center gap-2">
-          <img src="assets/icon.png" alt="TikTok Titans" width="28" height="28" class="rounded-md opacity-90" />
-          <span class="text-zinc-400">© <span id="y"></span> TikTok Titans · titansagency.co</span>
+    <footer class="commerce-footer home-footer">
+      <div class="footer-grid">
+        <div>
+          <h2>TikTok Titans</h2>
+          <p>
+            Community, education, creator opportunities, and practical AI
+            content tools for TikTok Shop creators.
+          </p>
         </div>
-        <div class="flex flex-wrap justify-center gap-6">
-          <a href="/exclusive/" class="hover:text-white transition-colors">Exclusive</a>
-          <a href="/weekly/" class="hover:text-white transition-colors">Weekly</a>
-          <a href="/ai/" class="hover:text-white transition-colors">AI Content</a>
-          <a href="#wins" class="hover:text-white transition-colors">Results</a>
-          <a href="/brands/" class="hover:text-white transition-colors">For brands</a>
-          <a href="mailto:Tiktoktitansmanagement@gmail.com" class="hover:text-white transition-colors">Contact</a>
+        <div>
+          <h3>Products</h3>
+          <nav>
+            <a href="/weekly/">Titans Weekly</a><a href="/ai/">AI Content</a
+            ><a href="/exclusive/">Titans Exclusive</a>
+          </nav>
+        </div>
+        <div>
+          <h3>Proof</h3>
+          <nav>
+            <a href="https://wins.85.239.242.45.nip.io/">Wall of Wins</a>
+          </nav>
+        </div>
+        <div>
+          <h3>Company</h3>
+          <nav>
+            <a href="/brands/">For brands</a
+            ><a href="/tracker/">Campaign tracker</a
+            ><a href="mailto:Tiktoktitansmanagement@gmail.com">Contact</a>
+          </nav>
         </div>
       </div>
+      <p class="footer-meta">
+        © <span data-current-year></span> TikTok Titans. Purchases and access
+        are securely managed by Whop.
+      </p>
     </footer>
-    <script src="/assets/commerce.js" defer></script>
-    <script>
-      // Set youtube: 'https://www.youtube.com/@YourChannel' to send course CTAs to YouTube instead of Whop.
-      window.TITANS_OUTBOUND = { youtube: '' };
-      document.addEventListener('DOMContentLoaded', function () {
-        var yt = (window.TITANS_OUTBOUND && window.TITANS_OUTBOUND.youtube) || '';
-        document.querySelectorAll('a[data-out="youtube"]').forEach(function (a) {
-          if (yt && String(yt).trim().length > 0) {
-            a.setAttribute('href', yt);
-            a.setAttribute('target', '_blank');
-            a.setAttribute('rel', 'noopener noreferrer');
-          }
-        });
-        var y = document.getElementById('y');
-        if (y) y.textContent = new Date().getFullYear();
-
-        function initHorizontalFeed(opts) {
-          var track = document.getElementById(opts.trackId);
-          var scroller = document.getElementById(opts.scrollerId);
-          if (!track || !scroller) return;
-
-          function scrollByOne(direction) {
-            var card = track.querySelector('.wins-feed-card');
-            if (!card) return;
-            var cs = window.getComputedStyle(track);
-            var gap = parseFloat(cs.columnGap || cs.gap || '16');
-            if (isNaN(gap)) gap = 16;
-            var step = card.getBoundingClientRect().width + gap;
-            scroller.scrollBy({ left: direction * step, behavior: 'smooth' });
-          }
-
-          var prevBtn = document.getElementById(opts.prevId);
-          var nextBtn = document.getElementById(opts.nextId);
-          if (prevBtn) prevBtn.addEventListener('click', function () { scrollByOne(-1); });
-          if (nextBtn) nextBtn.addEventListener('click', function () { scrollByOne(1); });
-          scroller.addEventListener('keydown', function (e) {
-            if (e.key === 'ArrowLeft') {
-              e.preventDefault();
-              scrollByOne(-1);
-            } else if (e.key === 'ArrowRight') {
-              e.preventDefault();
-              scrollByOne(1);
-            }
-          });
-
-          function build(paths) {
-            if (!paths || !paths.length) return;
-            var frag = document.createDocumentFragment();
-            for (var i = 0; i < paths.length; i++) {
-              var card = document.createElement('div');
-              card.className = opts.cardClassName || 'wins-feed-card';
-              card.setAttribute('role', 'listitem');
-              var img = document.createElement('img');
-              img.src = paths[i];
-              img.alt = '';
-              img.loading = 'lazy';
-              img.decoding = 'async';
-              card.appendChild(img);
-              frag.appendChild(card);
-            }
-            track.appendChild(frag);
-          }
-
-          fetch(opts.manifestPath)
-            .then(function (r) {
-              if (!r.ok) throw new Error('manifest');
-              return r.json();
-            })
-            .then(build)
-            .catch(function () {
-              track.innerHTML =
-                '<p class="text-center text-zinc-500 text-sm w-full px-6 py-8">Couldn&apos;t load this feed. Refresh or check your connection.</p>';
-            });
-        }
-
-        initHorizontalFeed({
-          trackId: 'communityWinsTrack',
-          scrollerId: 'communityWinsScroller',
-          prevId: 'communityWinsPrev',
-          nextId: 'communityWinsNext',
-          manifestPath: 'assets/community-wins/manifest.json',
-          cardClassName: 'wins-feed-card'
-        });
-
-        initHorizontalFeed({
-          trackId: 'payoutsTrack',
-          scrollerId: 'payoutsScroller',
-          prevId: 'payoutsPrev',
-          nextId: 'payoutsNext',
-          manifestPath: 'assets/creator-payouts/manifest.json',
-          cardClassName: 'wins-feed-card is-payout'
-        });
-      });
-    </script>
   </body>
 </html>

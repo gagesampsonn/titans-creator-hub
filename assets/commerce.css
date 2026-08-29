@@ -295,11 +295,16 @@ summary:focus-visible {
   text-transform: uppercase;
 }
 
+.product-choice h2,
 .product-choice h3 {
   margin: 24px 0 8px;
   color: #fff;
   font-size: 1.5rem;
   line-height: 1.15;
+}
+
+.product-choice .product-badge {
+  color: var(--titan-coral-light);
 }
 
 .product-price {
@@ -430,6 +435,79 @@ summary:focus-visible {
   color: var(--titan-dim);
   font-size: 0.82rem;
   line-height: 1.5;
+}
+
+.home-storefront {
+  min-height: calc(100svh - 72px);
+  padding: 120px 20px 64px;
+  background:
+    radial-gradient(
+      ellipse 55% 42% at 82% 14%,
+      rgba(101, 39, 26, 0.22),
+      transparent 68%
+    ),
+    #000;
+}
+
+.home-storefront-intro {
+  max-width: 760px;
+}
+
+.home-storefront-intro h1 {
+  max-width: 720px;
+  margin: 0;
+  color: #fff;
+  font-size: clamp(2.5rem, 6vw, 5rem);
+  line-height: 0.98;
+  letter-spacing: -0.055em;
+  text-transform: uppercase;
+}
+
+.home-storefront-intro > p:last-child {
+  max-width: 650px;
+  margin: 20px 0 0;
+  color: var(--titan-muted);
+  font-size: clamp(1rem, 2vw, 1.15rem);
+  line-height: 1.65;
+}
+
+.home-storefront .product-selector {
+  margin-top: 36px;
+}
+
+.home-storefront .product-choice {
+  min-height: 388px;
+}
+
+.home-results-link {
+  min-height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-top: 16px;
+  border: 1px solid var(--titan-line);
+  border-radius: 10px;
+  padding: 16px 20px;
+  color: var(--titan-muted);
+  text-decoration: none;
+  transition:
+    border-color 180ms ease,
+    background 180ms ease;
+}
+
+.home-results-link strong,
+.home-results-link > span:last-child {
+  color: #fff;
+}
+
+.home-results-link:hover {
+  border-color: rgba(232, 99, 67, 0.65);
+  background: rgba(232, 99, 67, 0.07);
+}
+
+.home-footer {
+  padding-top: 40px;
 }
 
 .product-hero {
@@ -786,6 +864,10 @@ summary:focus-visible {
   .footer-grid {
     grid-template-columns: repeat(2, 1fr);
   }
+
+  .home-storefront .product-choice {
+    min-height: 0;
+  }
 }
 
 @media (max-width: 560px) {
@@ -803,6 +885,24 @@ summary:focus-visible {
 
   .product-choice {
     padding: 24px 20px;
+  }
+
+  .home-storefront {
+    padding: 104px 18px 48px;
+  }
+
+  .home-storefront-intro h1 {
+    font-size: clamp(2.25rem, 13vw, 3.35rem);
+  }
+
+  .home-storefront .product-selector {
+    margin-top: 28px;
+  }
+
+  .home-results-link {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
   }
 
   .hero-actions,

@@ -39,8 +39,29 @@ for (const route of ["/exclusive/", "/weekly/", "/ai/"]) {
   if (!home.includes(`href="${route}`))
     failures.push(`Homepage does not link to ${route}`);
 }
-if (!home.includes('id="compare"'))
-  failures.push("Homepage is missing the product comparison section");
+const productSectionPosition = home.indexOf('id="products"');
+const mainPosition = home.indexOf('<main id="main-content">');
+if (
+  productSectionPosition < mainPosition ||
+  productSectionPosition - mainPosition > 500
+) {
+  failures.push("Homepage does not lead immediately with the product selector");
+}
+for (const removedHomepageElement of [
+  "Learn. Create. Earn on TikTok Shop.",
+  "historical tracked GMV",
+  'id="compare"',
+  'id="wins"',
+]) {
+  if (home.includes(removedHomepageElement)) {
+    failures.push(
+      `Homepage still contains removed content: ${removedHomepageElement}`,
+    );
+  }
+}
+if (!home.includes('href="https://wins.85.239.242.45.nip.io/"')) {
+  failures.push("Homepage Results link does not point to the Wall of Wins");
+}
 if (!home.includes('aria-expanded="false"'))
   failures.push("Homepage is missing an accessible mobile navigation toggle");
 
@@ -79,6 +100,21 @@ if (ai && !ai.includes('data-community-access="false"')) {
   failures.push(
     "AI does not explicitly state that community access is excluded",
   );
+}
+
+const resultsUrl = "https://wins.85.239.242.45.nip.io/";
+for (const relativePath of [
+  "index.html",
+  ...Object.values(offers).map((offer) => offer.file),
+  "brands/index.html",
+]) {
+  const html = load(relativePath);
+  if (!html.includes(`href="${resultsUrl}"`)) {
+    failures.push(`${relativePath} does not link Results to the Wall of Wins`);
+  }
+  if (html.includes('href="/#wins"') || html.includes('href="/#story"')) {
+    failures.push(`${relativePath} still links to removed homepage sections`);
+  }
 }
 
 for (const file of [
