@@ -37,7 +37,7 @@ const load = (relativePath) => {
 };
 
 const home = load("index.html");
-for (const route of ["/exclusive/", "/weekly/", "/ai/"]) {
+for (const route of ["/titans/", "/ai/"]) {
   if (!home.includes(`href="${route}`))
     failures.push(`Homepage does not link to ${route}`);
 }
@@ -48,6 +48,28 @@ if (
   productSectionPosition - mainPosition > 500
 ) {
   failures.push("Homepage does not lead immediately with the product selector");
+}
+const productSectionEnd = home.indexOf("</section>", productSectionPosition);
+const productSection = home.slice(productSectionPosition, productSectionEnd);
+const ecosystemCardCount = [
+  ...productSection.matchAll(/class="[^"]*ecosystem-card(?:\s|\")/g),
+].length;
+if (ecosystemCardCount !== 2) {
+  failures.push(
+    `Homepage must show exactly two ecosystem cards; found ${ecosystemCardCount}`,
+  );
+}
+for (const forbiddenHomepageOffer of [
+  "product-choice",
+  "$15",
+  "$29.99",
+  "$50",
+]) {
+  if (productSection.includes(forbiddenHomepageOffer)) {
+    failures.push(
+      `Homepage ecosystem section still contains pricing-card content: ${forbiddenHomepageOffer}`,
+    );
+  }
 }
 for (const removedHomepageElement of [
   "Learn. Create. Earn on TikTok Shop.",
@@ -68,6 +90,28 @@ if (!home.includes('href="/results/"')) {
 }
 if (!home.includes('aria-expanded="false"'))
   failures.push("Homepage is missing an accessible mobile navigation toggle");
+
+for (const testimonyVideo of [
+  "/assets/testimonials/creator-testimony-1.mp4",
+  "/assets/testimonials/creator-testimony-2.mp4",
+]) {
+  if (!home.includes(`src="${testimonyVideo}"`)) {
+    failures.push(`Homepage does not include testimony video: ${testimonyVideo}`);
+  }
+  load(testimonyVideo.slice(1));
+}
+
+const titans = load("titans/index.html");
+for (const route of ["/weekly/", "/exclusive/"]) {
+  if (titans && !titans.includes(`href="${route}`)) {
+    failures.push(`Titans comparison page does not link to ${route}`);
+  }
+}
+for (const requiredPlanCopy of ["$15", "$50", "Titans Weekly", "Titans Exclusive"]) {
+  if (titans && !titans.includes(requiredPlanCopy)) {
+    failures.push(`Titans comparison page is missing: ${requiredPlanCopy}`);
+  }
+}
 
 for (const [slug, offer] of Object.entries(offers)) {
   const html = load(offer.file);
@@ -159,6 +203,7 @@ for (const requiredExclusiveBenefit of [
 const resultsUrl = "/results/";
 for (const relativePath of [
   "index.html",
+  "titans/index.html",
   ...Object.values(offers).map((offer) => offer.file),
   "brands/index.html",
 ]) {
@@ -187,9 +232,13 @@ const sitemap = load("sitemap.xml");
 if (!sitemap.includes("https://titansagency.co/results/")) {
   failures.push("Sitemap does not include the first-party Results page");
 }
+if (!sitemap.includes("https://titansagency.co/titans/")) {
+  failures.push("Sitemap does not include the Titans comparison page");
+}
 
 const localFiles = [
   "index.html",
+  "titans/index.html",
   ...Object.values(offers).map((offer) => offer.file),
   "brands/index.html",
 ];
