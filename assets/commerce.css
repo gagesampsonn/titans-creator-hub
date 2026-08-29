@@ -550,6 +550,13 @@ summary:focus-visible {
   object-position: top;
 }
 
+.proof-tile.logo-tile img {
+  object-fit: contain;
+  object-position: center;
+  padding: 32px;
+  background: #fff;
+}
+
 .proof-tile p {
   margin: 0;
   padding: 14px 16px;
