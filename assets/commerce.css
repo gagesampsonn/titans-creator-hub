@@ -1,12 +1,12 @@
 :root {
-  --titan-bg: #000;
-  --titan-surface: #090909;
-  --titan-elevated: #111;
+  --titan-bg: #0b0c0f;
+  --titan-surface: #0f1114;
+  --titan-elevated: #17191e;
   --titan-line: rgba(255, 255, 255, 0.1);
   --titan-line-strong: rgba(255, 255, 255, 0.18);
   --titan-text: #fafafa;
   --titan-muted: #a1a1aa;
-  --titan-dim: #71717a;
+  --titan-dim: #8a8a94;
   --titan-coral: #e86343;
   --titan-coral-light: #ff8a65;
   --titan-coral-dark: #c94e32;
@@ -22,7 +22,13 @@ html {
 
 body {
   margin: 0;
-  background: var(--titan-bg);
+  background:
+    radial-gradient(
+      900px 520px at 50% -220px,
+      rgba(232, 99, 67, 0.09),
+      transparent 70%
+    ),
+    var(--titan-bg);
   color: var(--titan-text);
   font-family:
     Inter,
@@ -85,7 +91,7 @@ summary:focus-visible {
   inset: 0 0 auto;
   z-index: 50;
   border-bottom: 1px solid rgba(255, 255, 255, 0.07);
-  background: rgba(0, 0, 0, 0.88);
+  background: rgba(11, 12, 15, 0.92);
   backdrop-filter: blur(16px);
 }
 
@@ -219,6 +225,11 @@ summary:focus-visible {
 .commerce-section {
   padding: 88px 20px;
   border-top: 1px solid rgba(255, 255, 255, 0.06);
+  background: #0d0f12;
+}
+
+.commerce-section:nth-of-type(even) {
+  background: #101216;
 }
 
 .commerce-container {
@@ -242,7 +253,6 @@ summary:focus-visible {
   font-size: clamp(2rem, 5vw, 3.5rem);
   line-height: 1.04;
   letter-spacing: -0.035em;
-  text-transform: uppercase;
 }
 
 .section-copy {
@@ -437,79 +447,6 @@ summary:focus-visible {
   line-height: 1.5;
 }
 
-.home-storefront {
-  min-height: calc(100svh - 72px);
-  padding: 120px 20px 64px;
-  background:
-    radial-gradient(
-      ellipse 55% 42% at 82% 14%,
-      rgba(101, 39, 26, 0.22),
-      transparent 68%
-    ),
-    #000;
-}
-
-.home-storefront-intro {
-  max-width: 760px;
-}
-
-.home-storefront-intro h1 {
-  max-width: 720px;
-  margin: 0;
-  color: #fff;
-  font-size: clamp(2.5rem, 6vw, 5rem);
-  line-height: 0.98;
-  letter-spacing: -0.055em;
-  text-transform: uppercase;
-}
-
-.home-storefront-intro > p:last-child {
-  max-width: 650px;
-  margin: 20px 0 0;
-  color: var(--titan-muted);
-  font-size: clamp(1rem, 2vw, 1.15rem);
-  line-height: 1.65;
-}
-
-.home-storefront .product-selector {
-  margin-top: 36px;
-}
-
-.home-storefront .product-choice {
-  min-height: 388px;
-}
-
-.home-results-link {
-  min-height: 72px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 24px;
-  margin-top: 16px;
-  border: 1px solid var(--titan-line);
-  border-radius: 10px;
-  padding: 16px 20px;
-  color: var(--titan-muted);
-  text-decoration: none;
-  transition:
-    border-color 180ms ease,
-    background 180ms ease;
-}
-
-.home-results-link strong,
-.home-results-link > span:last-child {
-  color: #fff;
-}
-
-.home-results-link:hover {
-  border-color: rgba(232, 99, 67, 0.65);
-  background: rgba(232, 99, 67, 0.07);
-}
-
-.home-footer {
-  padding-top: 40px;
-}
-
 .product-hero {
   min-height: 720px;
   display: grid;
@@ -561,7 +498,9 @@ summary:focus-visible {
 .price-panel {
   border: 1px solid rgba(232, 99, 67, 0.35);
   border-radius: var(--titan-radius);
-  background: rgba(10, 8, 7, 0.82);
+  background:
+    radial-gradient(circle at 84% 0, rgba(232, 99, 67, 0.13), transparent 48%),
+    rgba(14, 14, 16, 0.94);
   padding: 28px;
   box-shadow: 0 30px 80px rgba(0, 0, 0, 0.42);
 }
@@ -590,8 +529,10 @@ summary:focus-visible {
 
 .detail-block {
   min-height: 210px;
-  border-top: 1px solid var(--titan-line-strong);
-  padding: 24px 4px 0;
+  border: 1px solid var(--titan-line);
+  border-radius: 14px;
+  background: #14161a;
+  padding: 24px;
 }
 
 .detail-block span {
@@ -818,6 +759,7 @@ summary:focus-visible {
 .commerce-footer {
   border-top: 1px solid var(--titan-line);
   padding: 48px 20px;
+  background: #090a0d;
 }
 
 .footer-grid {
@@ -932,9 +874,6 @@ summary:focus-visible {
     grid-template-columns: repeat(2, 1fr);
   }
 
-  .home-storefront .product-choice {
-    min-height: 0;
-  }
 }
 
 @media (max-width: 560px) {
@@ -952,24 +891,6 @@ summary:focus-visible {
 
   .product-choice {
     padding: 24px 20px;
-  }
-
-  .home-storefront {
-    padding: 104px 18px 48px;
-  }
-
-  .home-storefront-intro h1 {
-    font-size: clamp(2.25rem, 13vw, 3.35rem);
-  }
-
-  .home-storefront .product-selector {
-    margin-top: 28px;
-  }
-
-  .home-results-link {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 8px;
   }
 
   .hero-actions,
