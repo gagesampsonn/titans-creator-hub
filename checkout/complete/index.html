@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Checkout Complete | TikTok Titans</title>
+    <meta name="robots" content="noindex" />
+    <link rel="icon" type="image/png" href="/assets/icon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/assets/commerce.css" />
+    <script src="/assets/commerce.js" defer></script>
+  </head>
+  <body>
+    <header class="commerce-header">
+      <div class="commerce-nav-shell">
+        <a href="/" class="commerce-brand" aria-label="TikTok Titans home"
+          ><img src="/assets/icon.png" alt="" width="36" height="36" /><span
+            >TITANS</span
+          ></a
+        >
+        <div class="commerce-actions">
+          <a class="button-quiet" href="/sign-in">Sign in</a>
+        </div>
+      </div>
+    </header>
+    <main id="main-content">
+      <section class="product-hero" style="min-height: 100vh">
+        <div
+          class="commerce-container"
+          style="max-width: 720px; text-align: center"
+        >
+          <p class="eyebrow">Whop checkout</p>
+          <h1 id="checkout-title" style="font-size: clamp(2.4rem, 7vw, 4.8rem)">
+            Your checkout is complete.
+          </h1>
+          <p
+            id="checkout-message"
+            class="product-hero-copy"
+            style="margin-left: auto; margin-right: auto"
+          >
+            Whop is confirming your purchase and product access. You can sign in
+            to Whop to open what you purchased.
+          </p>
+          <div class="hero-actions" style="justify-content: center">
+            <a class="button-primary" href="https://whop.com/hub" rel="noopener"
+              >Open my Whop</a
+            ><a id="product-link" class="button-secondary" href="/"
+              >Back to Titans</a
+            >
+          </div>
+          <p class="checkout-fallback">
+            Need help?
+            <a
+              href="mailto:Tiktoktitansmanagement@gmail.com?subject=Titans%20checkout%20help"
+              >Contact Titans support</a
+            >. Do not send payment-card details by email.
+          </p>
+        </div>
+      </section>
+    </main>
+    <script>
+      (function () {
+        var products = {
+          exclusive: { name: "Titans Exclusive", href: "/exclusive/" },
+          weekly: { name: "Titans Weekly", href: "/weekly/" },
+          ai: { name: "AI Content", href: "/ai/" },
+        };
+        var params = new URLSearchParams(window.location.search);
+        var product = products[params.get("product")];
+        var status = params.get("status");
+        var title = document.getElementById("checkout-title");
+        var message = document.getElementById("checkout-message");
+        var link = document.getElementById("product-link");
+        if (product) {
+          title.textContent =
+            status === "error"
+              ? "Checkout needs another try."
+              : product.name + " checkout complete.";
+          message.textContent =
+            status === "error"
+              ? "Whop did not complete the checkout. No payment details were collected by Titans; return to the product page to try again."
+              : "Whop is confirming your purchase and product access. Sign in to Whop to open " +
+                product.name +
+                ".";
+          link.href = product.href;
+          link.textContent =
+            status === "error"
+              ? "Return to checkout"
+              : "Review product details";
+        }
+      })();
+    </script>
+  </body>
+</html>
