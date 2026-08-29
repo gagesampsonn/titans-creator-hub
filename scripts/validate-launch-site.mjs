@@ -228,6 +228,13 @@ for (const file of [
   load(file);
 }
 
+const applePayAssociation = load(
+  ".well-known/apple-developer-merchantid-domain-association",
+);
+if (applePayAssociation && applePayAssociation.trim().length < 100) {
+  failures.push("Apple Pay domain-association file appears incomplete");
+}
+
 const sitemap = load("sitemap.xml");
 if (!sitemap.includes("https://titansagency.co/results/")) {
   failures.push("Sitemap does not include the first-party Results page");
