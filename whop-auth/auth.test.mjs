@@ -122,6 +122,7 @@ describe("Whop OAuth login", () => {
     assert.equal(location.searchParams.get("code_challenge_method"), "S256");
     assert.ok(location.searchParams.get("code_challenge"));
     assert.ok(location.searchParams.get("state"));
+    assert.ok(location.searchParams.get("nonce"));
     assert.equal(location.searchParams.get("scope"), "openid profile");
     assert.match(
       response.headers.get("set-cookie"),

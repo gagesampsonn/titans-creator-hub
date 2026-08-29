@@ -291,11 +291,13 @@ async function handleLogin(req, res, url, config) {
   }
   const verifier = randomToken(48);
   const state = randomToken(32);
+  const nonce = randomToken(32);
   const next = normalizeNextPath(url.searchParams.get("next"));
   const transaction = signValue(
     {
       verifier,
       state,
+      nonce,
       next,
       exp: Math.floor(Date.now() / 1000) + OAUTH_MAX_AGE_SECONDS,
     },
@@ -307,6 +309,7 @@ async function handleLogin(req, res, url, config) {
   authorize.searchParams.set("response_type", "code");
   authorize.searchParams.set("scope", "openid profile");
   authorize.searchParams.set("state", state);
+  authorize.searchParams.set("nonce", nonce);
   authorize.searchParams.set("code_challenge", await sha256Base64Url(verifier));
   authorize.searchParams.set("code_challenge_method", "S256");
   redirect(res, authorize.toString(), [cookie(OAUTH_COOKIE, transaction, OAUTH_MAX_AGE_SECONDS)]);
