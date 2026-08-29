@@ -183,6 +183,11 @@ for (const file of [
   load(file);
 }
 
+const sitemap = load("sitemap.xml");
+if (!sitemap.includes("https://titansagency.co/results/")) {
+  failures.push("Sitemap does not include the first-party Results page");
+}
+
 const localFiles = [
   "index.html",
   ...Object.values(offers).map((offer) => offer.file),

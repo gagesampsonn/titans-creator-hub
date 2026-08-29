@@ -4,5 +4,6 @@
   <url><loc>https://titansagency.co/exclusive/</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>
   <url><loc>https://titansagency.co/weekly/</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>
   <url><loc>https://titansagency.co/ai/</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://titansagency.co/results/</loc><changefreq>daily</changefreq><priority>0.8</priority></url>
   <url><loc>https://titansagency.co/brands/</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
 </urlset>
