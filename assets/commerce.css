@@ -561,9 +561,9 @@ summary:focus-visible {
   grid-area: showcase;
   position: relative;
   width: 100%;
-  max-width: 46rem;
-  margin: 32px 0 0;
-  padding: 14px;
+  max-width: 40rem;
+  margin: 24px 0 0;
+  padding: 12px;
   border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 18px;
   background:
@@ -720,7 +720,7 @@ summary:focus-visible {
 
 @media (min-width: 640px) {
   .ai-transformation-showcase {
-    padding: 16px;
+    padding: 12px;
   }
 
   .ai-showcase-flow {
@@ -733,7 +733,7 @@ summary:focus-visible {
 
   .ai-showcase-step {
     display: flex;
-    min-height: 17rem;
+    min-height: 13.5rem;
     flex-direction: column;
     align-items: center;
     justify-content: space-between;
@@ -749,11 +749,11 @@ summary:focus-visible {
   .ai-showcase-media,
   .ai-showcase-character {
     justify-self: auto;
-    width: 7rem;
+    width: 4.75rem;
   }
 
   .ai-showcase-finish .ai-showcase-media {
-    width: 7.5rem;
+    width: 5rem;
   }
 
   .ai-showcase-connector {

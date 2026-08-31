@@ -327,6 +327,12 @@ for (const [asset, expectedHash] of Object.entries(transformationAssets)) {
 }
 
 if (ai) {
+  if (!ai.includes('href="/assets/commerce.css?v=ai-media-compact-20260831"')) {
+    failures.push(
+      "AI page must version its commerce stylesheet so the compact media layout is not served with stale CSS",
+    );
+  }
+
   for (const preservedConversionCopy of [
     "Create realistic AI videos for TikTok Shop.",
     "Get the AI Prompt Builder",
@@ -409,7 +415,9 @@ if (ai) {
 
 for (const requiredCompactShowcaseCss of [
   'grid-template-areas: "copy price" "showcase price";',
-  "max-width: 46rem;",
+  "max-width: 40rem;",
+  "min-height: 13.5rem;",
+  "width: 5rem;",
   "border: 1px solid rgba(255, 255, 255, 0.14);",
 ]) {
   if (!commerceCss.includes(requiredCompactShowcaseCss)) {
