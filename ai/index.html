@@ -107,47 +107,71 @@
             class="ai-transformation-showcase"
             aria-label="A normal vertical video transformed into realistic AI content featuring a different person"
           >
-            <div class="ai-showcase-glow" aria-hidden="true"></div>
-            <div class="ai-showcase-media ai-showcase-source">
-              <video
-                muted
-                loop
-                playsinline
-                preload="none"
-                poster="/assets/hero-example/hero-motion.jpg"
-                data-showcase-video="source"
-                aria-label="Original footage before the person is changed"
-              >
-                <source
-                  src="/assets/hero-example/hero-motion.mp4"
-                  type="video/mp4"
-                />
-              </video>
-            </div>
-            <div class="ai-showcase-character">
-              <img
-                src="/assets/hero-example/hero-character.png"
-                alt="The different person selected for the AI transformation"
-                width="411"
-                height="445"
-                decoding="async"
-              />
-            </div>
-            <div class="ai-showcase-media ai-showcase-result">
-              <video
-                muted
-                loop
-                playsinline
-                preload="metadata"
-                poster="/assets/hero-example/hero-result.jpg"
-                data-showcase-video="result"
-                aria-label="Finished realistic AI video featuring the selected person"
-              >
-                <source
-                  src="/assets/hero-example/hero-result.mp4"
-                  type="video/mp4"
-                />
-              </video>
+            <div class="ai-showcase-flow">
+              <article class="ai-showcase-step ai-showcase-record">
+                <div class="ai-showcase-step-heading">
+                  <span aria-hidden="true">01</span>
+                  <h2>Record a video</h2>
+                </div>
+                <div class="ai-showcase-media">
+                  <video
+                    muted
+                    loop
+                    playsinline
+                    preload="none"
+                    poster="/assets/hero-example/hero-motion.jpg"
+                    data-showcase-video="source"
+                    aria-label="Original footage before the person is changed"
+                  >
+                    <source
+                      src="/assets/hero-example/hero-motion.mp4"
+                      type="video/mp4"
+                    />
+                  </video>
+                </div>
+              </article>
+              <div class="ai-showcase-connector" aria-hidden="true">→</div>
+              <article class="ai-showcase-step ai-showcase-prompts">
+                <div class="ai-showcase-step-heading">
+                  <span aria-hidden="true">02</span>
+                  <h2>Build image + video prompts</h2>
+                </div>
+                <div class="ai-showcase-character">
+                  <img
+                    src="/assets/hero-example/hero-character.png"
+                    alt="The different person selected for the AI transformation"
+                    width="411"
+                    height="445"
+                    decoding="async"
+                  />
+                  <div class="ai-showcase-prompt-tags" aria-hidden="true">
+                    <span>Image prompt</span><span>Video prompt</span>
+                  </div>
+                </div>
+              </article>
+              <div class="ai-showcase-connector" aria-hidden="true">→</div>
+              <article class="ai-showcase-step ai-showcase-finish">
+                <div class="ai-showcase-step-heading">
+                  <span aria-hidden="true">03</span>
+                  <h2>Plug in. Get your AI video.</h2>
+                </div>
+                <div class="ai-showcase-media">
+                  <video
+                    muted
+                    loop
+                    playsinline
+                    preload="metadata"
+                    poster="/assets/hero-example/hero-result.jpg"
+                    data-showcase-video="result"
+                    aria-label="Finished realistic AI video featuring the selected person"
+                  >
+                    <source
+                      src="/assets/hero-example/hero-result.mp4"
+                      type="video/mp4"
+                    />
+                  </video>
+                </div>
+              </article>
             </div>
             <figcaption class="sr-only">
               The source footage and selected character are combined into the

@@ -234,11 +234,11 @@ for (const relativePath of [
 for (const file of [
   "brands/index.html",
   "checkout/complete/index.html",
-  "assets/commerce.css",
   "assets/commerce.js",
 ]) {
   load(file);
 }
+const commerceCss = load("assets/commerce.css");
 
 const applePayAssociation = load(
   ".well-known/apple-developer-merchantid-domain-association",
@@ -339,6 +339,13 @@ if (ai) {
   }
   for (const requiredShowcaseMarkup of [
     'class="ai-transformation-showcase"',
+    'class="ai-showcase-flow"',
+    'class="ai-showcase-step ai-showcase-record"',
+    'class="ai-showcase-step ai-showcase-prompts"',
+    'class="ai-showcase-step ai-showcase-finish"',
+    "Record a video",
+    "Build image + video prompts",
+    "Plug in. Get your AI video.",
     'src="/assets/hero-example/hero-motion.mp4"',
     'poster="/assets/hero-example/hero-motion.jpg"',
     'src="/assets/hero-example/hero-character.png"',
@@ -362,6 +369,14 @@ if (ai) {
   }
 
   const showcaseStart = ai.indexOf('class="ai-transformation-showcase"');
+  const copyStart = ai.indexOf('class="ai-hero-copy"');
+  const copyEnd = ai.indexOf("</div>", copyStart);
+  const priceStart = ai.indexOf('class="price-panel ai-hero-price"');
+  if (!(copyEnd < showcaseStart && showcaseStart < priceStart)) {
+    failures.push(
+      "AI transformation showcase must sit directly after the hero copy and before pricing",
+    );
+  }
   const showcaseEnd = ai.indexOf("</figure>", showcaseStart);
   const showcase = ai.slice(showcaseStart, showcaseEnd);
   const showcaseVideos = [...showcase.matchAll(/<video[\s\S]*?<\/video>/g)].map(
@@ -389,6 +404,18 @@ if (ai) {
     if (video.includes("controls")) {
       failures.push("AI transformation videos must not show native controls");
     }
+  }
+}
+
+for (const requiredCompactShowcaseCss of [
+  'grid-template-areas: "copy price" "showcase price";',
+  "max-width: 46rem;",
+  "border: 1px solid rgba(255, 255, 255, 0.14);",
+]) {
+  if (!commerceCss.includes(requiredCompactShowcaseCss)) {
+    failures.push(
+      `AI showcase is missing compact card styling: ${requiredCompactShowcaseCss}`,
+    );
   }
 }
 

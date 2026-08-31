@@ -523,17 +523,17 @@ summary:focus-visible {
   position: relative;
   min-height: 0;
   overflow: clip;
-  padding-bottom: 64px;
+  padding-bottom: 72px;
 }
 
 .ai-product-hero::after {
   content: "";
   position: absolute;
-  inset: auto -14% -24% 28%;
-  height: 58%;
+  inset: auto -12% -20% 18%;
+  height: 46%;
   background: radial-gradient(
     ellipse at center,
-    rgba(232, 99, 67, 0.12),
+    rgba(232, 99, 67, 0.09),
     transparent 66%
   );
   pointer-events: none;
@@ -553,263 +553,242 @@ summary:focus-visible {
 .ai-hero-copy {
   grid-area: copy;
   position: relative;
-  z-index: 8;
+  z-index: 2;
+  max-width: 48rem;
 }
 
 .ai-transformation-showcase {
   grid-area: showcase;
   position: relative;
-  width: min(100%, 34rem);
-  aspect-ratio: 0.72;
-  margin: 44px auto 0;
-  isolation: isolate;
-}
-
-.ai-transformation-showcase::before {
-  content: "";
-  position: absolute;
-  inset: 9% 2% 5% 8%;
-  z-index: -2;
-  border-radius: 46%;
+  width: 100%;
+  max-width: 46rem;
+  margin: 32px 0 0;
+  padding: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 18px;
   background:
     radial-gradient(
-      circle at 76% 38%,
-      rgba(255, 138, 101, 0.26),
-      transparent 38%
+      circle at 100% 0,
+      rgba(232, 99, 67, 0.1),
+      transparent 40%
     ),
-    radial-gradient(
-      circle at 25% 68%,
-      rgba(232, 99, 67, 0.15),
-      transparent 36%
-    );
-  filter: blur(34px);
+    rgba(10, 10, 12, 0.9);
+  box-shadow:
+    0 18px 50px rgba(0, 0, 0, 0.34),
+    inset 0 1px rgba(255, 255, 255, 0.03);
 }
 
-.ai-transformation-showcase::after {
-  content: "";
-  position: absolute;
-  inset: 8% 3% 4% 4%;
-  z-index: 7;
-  background:
-    linear-gradient(90deg, #000 0, transparent 10%, transparent 92%, #000 100%),
-    linear-gradient(180deg, transparent 68%, rgba(0, 0, 0, 0.72) 100%);
-  pointer-events: none;
+.ai-showcase-flow {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
 }
 
-.ai-showcase-glow {
-  position: absolute;
-  top: 48%;
-  left: 8%;
-  z-index: -1;
-  width: 84%;
-  height: 18%;
-  transform: rotate(-10deg);
-  border-radius: 999px;
-  background: linear-gradient(
-    90deg,
-    rgba(232, 99, 67, 0.02),
-    rgba(232, 99, 67, 0.45) 58%,
-    rgba(255, 138, 101, 0.06)
-  );
-  filter: blur(22px);
-  opacity: 0.72;
+.ai-showcase-step {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 4.5rem;
+  gap: 14px;
+  align-items: center;
+  min-height: 8rem;
+  padding: 12px 12px 12px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 13px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.ai-showcase-step-heading {
+  min-width: 0;
+}
+
+.ai-showcase-step-heading span {
+  display: inline-grid;
+  width: 1.7rem;
+  height: 1.7rem;
+  place-items: center;
+  margin-bottom: 10px;
+  border: 1px solid rgba(232, 99, 67, 0.4);
+  border-radius: 50%;
+  color: var(--titan-coral-light);
+  font-size: 0.63rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+}
+
+.ai-showcase-step h2 {
+  margin: 0;
+  color: #fff;
+  font-size: 0.9rem;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
 }
 
 .ai-showcase-media,
 .ai-showcase-character {
-  position: absolute;
-  overflow: hidden;
-  background: #070707;
-  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.58);
-}
-
-.ai-showcase-media {
-  border: 1px solid rgba(255, 255, 255, 0.14);
-}
-
-.ai-showcase-media video {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.ai-showcase-source {
-  top: 45%;
-  left: 0;
-  z-index: 2;
-  width: 42%;
+  position: relative;
+  justify-self: end;
+  width: 4.25rem;
   aspect-ratio: 9 / 16;
-  transform: rotate(-2.4deg);
-  border-radius: 15px;
-  opacity: 0.74;
-  filter: saturate(0.78) brightness(0.76);
-  animation: ai-showcase-source-in 720ms cubic-bezier(0.22, 1, 0.36, 1)
-    both;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 9px;
+  background: #050505;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.42);
 }
 
-.ai-showcase-character {
-  top: 57%;
-  left: 25%;
-  z-index: 6;
-  width: 30%;
-  aspect-ratio: 0.92;
-  border: 1px solid rgba(255, 138, 101, 0.35);
-  border-radius: 16px 16px 42px 16px;
-  box-shadow:
-    0 24px 60px rgba(0, 0, 0, 0.68),
-    0 0 36px rgba(232, 99, 67, 0.13);
-  animation: ai-showcase-character-in 780ms 100ms
-    cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
+.ai-showcase-media video,
 .ai-showcase-character img {
   display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.ai-showcase-character img {
   object-position: 50% 20%;
 }
 
-.ai-showcase-result {
-  top: 0;
-  right: 0;
-  z-index: 5;
-  width: 70%;
-  aspect-ratio: 9 / 16;
-  border-color: rgba(255, 138, 101, 0.42);
-  border-radius: 19px;
-  box-shadow:
-    0 40px 100px rgba(0, 0, 0, 0.72),
-    0 0 0 1px rgba(232, 99, 67, 0.1),
-    0 0 54px rgba(232, 99, 67, 0.18);
-  animation: ai-showcase-result-in 820ms 140ms
-    cubic-bezier(0.22, 1, 0.36, 1) both;
+.ai-showcase-prompt-tags {
+  position: absolute;
+  inset: auto 5px 5px;
+  display: grid;
+  gap: 3px;
 }
 
-.ai-showcase-result::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.05),
-    transparent 20%,
-    transparent 78%,
-    rgba(0, 0, 0, 0.28)
-  );
-  pointer-events: none;
+.ai-showcase-prompt-tags span {
+  overflow: hidden;
+  padding: 4px 5px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 4px;
+  background: rgba(7, 7, 8, 0.88);
+  color: #fff;
+  font-size: 0.46rem;
+  font-weight: 800;
+  line-height: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ai-showcase-finish {
+  border-color: rgba(232, 99, 67, 0.24);
+  background: rgba(232, 99, 67, 0.045);
+}
+
+.ai-showcase-finish .ai-showcase-media {
+  width: 4.75rem;
+  border-color: rgba(255, 138, 101, 0.48);
+  box-shadow:
+    0 12px 28px rgba(0, 0, 0, 0.48),
+    0 0 20px rgba(232, 99, 67, 0.12);
+}
+
+.ai-showcase-connector {
+  display: grid;
+  height: 1rem;
+  place-items: center;
+  transform: rotate(90deg);
+  color: rgba(255, 138, 101, 0.74);
+  font-size: 0.95rem;
+  line-height: 1;
 }
 
 .ai-hero-price {
   grid-area: price;
   position: relative;
-  z-index: 9;
+  z-index: 2;
   width: 100%;
   margin-top: 36px;
 }
 
-@keyframes ai-showcase-source-in {
+@keyframes ai-showcase-step-in {
   from {
     opacity: 0;
-    transform: translate3d(-24px, 18px, 0) rotate(-5deg);
+    transform: translate3d(0, 10px, 0);
   }
 }
 
-@keyframes ai-showcase-character-in {
-  from {
-    opacity: 0;
-    transform: translate3d(-12px, 26px, 0) scale(0.94);
-  }
+.ai-showcase-step {
+  animation: ai-showcase-step-in 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-@keyframes ai-showcase-result-in {
-  from {
-    opacity: 0;
-    transform: translate3d(28px, 18px, 0) scale(0.97);
+.ai-showcase-prompts {
+  animation-delay: 70ms;
+}
+
+.ai-showcase-finish {
+  animation-delay: 140ms;
+}
+
+@media (min-width: 640px) {
+  .ai-transformation-showcase {
+    padding: 16px;
+  }
+
+  .ai-showcase-flow {
+    grid-template-columns:
+      minmax(0, 1fr) 1.25rem minmax(0, 1fr) 1.25rem
+      minmax(0, 1fr);
+    gap: 0;
+    align-items: stretch;
+  }
+
+  .ai-showcase-step {
+    display: flex;
+    min-height: 17rem;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 14px;
+    text-align: center;
+  }
+
+  .ai-showcase-step-heading span {
+    margin-bottom: 8px;
+  }
+
+  .ai-showcase-media,
+  .ai-showcase-character {
+    justify-self: auto;
+    width: 7rem;
+  }
+
+  .ai-showcase-finish .ai-showcase-media {
+    width: 7.5rem;
+  }
+
+  .ai-showcase-connector {
+    height: auto;
+    transform: none;
   }
 }
 
 @media (min-width: 921px) {
   .ai-product-hero {
-    min-height: 900px;
+    min-height: 780px;
     padding-top: 124px;
     padding-bottom: 84px;
   }
 
   .ai-product-hero-grid {
-    grid-template-columns: minmax(0, 0.92fr) minmax(440px, 1.08fr);
-    grid-template-areas: "copy showcase";
-    column-gap: 28px;
-    align-items: center;
-  }
-
-  .ai-hero-copy {
-    align-self: center;
+    grid-template-columns: minmax(0, 1fr) minmax(300px, 22rem);
+    grid-template-areas: "copy price" "showcase price";
+    column-gap: 48px;
+    row-gap: 28px;
+    align-items: start;
   }
 
   .ai-product-hero h1 {
-    font-size: clamp(3.6rem, 5.2vw, 5.3rem);
+    font-size: clamp(3.45rem, 5vw, 5rem);
   }
 
   .ai-transformation-showcase {
-    width: min(100%, 38rem);
-    aspect-ratio: 0.84;
     margin: 0;
-    justify-self: end;
-  }
-
-  .ai-showcase-source {
-    top: 15%;
-    width: 43%;
-  }
-
-  .ai-showcase-character {
-    top: 39%;
-    left: 26%;
-    width: 29%;
-  }
-
-  .ai-showcase-result {
-    top: 1%;
-    width: 61%;
+    justify-self: start;
   }
 
   .ai-hero-price {
-    position: absolute;
-    right: auto;
-    bottom: -24px;
-    left: calc(50% - 72px);
-    width: min(24rem, 38%);
-    margin: 0;
-    padding: 20px;
-    transform: none;
-    background:
-      radial-gradient(
-        circle at 84% 0,
-        rgba(232, 99, 67, 0.18),
-        transparent 48%
-      ),
-      rgba(14, 14, 16, 0.88);
-    backdrop-filter: blur(18px);
-  }
-
-  .ai-hero-price .product-price strong {
-    font-size: 3rem;
-  }
-
-  .ai-hero-price .feature-list {
-    gap: 6px;
-    margin: 14px 0 18px;
-  }
-
-  .ai-hero-price .feature-list li {
-    font-size: 0.8rem;
-    line-height: 1.35;
-  }
-
-  .ai-hero-price small {
-    font-size: 0.73rem;
+    align-self: start;
+    margin: 22px 0 0;
   }
 }
 
@@ -1210,7 +1189,7 @@ summary:focus-visible {
 
   .ai-transformation-showcase {
     width: min(100%, 23.75rem);
-    margin-top: 36px;
+    margin-top: 28px;
   }
 
   .ai-hero-price {
