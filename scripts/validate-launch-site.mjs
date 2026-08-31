@@ -1,4 +1,5 @@
 import { existsSync, readFileSync } from "node:fs";
+import { createHash } from "node:crypto";
 import { dirname, resolve } from "node:path";
 
 const root = resolve(import.meta.dirname, "..");
@@ -34,6 +35,17 @@ const load = (relativePath) => {
     return "";
   }
   return readFileSync(absolutePath, "utf8");
+};
+const sha256 = (relativePath) => {
+  const absolutePath = resolve(root, relativePath);
+  if (!existsSync(absolutePath)) {
+    failures.push(`Missing required file: ${relativePath}`);
+    return "";
+  }
+  return createHash("sha256")
+    .update(readFileSync(absolutePath))
+    .digest("hex")
+    .toUpperCase();
 };
 
 const home = load("index.html");
@@ -294,6 +306,92 @@ if (promptBuilder && generatorBuilder && promptBuilder !== generatorBuilder) {
   failures.push("Prompt and generator routes do not serve the same current builder");
 }
 
+const transformationAssets = {
+  "assets/hero-example/hero-motion.mp4":
+    "6C222C8BA829992AB454BDD514A3791207C9737D369144DCFBFE3910B303A160",
+  "assets/hero-example/hero-motion.jpg":
+    "B2FF58F1E9321FC7A1369E7399769ACC9622850DA469A73147A3FE7389509A59",
+  "assets/hero-example/hero-character.png":
+    "CBF8178D596D5E77413991881318DCE4CEF1682839E9FE3B81A955C4DE8CE571",
+  "assets/hero-example/hero-result.mp4":
+    "E6E1A9760A665A864A9623CFDFDF31BAE758254FC3C15CB589B21EA7E62A0F83",
+  "assets/hero-example/hero-result.jpg":
+    "C32785A00014EFE5996C944167AE025A24D751AF67B9CB9CB813B5BC77DF1681",
+};
+
+for (const [asset, expectedHash] of Object.entries(transformationAssets)) {
+  const actualHash = sha256(asset);
+  if (actualHash && actualHash !== expectedHash) {
+    failures.push(`AI transformation asset does not match Gage Prompter: ${asset}`);
+  }
+}
+
+if (ai) {
+  for (const preservedConversionCopy of [
+    "Create realistic AI videos for TikTok Shop.",
+    "Get the AI Prompt Builder",
+    "See how it works",
+    "Buy AI Content",
+  ]) {
+    if (!ai.includes(preservedConversionCopy)) {
+      failures.push(`AI redesign removed conversion content: ${preservedConversionCopy}`);
+    }
+  }
+  for (const requiredShowcaseMarkup of [
+    'class="ai-transformation-showcase"',
+    'src="/assets/hero-example/hero-motion.mp4"',
+    'poster="/assets/hero-example/hero-motion.jpg"',
+    'src="/assets/hero-example/hero-character.png"',
+    'src="/assets/hero-example/hero-result.mp4"',
+    'poster="/assets/hero-example/hero-result.jpg"',
+    'data-showcase-video="source"',
+    'data-showcase-video="result"',
+  ]) {
+    if (!ai.includes(requiredShowcaseMarkup)) {
+      failures.push(`AI hero is missing transformation showcase markup: ${requiredShowcaseMarkup}`);
+    }
+  }
+  for (const forbiddenShowcaseLabel of [
+    "Motion Reference",
+    "Character Image",
+    "Final AI Video",
+  ]) {
+    if (ai.includes(forbiddenShowcaseLabel)) {
+      failures.push(`AI page uses forbidden tutorial label: ${forbiddenShowcaseLabel}`);
+    }
+  }
+
+  const showcaseStart = ai.indexOf('class="ai-transformation-showcase"');
+  const showcaseEnd = ai.indexOf("</figure>", showcaseStart);
+  const showcase = ai.slice(showcaseStart, showcaseEnd);
+  const showcaseVideos = [...showcase.matchAll(/<video[\s\S]*?<\/video>/g)].map(
+    (match) => match[0],
+  );
+  if (showcaseVideos.length !== 2) {
+    failures.push(
+      `AI transformation showcase must contain exactly two videos; found ${showcaseVideos.length}`,
+    );
+  }
+  for (const video of showcaseVideos) {
+    for (const requiredVideoAttribute of [
+      "muted",
+      "loop",
+      "playsinline",
+      "poster=",
+      "preload=",
+    ]) {
+      if (!video.includes(requiredVideoAttribute)) {
+        failures.push(
+          `AI transformation video is missing ${requiredVideoAttribute}`,
+        );
+      }
+    }
+    if (video.includes("controls")) {
+      failures.push("AI transformation videos must not show native controls");
+    }
+  }
+}
+
 for (const requiredBuilderSignature of [
   "Titans Higgsfield Helper",
   "Create Realistic AI TikTok Shop Videos",
@@ -328,10 +426,14 @@ for (const retiredBuilderSignature of [
 }
 
 for (const match of promptBuilder.matchAll(
-  /(?:src|poster)="(assets\/[^"]+)"/g,
+  /(?:src|poster)="(\/?assets\/[^"]+)"/g,
 )) {
-  for (const route of ["prompt", "generator"]) {
-    load(`${route}/${match[1]}`);
+  if (match[1].startsWith("/")) {
+    load(match[1].slice(1));
+  } else {
+    for (const route of ["prompt", "generator"]) {
+      load(`${route}/${match[1]}`);
+    }
   }
 }
 

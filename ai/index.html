@@ -77,9 +77,9 @@
     </header>
 
     <main id="main-content">
-      <section class="product-hero">
-        <div class="product-hero-grid">
-          <div>
+      <section class="product-hero ai-product-hero">
+        <div class="product-hero-grid ai-product-hero-grid">
+          <div class="ai-hero-copy">
             <p class="eyebrow">AI Content · Standalone purchase</p>
             <h1>Create realistic AI videos for TikTok Shop.</h1>
             <p class="product-hero-copy">
@@ -103,7 +103,61 @@
               >.
             </p>
           </div>
-          <aside class="price-panel" aria-label="Titans AI Content pricing">
+          <figure
+            class="ai-transformation-showcase"
+            aria-label="A normal vertical video transformed into realistic AI content featuring a different person"
+          >
+            <div class="ai-showcase-glow" aria-hidden="true"></div>
+            <div class="ai-showcase-media ai-showcase-source">
+              <video
+                muted
+                loop
+                playsinline
+                preload="none"
+                poster="/assets/hero-example/hero-motion.jpg"
+                data-showcase-video="source"
+                aria-label="Original footage before the person is changed"
+              >
+                <source
+                  src="/assets/hero-example/hero-motion.mp4"
+                  type="video/mp4"
+                />
+              </video>
+            </div>
+            <div class="ai-showcase-character">
+              <img
+                src="/assets/hero-example/hero-character.png"
+                alt="The different person selected for the AI transformation"
+                width="411"
+                height="445"
+                decoding="async"
+              />
+            </div>
+            <div class="ai-showcase-media ai-showcase-result">
+              <video
+                muted
+                loop
+                playsinline
+                preload="metadata"
+                poster="/assets/hero-example/hero-result.jpg"
+                data-showcase-video="result"
+                aria-label="Finished realistic AI video featuring the selected person"
+              >
+                <source
+                  src="/assets/hero-example/hero-result.mp4"
+                  type="video/mp4"
+                />
+              </video>
+            </div>
+            <figcaption class="sr-only">
+              The source footage and selected character are combined into the
+              finished AI-generated video.
+            </figcaption>
+          </figure>
+          <aside
+            class="price-panel ai-hero-price"
+            aria-label="Titans AI Content pricing"
+          >
             <p class="eyebrow">Buy it by itself</p>
             <p class="product-price">
               <strong>$29.99</strong><span> one-time</span>
@@ -425,5 +479,53 @@
         access are securely managed by Whop.
       </p>
     </footer>
+    <script>
+      (() => {
+        const showcaseVideos = Array.from(
+          document.querySelectorAll("[data-showcase-video]"),
+        );
+        const visibleVideos = new Set();
+        const reducedMotion = window.matchMedia(
+          "(prefers-reduced-motion: reduce)",
+        );
+        const mobileLayout = window.matchMedia("(max-width: 560px)");
+
+        const syncPlayback = () => {
+          for (const video of showcaseVideos) {
+            const isPrimary = video.dataset.showcaseVideo === "result";
+            const shouldPlay =
+              visibleVideos.has(video) &&
+              !document.hidden &&
+              !reducedMotion.matches &&
+              (!mobileLayout.matches || isPrimary);
+
+            if (shouldPlay) {
+              video.play().catch(() => {});
+            } else {
+              video.pause();
+            }
+          }
+        };
+
+        const observer = new IntersectionObserver(
+          (entries) => {
+            for (const entry of entries) {
+              if (entry.isIntersecting) {
+                visibleVideos.add(entry.target);
+              } else {
+                visibleVideos.delete(entry.target);
+              }
+            }
+            syncPlayback();
+          },
+          { rootMargin: "120px 0px", threshold: 0.12 },
+        );
+
+        showcaseVideos.forEach((video) => observer.observe(video));
+        document.addEventListener("visibilitychange", syncPlayback);
+        reducedMotion.addEventListener("change", syncPlayback);
+        mobileLayout.addEventListener("change", syncPlayback);
+      })();
+    </script>
   </body>
 </html>
