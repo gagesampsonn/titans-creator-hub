@@ -288,8 +288,51 @@ for (const relativePath of localFiles) {
   }
 }
 
-for (const protectedTool of ["prompt/index.html", "generator/index.html"]) {
-  load(protectedTool);
+const promptBuilder = load("prompt/index.html");
+const generatorBuilder = load("generator/index.html");
+if (promptBuilder && generatorBuilder && promptBuilder !== generatorBuilder) {
+  failures.push("Prompt and generator routes do not serve the same current builder");
+}
+
+for (const requiredBuilderSignature of [
+  "Titans Higgsfield Helper",
+  "Create Realistic AI TikTok Shop Videos",
+  'id="tiktokForm"',
+  'id="characterForm"',
+  'id="imagePromptMode"',
+  'id="professionSelect"',
+  'id="promptForm"',
+  'id="strictness"',
+  "function buildCharacterPrompt",
+  "function buildAvatarPrompt",
+  "function buildPrompt",
+  'const TIKTOK_API_BASE = "https://app.titansagency.co"',
+]) {
+  if (promptBuilder && !promptBuilder.includes(requiredBuilderSignature)) {
+    failures.push(
+      `Protected Prompt Builder is missing the current Gage Sampson behavior: ${requiredBuilderSignature}`,
+    );
+  }
+}
+
+for (const retiredBuilderSignature of [
+  "Titans AI Prompt Builder",
+  "cdn.tailwindcss.com",
+  'id="generateBtn"',
+]) {
+  if (promptBuilder && promptBuilder.includes(retiredBuilderSignature)) {
+    failures.push(
+      `Protected Prompt Builder still contains the retired implementation: ${retiredBuilderSignature}`,
+    );
+  }
+}
+
+for (const match of promptBuilder.matchAll(
+  /(?:src|poster)="(assets\/[^"]+)"/g,
+)) {
+  for (const route of ["prompt", "generator"]) {
+    load(`${route}/${match[1]}`);
+  }
 }
 
 const authServer = load("whop-auth/server.mjs");
