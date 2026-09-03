@@ -1144,6 +1144,12 @@
       line-height: 1.5;
     }
 
+    .instagram-downloader {
+      margin-top: 20px;
+      border-top: 1px solid var(--faint);
+      padding-top: 20px;
+    }
+
     .video-collage {
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -3128,6 +3134,44 @@
                 <p class="tiktok-video1-note">After downloading, upload the MP4 to Higgsfield as <strong>@Video1</strong>. It becomes the motion, camera, framing, timing, and performance reference for your generation.</p>
               </div>
             </div>
+
+            <div class="instagram-downloader" id="instagramDownloader">
+              <div class="tiktok-downloader-head">
+                <div>
+                  <h3>Download an Instagram Reference Video</h3>
+                  <p>Paste a public Instagram post or Reel link to get the highest-quality video available.</p>
+                </div>
+              </div>
+
+              <form id="instagramForm" novalidate>
+                <div class="field">
+                  <label for="instagramUrl">Instagram Post or Reel Link</label>
+                  <div class="tiktok-input-row">
+                    <input id="instagramUrl" name="instagramUrl" type="text" inputmode="url" autocomplete="url" placeholder="Paste Instagram link..." required />
+                    <button class="btn orange" id="instagramResolveBtn" type="submit">Get Video</button>
+                  </div>
+                </div>
+                <p class="tiktok-status" id="instagramStatus" role="status" aria-live="polite"></p>
+              </form>
+
+              <div class="tiktok-result is-hidden" id="instagramResult">
+                <div class="tiktok-result-media">
+                  <img id="instagramThumbnail" alt="Instagram reference video preview" />
+                  <span class="tiktok-result-placeholder is-hidden" id="instagramPreviewFallback">Instagram video ready</span>
+                </div>
+                <div class="tiktok-result-copy">
+                  <div class="tiktok-result-meta">
+                    <span class="tiktok-username" id="instagramUsername"></span>
+                    <span class="tiktok-quality" id="instagramQuality"></span>
+                    <span class="tiktok-resolution" id="instagramResolution"></span>
+                  </div>
+                  <p class="tiktok-title" id="instagramTitle"></p>
+                  <a class="btn orange tiktok-download-btn" id="instagramDownloadBtn" href="#">Download Video</a>
+                  <span class="tiktok-download-note">Highest quality available</span>
+                  <p class="tiktok-video1-note">After downloading, upload the MP4 to Higgsfield as <strong>@Video1</strong>. It becomes the motion, camera, framing, timing, and performance reference for your generation.</p>
+                </div>
+              </div>
+            </div>
           </div>
 
           <div class="step-note">
@@ -3926,6 +3970,96 @@
         );
       } finally {
         setTikTokLoading(false);
+      }
+    });
+
+    const instagramForm = document.getElementById("instagramForm");
+    const instagramUrl = document.getElementById("instagramUrl");
+    const instagramResolveBtn = document.getElementById("instagramResolveBtn");
+    const instagramStatus = document.getElementById("instagramStatus");
+    const instagramResult = document.getElementById("instagramResult");
+    const instagramThumbnail = document.getElementById("instagramThumbnail");
+    const instagramPreviewFallback = document.getElementById("instagramPreviewFallback");
+    const instagramUsername = document.getElementById("instagramUsername");
+    const instagramQuality = document.getElementById("instagramQuality");
+    const instagramResolution = document.getElementById("instagramResolution");
+    const instagramTitle = document.getElementById("instagramTitle");
+    const instagramDownloadBtn = document.getElementById("instagramDownloadBtn");
+
+    function setInstagramStatus(message, isError = false) {
+      instagramStatus.textContent = message;
+      instagramStatus.classList.toggle("error", isError);
+    }
+
+    function setInstagramLoading(isLoading) {
+      instagramResolveBtn.disabled = isLoading;
+      instagramResolveBtn.textContent = isLoading ? "Finding video..." : "Get Video";
+    }
+
+    function showInstagramResult(video) {
+      instagramUsername.textContent = video.username || "Instagram creator";
+      instagramQuality.textContent = video.quality || "Best available";
+      instagramResolution.textContent = video.width && video.height
+        ? `${video.width} x ${video.height}`
+        : "Best available";
+      instagramTitle.textContent = video.title || "Instagram reference video";
+      instagramDownloadBtn.href = video.downloadUrl;
+      instagramDownloadBtn.textContent = video.quality === "HD"
+        ? "Download HD Video"
+        : "Download Video";
+
+      if (video.thumbnail) {
+        instagramThumbnail.src = video.thumbnail;
+        instagramThumbnail.classList.remove("is-hidden");
+        instagramPreviewFallback.classList.add("is-hidden");
+      } else {
+        instagramThumbnail.removeAttribute("src");
+        instagramThumbnail.classList.add("is-hidden");
+        instagramPreviewFallback.classList.remove("is-hidden");
+      }
+
+      instagramResult.classList.remove("is-hidden");
+    }
+
+    instagramThumbnail.addEventListener("error", () => {
+      instagramThumbnail.classList.add("is-hidden");
+      instagramPreviewFallback.classList.remove("is-hidden");
+    });
+
+    instagramForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const url = instagramUrl.value.trim();
+      instagramResult.classList.add("is-hidden");
+      if (!url) {
+        setInstagramStatus("Paste an Instagram post or Reel link first.", true);
+        instagramUrl.focus();
+        return;
+      }
+
+      setInstagramLoading(true);
+      setInstagramStatus("Finding video...");
+      try {
+        const response = await fetch(`${TIKTOK_API_BASE}/api/instagram/resolve`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ url })
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || !data.success) {
+          throw new Error(data.error?.message || "The Instagram video could not be loaded.");
+        }
+
+        showInstagramResult(data);
+        setInstagramStatus("Video ready to download.");
+      } catch (error) {
+        setInstagramStatus(
+          error instanceof Error
+            ? error.message
+            : "The Instagram video could not be loaded. Try again.",
+          true
+        );
+      } finally {
+        setInstagramLoading(false);
       }
     });
 
