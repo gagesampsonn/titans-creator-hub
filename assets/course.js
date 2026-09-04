@@ -45,8 +45,8 @@
   async function api(path, options = {}) {
     const response = await fetch(path, {
       credentials: "same-origin",
-      headers: { Accept: "application/json", ...options.headers },
       ...options,
+      headers: { Accept: "application/json", ...options.headers },
     });
     const payload = await response.json().catch(() => null);
     if (!response.ok) {
