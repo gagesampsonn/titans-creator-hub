@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Titans Course | Titans Exclusive</title>
+    <meta
+      name="description"
+      content="The private course library for active Titans Exclusive members."
+    />
+    <link rel="icon" type="image/png" href="/assets/icon.png" />
+    <link rel="stylesheet" href="/assets/course.css" />
+    <script
+      type="module"
+      src="https://cdn.jsdelivr.net/npm/@mux/mux-player@3.13.2"
+    ></script>
+    <script src="/assets/course.js" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#lesson-area">Skip to lesson</a>
+    <header class="course-header">
+      <a class="course-brand" href="/" aria-label="TikTok Titans home">
+        <img src="/assets/icon.png" alt="" width="34" height="34" />
+        <span>Titans</span>
+      </a>
+      <div class="header-progress" aria-label="Course progress">
+        <span data-progress-label>Loading course...</span>
+        <progress data-progress value="0" max="1">0%</progress>
+      </div>
+      <div class="header-actions">
+        <a href="/exclusive/">Exclusive home</a>
+        <form method="post" action="/auth/whop/logout">
+          <button type="submit">Sign out</button>
+        </form>
+      </div>
+    </header>
+
+    <main class="course-layout">
+      <aside class="course-nav" aria-label="Course lessons">
+        <div class="nav-heading">
+          <div>
+            <p>Member course</p>
+            <h1>Learn at your pace.</h1>
+          </div>
+          <button
+            class="nav-toggle"
+            type="button"
+            aria-expanded="false"
+            aria-controls="course-navigation"
+            data-nav-toggle
+          >
+            Browse lessons
+          </button>
+        </div>
+        <div id="course-navigation" class="nav-content" data-nav-content>
+          <div class="course-picker" data-course-picker aria-label="Choose a course"></div>
+          <div class="chapter-list" data-chapter-list></div>
+        </div>
+      </aside>
+
+      <section id="lesson-area" class="lesson-area" aria-labelledby="lesson-title">
+        <div class="lesson-state" data-loading-state role="status">
+          <span class="loading-line loading-line-short"></span>
+          <span class="loading-line loading-line-title"></span>
+          <span class="loading-player"></span>
+        </div>
+
+        <div class="lesson-error" data-error-state hidden>
+          <h2>We couldn't load the course.</h2>
+          <p data-error-message>Please try again in a moment.</p>
+          <button class="button-primary" type="button" data-retry>Try again</button>
+        </div>
+
+        <article data-lesson-content hidden>
+          <p class="lesson-path" data-lesson-path></p>
+          <h2 id="lesson-title" data-lesson-title></h2>
+          <div class="media-shell" data-media-shell></div>
+          <div class="lesson-copy" data-lesson-copy></div>
+          <div class="attachments" data-attachments hidden>
+            <h3>Lesson files</h3>
+            <ul data-attachment-list></ul>
+          </div>
+          <nav class="lesson-actions" aria-label="Lesson navigation">
+            <button class="button-secondary" type="button" data-previous>
+              <span aria-hidden="true">←</span> Previous
+            </button>
+            <button class="button-primary complete-button" type="button" data-complete>
+              Mark complete
+            </button>
+            <button class="button-secondary" type="button" data-next>
+              Next <span aria-hidden="true">→</span>
+            </button>
+          </nav>
+        </article>
+        <p class="sr-only" aria-live="polite" data-announcer></p>
+      </section>
+    </main>
+  </body>
+</html>

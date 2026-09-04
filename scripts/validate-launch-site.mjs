@@ -211,6 +211,41 @@ for (const requiredExclusiveBenefit of [
     );
   }
 }
+if (
+  exclusive &&
+  !exclusive.includes('/auth/whop/login?next=%2Fexclusive%2Fcourse%2F')
+) {
+  failures.push("Exclusive page does not link members to the protected course");
+}
+
+const coursePage = load("exclusive/course/index.html");
+const courseCss = load("assets/course.css");
+const courseJs = load("assets/course.js");
+for (const requiredCourseSignature of [
+  'data-course-picker',
+  'data-chapter-list',
+  'data-complete',
+  'data-previous',
+  'data-next',
+]) {
+  if (coursePage && !coursePage.includes(requiredCourseSignature)) {
+    failures.push(`Course page is missing: ${requiredCourseSignature}`);
+  }
+}
+for (const requiredCourseBehavior of [
+  'api("/course-api/catalog")',
+  '/course-api/lessons/',
+  'document.createElement("mux-player")',
+  'https://www.youtube-nocookie.com/embed/',
+  'https://www.loom.com/embed/',
+]) {
+  if (courseJs && !courseJs.includes(requiredCourseBehavior)) {
+    failures.push(`Course interface is missing: ${requiredCourseBehavior}`);
+  }
+}
+if (courseCss && !courseCss.includes("@media (max-width: 900px)")) {
+  failures.push("Course interface is missing its mobile layout");
+}
 
 const resultsUrl = "/results/";
 for (const relativePath of [
@@ -479,9 +514,22 @@ const authServer = load("whop-auth/server.mjs");
 for (const requiredAccessResource of [
   "WHOP_AI_PRODUCT_ID",
   "WHOP_EXCLUSIVE_PRODUCT_ID",
+  "WHOP_COURSE_IDS",
+  'url.pathname === "/course-api/catalog"',
 ]) {
   if (!authServer.includes(requiredAccessResource)) {
     failures.push(`Whop auth gateway is missing ${requiredAccessResource}`);
+  }
+}
+
+const caddyRoutes = load("whop-auth/Caddyfile.routes");
+for (const requiredRoute of [
+  "handle /course-api/*",
+  "@exclusive_course path /exclusive/course /exclusive/course/*",
+  "uri /auth/whop/check-course",
+]) {
+  if (caddyRoutes && !caddyRoutes.includes(requiredRoute)) {
+    failures.push(`Caddy route contract is missing: ${requiredRoute}`);
   }
 }
 
