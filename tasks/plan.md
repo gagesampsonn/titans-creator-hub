@@ -1,52 +1,92 @@
-# Implementation Plan: Vera-Inspired Titans Storefront
+# Implementation Plan: Titans Exclusive Course Draft
 
 ## Overview
 
-Strengthen the Titans storefront with the conversion logic observed on Vera Scripts while preserving Titans' dark coral identity, verified Whop products, first-party proof, and product-first homepage structure.
+Build a protected course library at `/exclusive/course/` that mirrors the
+three approved Whop courses and keeps progress native to Whop. Preserve the
+public `/exclusive/` sales page and add one obvious member entry point. The
+first delivery is a local, reviewable rough draft; production deployment waits
+for visual approval.
 
 ## Architecture Decisions
 
-- Keep the site dependency-free and static; extend the existing shared HTML/CSS system.
-- Keep all verified prices, plan links, access boundaries, and Whop authentication routes unchanged.
-- Use only existing Titans media and factual claims. No fabricated counters, testimonials, discounts, or guarantees.
-- Apply Vera-inspired hierarchy, section rhythm, proof sequencing, and mobile card peeks without copying Vera's brand assets or language.
+- Extend the existing dependency-free Whop authentication service instead of
+  introducing a second login or backend.
+- Gate the course page and every API request on live Titans Exclusive product
+  access; AI-only and Weekly-only users remain denied.
+- Read course metadata with the server-held Whop credential and use an explicit
+  allowlist for the three current course IDs.
+- Fetch full lesson content only when selected so signed Mux tokens are fresh
+  and never included in the catalog response.
+- Mint short-lived Whop user tokens server-side for progress reads and writes;
+  do not create a Titans progress database.
+- Keep the frontend static and dependency-light. Use Mux Player for hosted
+  video, provider embeds for Loom/YouTube, and a contained PDF viewer.
+- Use `/exclusive/course/` for the member area while keeping `/exclusive/`
+  public for sales and checkout.
+
+## Dependency Graph
+
+```text
+Existing Whop session
+  -> Exclusive-only page/API gate
+    -> Allowlisted course catalog and lesson detail API
+      -> Native Whop progress API
+        -> Responsive course player UI
+          -> Exclusive sales-page entry point
+```
 
 ## Task List
 
-### Phase 1: Conversion Architecture
+### Phase 1: Protected data path
 
-- [x] Reframe the homepage around the creator's desired outcome and three clear product paths.
-- [x] Add first-party proof immediately after the offer selector.
-- [x] Add a three-step mechanism, objection handling, and a final future-state CTA.
+- [ ] Task 1: Add the Exclusive-only page and API authorization contract.
+- [ ] Task 2: Add allowlisted Whop catalog and lesson-detail endpoints.
 
-### Checkpoint: Conversion Architecture
+### Checkpoint: Protected catalog
 
-- [x] Product selector remains the first homepage section.
-- [x] Prices, routes, and product boundaries remain accurate.
-- [x] Launch validation passes.
+- [ ] Existing Prompt Builder authentication tests still pass.
+- [ ] Signed-out, Weekly-only, and AI-only users fail closed.
+- [ ] Only the three approved courses and visible lessons are returned.
 
-### Phase 2: Visual System and Responsive Polish
+### Phase 2: Member progress and interface
 
-- [x] Add charcoal surfaces, subtle grid/glow, bordered cards, and stronger CTA hierarchy.
-- [x] Add mobile horizontal card previews with scroll snapping and no horizontal page overflow.
-- [x] Preserve visible focus states, reduced-motion behavior, heading order, and touch target sizes.
+- [ ] Task 3: Add native Whop lesson progress endpoints with CSRF protection.
+- [ ] Task 4: Build the accessible desktop/mobile course shell.
+- [ ] Task 5: Connect Mux, Loom, YouTube, PDF, navigation, and completion states.
 
-### Checkpoint: Complete
+### Checkpoint: Complete member flow
 
-- [x] Authentication tests and launch validation pass.
-- [x] Desktop and mobile browser screenshots match the intended hierarchy.
-- [x] Browser console contains no new first-party errors.
-- [x] `dist/`, secrets, auth code, and deployment files remain untouched.
+- [ ] A test member can sign in, open content, change chapters, complete a
+  lesson, refresh, and see the saved state.
+- [ ] Keyboard navigation and 320/768/1024/1440 responsive checks pass.
+- [ ] Browser console and same-origin network requests are clean.
+
+### Phase 3: Rough-draft handoff
+
+- [ ] Task 6: Add the public Exclusive-page member entry point and validate all
+  existing launch routes.
+- [ ] Task 7: Produce local desktop and mobile screenshots for user review.
+
+### Checkpoint: Ready for visual review
+
+- [ ] Full auth/course test suite passes.
+- [ ] Static launch validation passes.
+- [ ] No secrets, generated output, homepage, pricing, or unrelated sections
+  changed.
+- [ ] No production deployment occurs before the user approves the draft.
 
 ## Risks and Mitigations
 
 | Risk | Impact | Mitigation |
 | --- | --- | --- |
-| Homepage becomes too long or generic | Medium | Keep each section focused on one conversion question and reuse only real Titans assets. |
-| Visual changes weaken Titans identity | Medium | Retain Inter, black/coral tokens, Titans logo, and restrained motion. |
-| Mobile swipe cards hide choices | Medium | Show a visible next-card peek, keep all links keyboard reachable, and avoid page-level overflow. |
-| Marketing copy overpromises | High | Use verified product facts, first-party proof, and explicit results disclaimers. |
+| Broad Whop credential could expose unrelated business APIs | High | Keep it server-only, never log it, return a strict response allowlist, and scope minted member tokens |
+| Whop response fields differ from older documentation | Medium | Normalize only observed fields and use boundary fixtures in tests |
+| Signed Mux tokens expire | Medium | Fetch lesson detail on selection and send `Cache-Control: no-store` |
+| A valid Whop lesson ID could bypass the intended catalog | High | Resolve every lesson through the server-owned course allowlist before returning content or mutating progress |
+| Static interface becomes difficult on mobile | Medium | Use one-column mobile flow, semantic accordions, and breakpoint browser checks |
 
 ## Open Questions
 
-- None blocking. Deployment remains outside this task unless separately requested.
+- None blocking. Visual hierarchy and wording will be reviewed from the rough
+  draft before production deployment.
