@@ -3,6 +3,8 @@ import { realpathSync } from "node:fs";
 import http from "node:http";
 import { fileURLToPath } from "node:url";
 
+import { CourseProviderError, createCourseService } from "./course.mjs";
+
 const WHOP_AUTHORIZE_URL = "https://api.whop.com/oauth/authorize";
 const WHOP_TOKEN_URL = "https://api.whop.com/oauth/token";
 const WHOP_USERINFO_URL = "https://api.whop.com/oauth/userinfo";
@@ -274,6 +276,16 @@ async function hasAiAccess(config, fetchFn, userId) {
   return checkProductAccess(config, fetchFn, userId, config.exclusiveProductId);
 }
 
+function sendJson(res, status, value) {
+  send(res, status, JSON.stringify(value), {
+    "Content-Type": "application/json; charset=utf-8",
+  });
+}
+
+function sendCourseError(res, status, code, message) {
+  sendJson(res, status, { error: { code, message } });
+}
+
 async function hasExclusiveAccess(config, fetchFn, userId) {
   return checkProductAccess(config, fetchFn, userId, config.exclusiveProductId);
 }
@@ -407,6 +419,56 @@ async function handleAccessCheck(req, res, config, fetchFn) {
   }
 }
 
+function courseCsrfToken(config, userId) {
+  return signValue(
+    {
+      sub: userId,
+      purpose: "course_progress",
+      exp: Math.floor(Date.now() / 1000) + 60 * 60,
+    },
+    config.whopSessionSecret,
+  );
+}
+
+function validCourseCsrf(req, config, userId) {
+  const value = req.headers["x-csrf-token"];
+  const token = verifyValue(typeof value === "string" ? value : "", config.whopSessionSecret);
+  return (
+    token?.sub === userId &&
+    token?.purpose === "course_progress" &&
+    Number.isInteger(token.exp) &&
+    token.exp > Math.floor(Date.now() / 1000)
+  );
+}
+
+async function authorizeCourseApi(req, res, config, fetchFn) {
+  const session = getSession(req, config);
+  if (!session) {
+    sendCourseError(res, 401, "authentication_required", "Sign in with Whop to continue.");
+    return null;
+  }
+  if (!(await hasExclusiveAccess(config, fetchFn, session.sub))) {
+    sendCourseError(res, 403, "exclusive_access_required", "An active Titans Exclusive membership is required.");
+    return null;
+  }
+  return session;
+}
+
+function courseProviderFailure(res, error) {
+  if (error instanceof CourseProviderError) {
+    sendCourseError(
+      res,
+      error.status,
+      error.code,
+      error.status === 503
+        ? "The course provider is temporarily unavailable."
+        : "The course provider returned an invalid response.",
+    );
+    return;
+  }
+  throw error;
+}
+
 async function handleCourseAccessCheck(req, res, config, fetchFn) {
   const requestedPath = normalizeNextPath(req.headers["x-forwarded-uri"]);
   const session = getSession(req, config);
@@ -451,6 +513,10 @@ function loadConfig(env = process.env) {
     sessionMaxAgeSeconds: Number(
       env.WHOP_SESSION_MAX_AGE_SECONDS ?? DEFAULT_SESSION_MAX_AGE_SECONDS,
     ),
+    courseIds: (env.WHOP_COURSE_IDS ?? "")
+      .split(",")
+      .map((value) => value.trim())
+      .filter(Boolean),
   };
   const required = [
     "whopApiKey",
@@ -458,6 +524,7 @@ function loadConfig(env = process.env) {
     "whopSessionSecret",
     "aiProductId",
     "exclusiveProductId",
+    "courseIds",
   ];
   const missing = required.filter((key) => !config[key]);
   if (missing.length) {
@@ -466,10 +533,17 @@ function loadConfig(env = process.env) {
   if (config.whopSessionSecret.length < 32) {
     throw new Error("WHOP_SESSION_SECRET must contain at least 32 characters");
   }
+  if (
+    config.courseIds.length === 0 ||
+    config.courseIds.some((id) => !/^cors_[A-Za-z0-9_]+$/.test(id))
+  ) {
+    throw new Error("WHOP_COURSE_IDS must contain valid comma-separated course IDs");
+  }
   return config;
 }
 
 export function createAuthServer(config, { fetchFn = fetch } = {}) {
+  const courseService = createCourseService(config, { fetchFn });
   return http.createServer(async (req, res) => {
     const url = new URL(req.url ?? "/", config.baseUrl);
     try {
@@ -491,6 +565,73 @@ export function createAuthServer(config, { fetchFn = fetch } = {}) {
       }
       if (req.method === "GET" && url.pathname === "/auth/whop/check-course") {
         await handleCourseAccessCheck(req, res, config, fetchFn);
+        return;
+      }
+      if (req.method === "GET" && url.pathname === "/course-api/catalog") {
+        const session = await authorizeCourseApi(req, res, config, fetchFn);
+        if (!session) return;
+        try {
+          const catalog = await courseService.getCatalog(session.sub);
+          sendJson(res, 200, {
+            data: { ...catalog, csrfToken: courseCsrfToken(config, session.sub) },
+          });
+        } catch (error) {
+          courseProviderFailure(res, error);
+        }
+        return;
+      }
+      const lessonMatch = url.pathname.match(
+        /^\/course-api\/lessons\/(lesn_[A-Za-z0-9_]+)(?:\/(start|complete))?$/,
+      );
+      if (lessonMatch) {
+        const session = await authorizeCourseApi(req, res, config, fetchFn);
+        if (!session) return;
+        const [, lessonId, action] = lessonMatch;
+        try {
+          if (!action && req.method === "GET") {
+            const lesson = await courseService.getLesson(lessonId);
+            if (!lesson) {
+              sendCourseError(res, 404, "lesson_not_found", "Lesson not found.");
+              return;
+            }
+            sendJson(res, 200, { data: lesson });
+            return;
+          }
+          if (action && req.method === "POST") {
+            if (isRateLimited(req, "course-progress", 90)) {
+              sendCourseError(res, 429, "rate_limit_exceeded", "Please wait before trying again.");
+              return;
+            }
+            if (req.headers.origin !== config.baseUrl) {
+              sendCourseError(res, 403, "invalid_request_origin", "Request origin could not be verified.");
+              return;
+            }
+            if (!(req.headers["content-type"] ?? "").toLowerCase().startsWith("application/json")) {
+              sendCourseError(res, 415, "invalid_content_type", "JSON is required.");
+              return;
+            }
+            if (!validCourseCsrf(req, config, session.sub)) {
+              sendCourseError(res, 403, "invalid_csrf_token", "Refresh the course and try again.");
+              return;
+            }
+            const updated = await courseService.updateProgress(session.sub, lessonId, action);
+            if (!updated) {
+              sendCourseError(res, 404, "lesson_not_found", "Lesson not found.");
+              return;
+            }
+            sendJson(
+              res,
+              200,
+              action === "start"
+                ? { data: { started: true } }
+                : { data: { lessonId, completed: true } },
+            );
+            return;
+          }
+          sendCourseError(res, 405, "method_not_allowed", "Method not allowed.");
+        } catch (error) {
+          courseProviderFailure(res, error);
+        }
         return;
       }
       if (req.method === "GET" && url.pathname === "/auth/whop/access-required") {

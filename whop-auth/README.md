@@ -1,7 +1,8 @@
 # Titans Whop authentication gateway
 
 This small, dependency-free Node service connects the Titans site to Whop OAuth
-and protects the AI Prompt Builder with live Whop product access checks.
+and protects the AI Prompt Builder and Titans Exclusive course library with
+live Whop product access checks.
 
 ## Access contract
 
@@ -14,6 +15,12 @@ and protects the AI Prompt Builder with live Whop product access checks.
   Content product or Titans Exclusive.
 - `GET /auth/whop/access-required` explains the eligible products. Titans
   Weekly alone does not unlock the tool.
+- `GET /auth/whop/check-course` protects `/exclusive/course/` for active
+  Titans Exclusive members.
+- `GET /course-api/catalog` and `GET /course-api/lessons/{id}` return the
+  allowlisted Whop course content and the signed-in member's progress.
+- `POST /course-api/lessons/{id}/start` and `/complete` record progress in
+  Whop. They require the catalog's signed CSRF token.
 - `POST /auth/whop/logout` clears the Titans session.
 - `GET /auth/whop/healthz` is the deployment health check.
 
@@ -26,6 +33,7 @@ WHOP_APP_ID
 WHOP_SESSION_SECRET
 WHOP_AI_PRODUCT_ID
 WHOP_EXCLUSIVE_PRODUCT_ID
+WHOP_COURSE_IDS
 WHOP_REDIRECT_URI
 ```
 
@@ -35,7 +43,7 @@ Optional variables are `PORT`, `TITANS_BASE_URL`, and
 Run the tests with:
 
 ```bash
-node --test whop-auth/auth.test.mjs
+node --test whop-auth/auth.test.mjs whop-auth/course.test.mjs
 ```
 
 The production Caddy routes are documented in `Caddyfile.routes`, and the

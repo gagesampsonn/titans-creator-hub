@@ -11,6 +11,10 @@ handle /auth/whop/* {
 	reverse_proxy 127.0.0.1:8091
 }
 
+handle /course-api/* {
+	reverse_proxy 127.0.0.1:8091
+}
+
 @ai_tools path /prompt /prompt/* /generator /generator/*
 handle @ai_tools {
 	forward_auth 127.0.0.1:8091 {
