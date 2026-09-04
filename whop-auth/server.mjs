@@ -89,7 +89,8 @@ export function normalizeNextPath(value) {
   if (typeof value !== "string") return "/prompt/";
   try {
     const decoded = decodeURIComponent(value);
-    return ALLOWED_NEXT_PATHS.has(decoded) ? decoded : "/prompt/";
+    const path = decoded.split(/[?#]/, 1)[0];
+    return ALLOWED_NEXT_PATHS.has(path) ? path : "/prompt/";
   } catch {
     return "/prompt/";
   }
