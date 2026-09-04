@@ -91,6 +91,7 @@ describe("redirect safety", () => {
     assert.equal(normalizeNextPath("/prompt/"), "/prompt/");
     assert.equal(normalizeNextPath("/generator/"), "/generator/");
     assert.equal(normalizeNextPath("/exclusive/course/"), "/exclusive/course/");
+    assert.equal(normalizeNextPath("/exclusive/course"), "/exclusive/course/");
     assert.equal(
       normalizeNextPath("/exclusive/course/?course=cors_test&lesson=lesn_test"),
       "/exclusive/course/",

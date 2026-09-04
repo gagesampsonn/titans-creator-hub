@@ -16,8 +16,11 @@ const SESSION_COOKIE = "titans_whop_session";
 const OAUTH_MAX_AGE_SECONDS = 10 * 60;
 const DEFAULT_SESSION_MAX_AGE_SECONDS = 7 * 24 * 60 * 60;
 const ALLOWED_NEXT_PATHS = new Set([
+  "/prompt",
   "/prompt/",
+  "/generator",
   "/generator/",
+  "/exclusive/course",
   "/exclusive/course/",
 ]);
 const rateLimits = new Map();
@@ -90,7 +93,8 @@ export function normalizeNextPath(value) {
   try {
     const decoded = decodeURIComponent(value);
     const path = decoded.split(/[?#]/, 1)[0];
-    return ALLOWED_NEXT_PATHS.has(path) ? path : "/prompt/";
+    if (!ALLOWED_NEXT_PATHS.has(path)) return "/prompt/";
+    return path === "/exclusive/course" ? "/exclusive/course/" : path;
   } catch {
     return "/prompt/";
   }
