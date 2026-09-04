@@ -288,7 +288,6 @@ describe("Titans Exclusive course access", () => {
   it("redirects signed-out visitors to Whop and back to the course", async () => {
     const { origin } = await startServer(whopFetchWithAccess());
     const response = await fetch(`${origin}/auth/whop/check-course`, {
-      headers: { "X-Forwarded-Uri": "/exclusive/course/" },
       redirect: "manual",
     });
 

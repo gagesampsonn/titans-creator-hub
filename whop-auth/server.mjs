@@ -475,7 +475,7 @@ function courseProviderFailure(res, error) {
 }
 
 async function handleCourseAccessCheck(req, res, config, fetchFn) {
-  const requestedPath = normalizeNextPath(req.headers["x-forwarded-uri"]);
+  const requestedPath = "/exclusive/course/";
   const session = getSession(req, config);
   if (!session) {
     redirect(
