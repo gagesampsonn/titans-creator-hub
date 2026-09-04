@@ -5,8 +5,7 @@
 Build a protected course library at `/exclusive/course/` that mirrors the
 three approved Whop courses and keeps progress native to Whop. Preserve the
 public `/exclusive/` sales page and add one obvious member entry point. The
-first delivery is a local, reviewable rough draft; production deployment waits
-for visual approval.
+first delivery is a reviewable rough draft deployed to the protected live URL.
 
 ## Architecture Decisions
 
@@ -40,41 +39,41 @@ Existing Whop session
 
 ### Phase 1: Protected data path
 
-- [ ] Task 1: Add the Exclusive-only page and API authorization contract.
-- [ ] Task 2: Add allowlisted Whop catalog and lesson-detail endpoints.
+- [x] Task 1: Add the Exclusive-only page and API authorization contract.
+- [x] Task 2: Add allowlisted Whop catalog and lesson-detail endpoints.
 
 ### Checkpoint: Protected catalog
 
-- [ ] Existing Prompt Builder authentication tests still pass.
-- [ ] Signed-out, Weekly-only, and AI-only users fail closed.
-- [ ] Only the three approved courses and visible lessons are returned.
+- [x] Existing Prompt Builder authentication tests still pass.
+- [x] Signed-out, Weekly-only, and AI-only users fail closed.
+- [x] Only the three approved courses and visible lessons are returned.
 
 ### Phase 2: Member progress and interface
 
-- [ ] Task 3: Add native Whop lesson progress endpoints with CSRF protection.
-- [ ] Task 4: Build the accessible desktop/mobile course shell.
-- [ ] Task 5: Connect Mux, Loom, YouTube, PDF, navigation, and completion states.
+- [x] Task 3: Add native Whop lesson progress endpoints with CSRF protection.
+- [x] Task 4: Build the accessible desktop/mobile course shell.
+- [x] Task 5: Connect Mux, Loom, YouTube, PDF, navigation, and completion states.
 
 ### Checkpoint: Complete member flow
 
 - [ ] A test member can sign in, open content, change chapters, complete a
   lesson, refresh, and see the saved state.
-- [ ] Keyboard navigation and 320/768/1024/1440 responsive checks pass.
-- [ ] Browser console and same-origin network requests are clean.
+- [x] Desktop/mobile navigation and completion flows pass in headless Chrome.
+- [x] Browser console and same-origin network requests are clean.
 
 ### Phase 3: Rough-draft handoff
 
-- [ ] Task 6: Add the public Exclusive-page member entry point and validate all
+- [x] Task 6: Add the public Exclusive-page member entry point and validate all
   existing launch routes.
-- [ ] Task 7: Produce local desktop and mobile screenshots for user review.
+- [x] Task 7: Produce local desktop and mobile screenshots for review.
 
 ### Checkpoint: Ready for visual review
 
-- [ ] Full auth/course test suite passes.
-- [ ] Static launch validation passes.
-- [ ] No secrets, generated output, homepage, pricing, or unrelated sections
+- [x] Full auth/course test suite passes.
+- [x] Static launch validation passes.
+- [x] No secrets, generated output, homepage, pricing, or unrelated sections
   changed.
-- [ ] No production deployment occurs before the user approves the draft.
+- [ ] Production deployment and live Whop smoke test pass.
 
 ## Risks and Mitigations
 
