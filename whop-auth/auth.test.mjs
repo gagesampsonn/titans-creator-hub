@@ -90,6 +90,7 @@ describe("redirect safety", () => {
   it("allows only known first-party destinations", () => {
     assert.equal(normalizeNextPath("/prompt/"), "/prompt/");
     assert.equal(normalizeNextPath("/generator/"), "/generator/");
+    assert.equal(normalizeNextPath("/exclusive/course/"), "/exclusive/course/");
     assert.equal(normalizeNextPath("https://evil.example/"), "/prompt/");
     assert.equal(normalizeNextPath("//evil.example/"), "/prompt/");
     assert.equal(normalizeNextPath("/account"), "/prompt/");
@@ -258,5 +259,72 @@ describe("AI Prompt Builder access", () => {
 
     assert.equal(response.status, 503);
     assert.match(await response.text(), /temporarily unable to verify access/i);
+  });
+});
+
+describe("Titans Exclusive course access", () => {
+  async function authenticatedSession(origin) {
+    const { location, transactionCookie } = await beginLogin(
+      origin,
+      "/exclusive/course/",
+    );
+    const state = location.searchParams.get("state");
+    const callback = await fetch(
+      `${origin}/auth/whop/callback?code=test_code&state=${encodeURIComponent(state)}`,
+      { headers: { Cookie: transactionCookie }, redirect: "manual" },
+    );
+    return callback.headers
+      .get("set-cookie")
+      .split(/,(?=\s*titans_)/)
+      .find((value) => value.trim().startsWith("titans_whop_session="))
+      .split(";", 1)[0];
+  }
+
+  it("redirects signed-out visitors to Whop and back to the course", async () => {
+    const { origin } = await startServer(whopFetchWithAccess());
+    const response = await fetch(`${origin}/auth/whop/check-course`, {
+      headers: { "X-Forwarded-Uri": "/exclusive/course/" },
+      redirect: "manual",
+    });
+
+    assert.equal(response.status, 302);
+    assert.equal(
+      response.headers.get("location"),
+      "/auth/whop/login?next=%2Fexclusive%2Fcourse%2F",
+    );
+  });
+
+  it("allows active Titans Exclusive members", async () => {
+    const { origin } = await startServer(
+      whopFetchWithAccess([EXCLUSIVE_PRODUCT_ID]),
+    );
+    const sessionCookie = await authenticatedSession(origin);
+    const response = await fetch(`${origin}/auth/whop/check-course`, {
+      headers: {
+        Cookie: sessionCookie,
+        "X-Forwarded-Uri": "/exclusive/course/",
+      },
+      redirect: "manual",
+    });
+
+    assert.equal(response.status, 204);
+  });
+
+  it("does not unlock the course for standalone AI customers", async () => {
+    const { origin } = await startServer(whopFetchWithAccess([AI_PRODUCT_ID]));
+    const sessionCookie = await authenticatedSession(origin);
+    const response = await fetch(`${origin}/auth/whop/check-course`, {
+      headers: {
+        Cookie: sessionCookie,
+        "X-Forwarded-Uri": "/exclusive/course/",
+      },
+      redirect: "manual",
+    });
+
+    assert.equal(response.status, 302);
+    assert.equal(
+      response.headers.get("location"),
+      "/auth/whop/course-access-required",
+    );
   });
 });

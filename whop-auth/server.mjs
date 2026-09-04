@@ -13,7 +13,11 @@ const OAUTH_COOKIE = "titans_whop_oauth";
 const SESSION_COOKIE = "titans_whop_session";
 const OAUTH_MAX_AGE_SECONDS = 10 * 60;
 const DEFAULT_SESSION_MAX_AGE_SECONDS = 7 * 24 * 60 * 60;
-const ALLOWED_NEXT_PATHS = new Set(["/prompt/", "/generator/"]);
+const ALLOWED_NEXT_PATHS = new Set([
+  "/prompt/",
+  "/generator/",
+  "/exclusive/course/",
+]);
 const rateLimits = new Map();
 
 function base64UrlJson(value) {
@@ -270,6 +274,10 @@ async function hasAiAccess(config, fetchFn, userId) {
   return checkProductAccess(config, fetchFn, userId, config.exclusiveProductId);
 }
 
+async function hasExclusiveAccess(config, fetchFn, userId) {
+  return checkProductAccess(config, fetchFn, userId, config.exclusiveProductId);
+}
+
 function getSession(req, config) {
   const cookies = parseCookies(req.headers.cookie);
   const session = verifyValue(cookies[SESSION_COOKIE], config.whopSessionSecret);
@@ -399,6 +407,35 @@ async function handleAccessCheck(req, res, config, fetchFn) {
   }
 }
 
+async function handleCourseAccessCheck(req, res, config, fetchFn) {
+  const requestedPath = normalizeNextPath(req.headers["x-forwarded-uri"]);
+  const session = getSession(req, config);
+  if (!session) {
+    redirect(
+      res,
+      `/auth/whop/login?next=${encodeURIComponent(requestedPath)}`,
+      [clearCookie(SESSION_COOKIE)],
+    );
+    return;
+  }
+  try {
+    if (await hasExclusiveAccess(config, fetchFn, session.sub)) {
+      send(res, 204);
+      return;
+    }
+    redirect(res, "/auth/whop/course-access-required");
+  } catch {
+    sendPage(
+      res,
+      503,
+      "Access check unavailable",
+      "We are temporarily unable to verify course access",
+      "Your membership was not changed. Please try opening the course again in a moment.",
+      '<a class="button" href="/exclusive/course/">Try again</a>',
+    );
+  }
+}
+
 function loadConfig(env = process.env) {
   const config = {
     baseUrl: env.TITANS_BASE_URL ?? "https://titansagency.co",
@@ -452,6 +489,10 @@ export function createAuthServer(config, { fetchFn = fetch } = {}) {
         await handleAccessCheck(req, res, config, fetchFn);
         return;
       }
+      if (req.method === "GET" && url.pathname === "/auth/whop/check-course") {
+        await handleCourseAccessCheck(req, res, config, fetchFn);
+        return;
+      }
       if (req.method === "GET" && url.pathname === "/auth/whop/access-required") {
         sendPage(
           res,
@@ -460,6 +501,20 @@ export function createAuthServer(config, { fetchFn = fetch } = {}) {
           "Prompt Builder access required",
           "The Prompt Builder is included with AI Content and Titans Exclusive. Titans Weekly does not include AI access.",
           '<a class="button" href="/ai/#checkout">Get AI Content</a><a class="button secondary" href="/exclusive/#checkout">View Exclusive</a><form method="post" action="/auth/whop/logout"><button class="secondary" type="submit">Sign out</button></form>',
+        );
+        return;
+      }
+      if (
+        req.method === "GET" &&
+        url.pathname === "/auth/whop/course-access-required"
+      ) {
+        sendPage(
+          res,
+          403,
+          "Exclusive access required",
+          "Titans Exclusive is required",
+          "The Titans course library is available only to active Titans Exclusive members.",
+          '<a class="button" href="/exclusive/#checkout">View Titans Exclusive</a><form method="post" action="/auth/whop/logout"><button class="secondary" type="submit">Sign out</button></form>',
         );
         return;
       }

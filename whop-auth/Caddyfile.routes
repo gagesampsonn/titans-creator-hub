@@ -20,3 +20,13 @@ handle @ai_tools {
 	try_files {path} {path}/index.html
 	file_server
 }
+
+@exclusive_course path /exclusive/course /exclusive/course/*
+handle @exclusive_course {
+	forward_auth 127.0.0.1:8091 {
+		uri /auth/whop/check-course
+	}
+	root * /srv/titans-marketing/current
+	try_files {path} {path}/index.html
+	file_server
+}
