@@ -73,7 +73,7 @@ Existing Whop session
 - [x] Static launch validation passes.
 - [x] No secrets, generated output, homepage, pricing, or unrelated sections
   changed.
-- [ ] Production deployment and live Whop smoke test pass.
+- [x] Production deployment and live Whop catalog smoke test pass.
 
 ## Risks and Mitigations
 
