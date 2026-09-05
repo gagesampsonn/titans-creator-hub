@@ -53,6 +53,8 @@
   }
 
   async function refresh() {
+    const earnLink = document.querySelector("[data-member-earn]");
+    if (earnLink) earnLink.hidden = true;
     if (error) error.hidden = true;
     if (loading) loading.hidden = false;
     try {
@@ -66,6 +68,7 @@
       }
       if (!response.ok) throw new Error("membership_unavailable");
       const { data } = await response.json();
+      if (earnLink) earnLink.hidden = !(data.affiliatePreview === true && data.access?.ai === true);
       if (products) renderProducts(data.access);
       renderOffer(data);
       window.dispatchEvent(new CustomEvent("titans:member", { detail: data }));
