@@ -96,9 +96,11 @@ describe("redirect safety", () => {
       normalizeNextPath("/exclusive/course/?course=cors_test&lesson=lesn_test"),
       "/exclusive/course/",
     );
-    assert.equal(normalizeNextPath("https://evil.example/"), "/prompt/");
-    assert.equal(normalizeNextPath("//evil.example/"), "/prompt/");
-    assert.equal(normalizeNextPath("/account"), "/prompt/");
+    assert.equal(normalizeNextPath("/members"), "/members/");
+    assert.equal(normalizeNextPath(null), "/members/");
+    assert.equal(normalizeNextPath("https://evil.example/"), "/members/");
+    assert.equal(normalizeNextPath("//evil.example/"), "/members/");
+    assert.equal(normalizeNextPath("/account"), "/members/");
   });
 });
 

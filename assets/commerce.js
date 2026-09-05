@@ -1,4 +1,7 @@
 (() => {
+  const memberScript = document.createElement("script");
+  memberScript.src = "/assets/member-access.js";
+  document.head.append(memberScript);
   const menuButton = document.querySelector("[data-menu-button]");
   const mobilePanel = document.querySelector("[data-mobile-panel]");
 

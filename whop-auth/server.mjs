@@ -4,6 +4,7 @@ import http from "node:http";
 import { fileURLToPath } from "node:url";
 
 import { CourseProviderError, createCourseService } from "./course.mjs";
+import { createMemberService } from "./member.mjs";
 
 const WHOP_AUTHORIZE_URL = "https://api.whop.com/oauth/authorize";
 const WHOP_TOKEN_URL = "https://api.whop.com/oauth/token";
@@ -16,6 +17,8 @@ const SESSION_COOKIE = "titans_whop_session";
 const OAUTH_MAX_AGE_SECONDS = 10 * 60;
 const DEFAULT_SESSION_MAX_AGE_SECONDS = 7 * 24 * 60 * 60;
 const ALLOWED_NEXT_PATHS = new Set([
+  "/members",
+  "/members/",
   "/prompt",
   "/prompt/",
   "/generator",
@@ -89,14 +92,14 @@ async function sha256Base64Url(value) {
 }
 
 export function normalizeNextPath(value) {
-  if (typeof value !== "string") return "/prompt/";
+  if (typeof value !== "string") return "/members/";
   try {
     const decoded = decodeURIComponent(value);
     const path = decoded.split(/[?#]/, 1)[0];
-    if (!ALLOWED_NEXT_PATHS.has(path)) return "/prompt/";
-    return path === "/exclusive/course" ? "/exclusive/course/" : path;
+    if (!ALLOWED_NEXT_PATHS.has(path)) return "/members/";
+    return path === "/exclusive/course" || path === "/members" ? `${path}/` : path;
   } catch {
-    return "/prompt/";
+    return "/members/";
   }
 }
 
@@ -314,6 +317,10 @@ async function handleLogin(req, res, url, config) {
     sendPage(res, 429, "Please wait", "Too many attempts", "Please wait a minute, then try signing in again.");
     return;
   }
+  if (getSession(req, config)) {
+    redirect(res, normalizeNextPath(url.searchParams.get("next")));
+    return;
+  }
   const verifier = randomToken(48);
   const state = randomToken(32);
   const nonce = randomToken(32);
@@ -512,6 +519,9 @@ function loadConfig(env = process.env) {
     whopSessionSecret: env.WHOP_SESSION_SECRET,
     aiProductId: env.WHOP_AI_PRODUCT_ID,
     exclusiveProductId: env.WHOP_EXCLUSIVE_PRODUCT_ID,
+    weeklyProductId: env.WHOP_WEEKLY_PRODUCT_ID ?? "prod_jTg64CQQGpke0",
+    memberStateDir: env.WHOP_MEMBER_STATE_DIR ?? "/var/lib/titans-whop-auth",
+    upgradeEnabled: env.WHOP_UPGRADE_ENABLED === "true",
     redirectUri:
       env.WHOP_REDIRECT_URI ??
       "https://titansagency.co/auth/whop/callback",
@@ -549,11 +559,36 @@ function loadConfig(env = process.env) {
 
 export function createAuthServer(config, { fetchFn = fetch } = {}) {
   const courseService = createCourseService(config, { fetchFn });
+  const memberService = createMemberService(config, {
+    checkAccess: (userId, productId) => checkProductAccess(config, fetchFn, userId, productId),
+  });
   return http.createServer(async (req, res) => {
     const url = new URL(req.url ?? "/", config.baseUrl);
     try {
       if (req.method === "GET" && url.pathname === "/auth/whop/healthz") {
         send(res, 200, "ok\n", { "Content-Type": "text/plain; charset=utf-8" });
+        return;
+      }
+      if (url.pathname === "/auth/whop/member" && ["GET", "POST"].includes(req.method)) {
+        const session = getSession(req, config);
+        if (!session) {
+          sendJson(res, 401, { error: "authentication_required" });
+          return;
+        }
+        if (req.method === "POST" && req.headers.origin !== config.baseUrl) {
+          sendJson(res, 403, { error: "invalid_request_origin" });
+          return;
+        }
+        if (isRateLimited(req, "member-library", 90)) {
+          sendJson(res, 429, { error: "rate_limit_exceeded" });
+          return;
+        }
+        try {
+          const member = await memberService.getMember(session.sub, { start: req.method === "POST" });
+          sendJson(res, 200, { data: member });
+        } catch {
+          sendJson(res, 503, { error: "membership_check_unavailable" });
+        }
         return;
       }
       if (req.method === "GET" && url.pathname === "/auth/whop/login") {

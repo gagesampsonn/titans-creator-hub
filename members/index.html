@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>My Titans | Your membership and tools</title>
+    <link rel="icon" href="/assets/icon.png" />
+    <link rel="stylesheet" href="/assets/member.css" />
+    <script src="/assets/member-access.js" defer></script>
+  </head>
+  <body class="member-page" data-member-library>
+    <a class="member-skip" href="#member-content">Skip to your products</a>
+    <header class="member-header">
+      <a class="member-brand" href="/"><img src="/assets/icon.png" alt="" width="34" height="34" />Titans</a>
+      <nav aria-label="Account navigation"><a href="https://whop.com/hub" target="_blank" rel="noopener noreferrer">Manage purchases</a><form method="post" action="/auth/whop/logout"><button type="submit">Sign out</button></form></nav>
+    </header>
+    <main id="member-content" class="member-shell">
+      <h1>My Titans</h1>
+      <p class="member-intro">Your courses, tools, and community. All in one place.</p>
+      <p data-member-loading role="status">Checking your purchases...</p>
+      <div data-member-error hidden role="alert"><p>We couldn't check your purchases. Please try again.</p><button class="member-button" data-member-retry type="button">Try again</button></div>
+      <div class="member-products" data-member-products hidden>
+        <section class="member-product" data-product="ai" aria-labelledby="ai-title">
+          <p class="member-status" data-product-status></p>
+          <h2 id="ai-title">AI Prompter + Guide</h2>
+          <p>Build prompts for your AI videos and follow the Titans guide from reference to finished content.</p>
+          <div class="member-product-actions" data-owned-actions hidden><a class="member-button" href="/prompt/">Use AI Prompter</a><a class="member-text-link" href="/prompt/#start">Read the guide</a></div>
+          <div data-locked-actions hidden><span class="member-disabled" aria-disabled="true">AI tools locked</span><a class="member-text-link" href="/ai/">View AI Prompter + Guide</a></div>
+        </section>
+        <section class="member-product" data-product="exclusive" aria-labelledby="exclusive-title">
+          <p class="member-status" data-product-status></p>
+          <h2 id="exclusive-title">Titans Exclusive</h2>
+          <p>The full TikTok Shop course, AI Content lessons, creator resources, and private Discord community. AI Prompter included.</p>
+          <div class="member-product-actions" data-owned-actions hidden><a class="member-button" href="/exclusive/course/">Open the course</a><a class="member-text-link" href="https://whop.com/tiktoktitan/exp_IO7Nn4xZjBg3ZN/app/" target="_blank" rel="noopener noreferrer">Join Discord <span class="member-sr-only">(opens in a new tab)</span></a></div>
+          <div data-locked-actions hidden><span class="member-disabled" aria-disabled="true">Course and community locked</span><a class="member-text-link" href="/exclusive/">View Titans Exclusive</a></div>
+        </section>
+        <section class="member-product member-weekly" data-product="weekly" aria-labelledby="weekly-title" hidden>
+          <p class="member-status" data-product-status></p>
+          <h2 id="weekly-title">Titans Weekly</h2>
+          <p>Open your weekly membership and its included resources on Whop.</p>
+          <div data-owned-actions hidden><a class="member-button" href="https://whop.com/tiktoktitan/" target="_blank" rel="noopener noreferrer">Open Titans Weekly</a></div>
+        </section>
+      </div>
+      <p class="member-help">Missing a purchase? Make sure you're signed in with the Whop account you used at checkout. <a href="mailto:Tiktoktitansmanagement@gmail.com">Contact Titans support</a>.</p>
+    </main>
+  </body>
+</html>
