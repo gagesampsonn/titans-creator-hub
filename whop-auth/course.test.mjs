@@ -236,8 +236,10 @@ function createWhopFetch({ allowedProducts = [EXCLUSIVE_PRODUCT_ID] } = {}) {
     if (target.pathname === "/api/v1/course_lesson_interactions") {
       assert.equal(options.headers.Authorization, "Bearer member_access_token");
       assert.equal(target.searchParams.get("user_id"), "user_test");
+      const courseId = target.searchParams.get("course_id");
+      assert.ok([COURSE_ID, RESOURCE_COURSE_ID].includes(courseId));
       return jsonResponse({
-        data: [
+        data: courseId === COURSE_ID ? [
           {
             id: "crsli_complete",
             completed: true,
@@ -245,7 +247,7 @@ function createWhopFetch({ allowedProducts = [EXCLUSIVE_PRODUCT_ID] } = {}) {
             course: { id: COURSE_ID, title: "Full Course" },
             user: { id: "user_test" },
           },
-        ],
+        ] : [],
         page_info: { has_next_page: false },
       });
     }
@@ -326,7 +328,8 @@ describe("course API authorization", () => {
 
 describe("course catalog", () => {
   it("returns only visible allowlisted lessons and member completion", async () => {
-    const { origin } = await startServer(createWhopFetch());
+    const whopFetch = createWhopFetch();
+    const { origin } = await startServer(whopFetch);
     const sessionCookie = await authenticatedSession(origin);
     const response = await fetch(`${origin}/course-api/catalog`, {
       headers: { Cookie: sessionCookie },
@@ -347,6 +350,13 @@ describe("course catalog", () => {
     });
     assert.equal(payload.data.completedLessons, 1);
     assert.equal(payload.data.totalLessons, 2);
+    assert.deepEqual(
+      whopFetch.calls
+        .filter(({ target }) => target.pathname === "/api/v1/course_lesson_interactions")
+        .map(({ target }) => target.searchParams.get("course_id"))
+        .sort(),
+      [COURSE_ID, RESOURCE_COURSE_ID].sort(),
+    );
     assert.match(payload.data.csrfToken, /^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/);
     assert.doesNotMatch(JSON.stringify(payload), /video-token|signed-playback-id/);
   });

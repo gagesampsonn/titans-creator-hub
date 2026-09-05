@@ -266,13 +266,19 @@ export function createCourseService(config, { fetchFn = fetch } = {}) {
     return token;
   }
 
-  async function completedLessonIds(userId, allowedLessonIds) {
-    const interactions = await listPages(
-      fetchFn,
-      "/course_lesson_interactions",
-      await memberToken(userId),
-      { first: 100, user_id: userId },
-    );
+  async function completedLessonIds(userId, allowedLessonIds, courseIds) {
+    const token = await memberToken(userId);
+    const interactions = (
+      await Promise.all(
+        courseIds.map((courseId) =>
+          listPages(fetchFn, "/course_lesson_interactions", token, {
+            first: 100,
+            user_id: userId,
+            course_id: courseId,
+          }),
+        ),
+      )
+    ).flat();
     return new Set(
       interactions
         .filter((interaction) => interaction?.completed === true)
@@ -283,7 +289,11 @@ export function createCourseService(config, { fetchFn = fetch } = {}) {
 
   async function getCatalog(userId) {
     const catalog = await baseCatalog();
-    const completed = await completedLessonIds(userId, catalog.lessonIds);
+    const completed = await completedLessonIds(
+      userId,
+      catalog.lessonIds,
+      catalog.courses.map((course) => course.id),
+    );
     const courses = catalog.courses.map((course) => ({
       id: course.id,
       title: course.title,
