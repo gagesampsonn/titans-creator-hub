@@ -267,11 +267,10 @@ export function createCourseService(config, { fetchFn = fetch } = {}) {
   }
 
   async function completedLessonIds(userId, allowedLessonIds, courseIds) {
-    const token = await memberToken(userId);
     const interactions = (
       await Promise.all(
         courseIds.map((courseId) =>
-          listPages(fetchFn, "/course_lesson_interactions", token, {
+          listPages(fetchFn, "/course_lesson_interactions", config.whopApiKey, {
             first: 100,
             user_id: userId,
             course_id: courseId,

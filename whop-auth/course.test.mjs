@@ -234,7 +234,7 @@ function createWhopFetch({ allowedProducts = [EXCLUSIVE_PRODUCT_ID] } = {}) {
     }
 
     if (target.pathname === "/api/v1/course_lesson_interactions") {
-      assert.equal(options.headers.Authorization, "Bearer member_access_token");
+      assert.equal(options.headers.Authorization, "Bearer test_api_key");
       assert.equal(target.searchParams.get("user_id"), "user_test");
       const courseId = target.searchParams.get("course_id");
       assert.ok([COURSE_ID, RESOURCE_COURSE_ID].includes(courseId));
