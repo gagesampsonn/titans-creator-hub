@@ -97,14 +97,22 @@
             status === "error"
               ? "Return to checkout"
               : "Review product details";
-          if (
-            status !== "error" &&
-            (params.get("product") === "ai" ||
-              params.get("product") === "exclusive")
-          ) {
+          if (status !== "error" && params.get("product") === "ai") {
             accessLink.href = "/auth/whop/login?next=%2Fprompt%2F";
             accessLink.removeAttribute("rel");
             accessLink.textContent = "Open the Prompt Builder";
+          }
+          if (status !== "error" && params.get("product") === "exclusive") {
+            accessLink.href = "/exclusive/course/";
+            accessLink.removeAttribute("rel");
+            accessLink.textContent = "Open the Exclusive course";
+            title.textContent = "Welcome to Titans Exclusive.";
+            message.textContent = "Opening your course. You'll also find Discord access and the AI Prompter there. Sign in with the Whop account you used at checkout.";
+            // Whop's regular completion can omit status; external payments use
+            // success/error. The protected course verifies live membership.
+            if (status === null || status === "success") {
+              window.location.replace("/exclusive/course/");
+            }
           }
         }
       })();
