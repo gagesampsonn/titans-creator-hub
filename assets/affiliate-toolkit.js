@@ -10,6 +10,15 @@
     } catch { /* Invalid resources are not published. */ }
     return null;
   }
+  function embedUrl(value) {
+    if (!safeUrl(value)) return null;
+    const url = new URL(value);
+    const tiktok = url.pathname.match(/^\/@[\w.-]+\/video\/(\d{15,22})\/?$/);
+    if (["www.tiktok.com", "tiktok.com"].includes(url.hostname) && tiktok) return `https://www.tiktok.com/player/v1/${tiktok[1]}?autoplay=0&rel=0`;
+    const instagram = url.pathname.match(/^\/(?:p|reel)\/([\w-]+)\/?$/);
+    if (["www.instagram.com", "instagram.com"].includes(url.hostname) && instagram) return `https://www.instagram.com/p/${instagram[1]}/embed/`;
+    return null;
+  }
   function approved(catalog, type, product, referenceId) {
     const records = catalog?.[type];
     return Array.isArray(records) ? records.filter(item => item && item.status === "approved" && item.product === product && typeof item.id === "string" && typeof item.title === "string" && (type === "referenceVideos" ? ["uploaded", "external"].includes(item.media?.kind) && safeUrl(item.media.url, item.media.kind === "uploaded") : typeof item.text === "string" && item.text.trim()) && (referenceId === undefined || item.referenceId === referenceId)).slice(0, 50) : [];
@@ -57,6 +66,9 @@
       card.setAttribute("aria-label", item.title);
       referenceCards.set(item.id, card);
       card.append(create("h3", item.title));
+      if (typeof item.reportedViews === "string" && typeof item.viewsSource === "string") {
+        card.append(create("p", item.reportedViews, "toolkit-views"), create("p", item.viewsSource, "toolkit-view-source"));
+      }
       const source = safeUrl(item.media.url, item.media.kind === "uploaded");
       if (item.media.kind === "uploaded") {
         const video = create("video");
@@ -67,6 +79,16 @@
         if (safeUrl(item.thumbnail)) video.poster = safeUrl(item.thumbnail);
         card.append(video);
       } else {
+        const embed = embedUrl(source);
+        if (embed) {
+          const frame = create("iframe", null, "toolkit-embed");
+          frame.src = embed;
+          frame.title = item.title;
+          frame.loading = "lazy";
+          frame.allow = "fullscreen; encrypted-media; picture-in-picture";
+          frame.referrerPolicy = "strict-origin-when-cross-origin";
+          card.append(frame);
+        }
         const anchor = create("a", "Watch reference video ↗", "member-text-link");
         anchor.href = source;
         anchor.target = "_blank";
@@ -95,6 +117,7 @@
       panels.setAttribute("aria-labelledby", `toolkit-tab-${active}`);
       for (const tab of tabs) { const selected = tab.dataset.toolkitTab === active; tab.setAttribute("aria-selected", String(selected)); tab.tabIndex = selected ? 0 : -1; }
       const records = approved(catalog, active, selector.value);
+      panels.classList?.toggle("toolkit-reference-grid", active === "referenceVideos" && records.length > 0);
       for (const tab of tabs) tab.querySelector("[data-toolkit-count]").textContent = String(approved(catalog, tab.dataset.toolkitTab, selector.value).length);
       if (!records.length) {
         const empty = create("div", null, "toolkit-empty");
@@ -142,5 +165,5 @@
     button.addEventListener("click", () => { const field = document.querySelector("[data-toolkit-link]"); copy(field.value, field, button); });
     render();
   }
-  window.TitansToolkit = { approved, safeUrl, load };
+  window.TitansToolkit = { approved, safeUrl, embedUrl, load };
 })();

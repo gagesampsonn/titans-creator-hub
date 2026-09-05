@@ -1,7 +1,7 @@
 # Titans Affiliate Center
 
 User approved a separate plan and a localhost-first review on 2026-09-05.
-Do not push or deploy until the user reviews this preview. Preserve the existing
+User approved publishing on 2026-09-05 after adding supplied references and payout access. Preserve the existing
 course plan, other worktrees, homepage flow, and pending upgrade work.
 
 ## Contract
@@ -119,3 +119,55 @@ only the already-local-only preview permits a labeled zero baseline.
 - [ ] Approve promotional kit and affiliate disclosure wording for launch.
 - [ ] Full tests/review, GitHub push and immutable Contabo deployment only
   after approval; verify live. Never use Vercel.
+
+## Approved production slice — September 5, 2026
+
+- Removed the AI product thumbnail only; retained original image asset for other pages.
+- Published the four user-supplied AI reference URLs with TikTok/Instagram embeds
+  and direct-link fallbacks. Three view figures are explicitly Titans-reported,
+  dated September 5. No invented hook, script, caption, rationale or CTA.
+- Added `reportedViews` / `viewsSource` optional reference fields. Related approved
+  resources still attach via `referenceId`. Other resource arrays remain empty.
+- `POST /auth/whop/affiliates`: signed session, current eligible purchase, exact
+  Origin + required custom header, existing rate limiter, no-store response.
+  Request bodies/query user IDs are ignored; only signed `session.sub` is used.
+- `WHOP_AFFILIATE_ENABLED=true` enables this feature and eligible My Titans navigation.
+  Default false. Optional `WHOP_AI_PLAN_ID` defaults to the existing public AI plan.
+  Flag owner: Titans; review the operational kill switch by September 19, 2026.
+- Native Whop create-or-find affiliate; verify company/user/status and plan products.
+  Add missing standard overrides only: 30% / first_payment. Existing conflicting
+  deals, archived accounts, or relevant/unknown revenue-share scopes stop enrollment
+  for manual review. No deal is deleted, replaced, unarchived, or stacked automatically.
+- Whop-returned checkout links retain native `?a=<username>` attribution unchanged.
+  Prices come from current Whop plans. Estimates are promotional estimates only,
+  never a payout/commission ledger. Discounts, refunds and final Whop terms govern.
+- Company-wide native referral totals feed earned/sales; unsupported clicks,
+  conversion, pending/paid breakdown and recent rows remain unavailable. Missing
+  rendering code fails closed, never showing placeholder zeros as real reporting.
+- Personal payout setup opens `https://whop.com/home/?account=personal` in a new
+  tab. Browser verified personal currency balance / Withdraw flow. Detailed native
+  referral reporting opens `https://whop.com/affiliates/dashboard/`. No bank data,
+  connected-business account, balance transfer, or payout API is added to Titans.
+  Whop's embedded connected-account payout portal is not verified as a frontend
+  to the native personal affiliate balance, so it is deliberately not used.
+- Retry reconciliation re-reads overrides, in-process concurrent enrollment shares
+  one promise per signed user, provider fetches have timeouts and no redirects.
+  Whop records are the durable source of truth; no extra local affiliate PII store.
+
+Sources: Whop API create-affiliate / create-override / list-overrides;
+https://docs.whop.com/manage-your-business/manage-payouts/set-up-payouts;
+https://developers.tiktok.com/doc/embed-player.
+
+Pre-release verification: 65 tests pass, launch validator and diff checks pass.
+Independent review approved after fixing raw account_id request, all-products
+rev-share guard and required dashboard renderer. Local browser confirms all four
+embeds, no AI thumbnail, copy feedback, and responsive toolkit. Dependency audit
+not applicable: no package manifest/lockfile or installed dependencies; Node built-ins.
+
+Release isolation: cherry-pick affiliate commits onto the currently deployed
+285cb31 baseline in a fresh release worktree. Do not ship pending upgrade embed
+commits in this release. Run release tests and browser checks again, push exact
+release to GitHub, then deploy immutable static/auth releases via Contabo SSH.
+Enable only after provider verification. Rollback: restore both current symlinks
+to 20260905-285cb31 and restart titans-whop-auth; preserve durable member offer
+records and all Whop agreements. Flag can also be disabled without removing data.

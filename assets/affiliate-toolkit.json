@@ -1,6 +1,11 @@
 {
   "schemaVersion": 1,
-  "referenceVideos": [],
+  "referenceVideos": [
+    { "id": "gage-tiktok-1", "title": "Gage Sampson · TikTok reference 1", "product": "ai", "status": "approved", "media": { "kind": "external", "url": "https://www.tiktok.com/@gage_sampson/video/7681747661107563789" }, "reportedViews": "1.4 million views", "viewsSource": "Reported by Titans · September 5, 2026" },
+    { "id": "gage-tiktok-2", "title": "Gage Sampson · TikTok reference 2", "product": "ai", "status": "approved", "media": { "kind": "external", "url": "https://www.tiktok.com/@gage_sampson/video/7679588263148948749" }, "reportedViews": "900k+ views", "viewsSource": "Reported by Titans · September 5, 2026" },
+    { "id": "gage-instagram-1", "title": "Gage Sampson · Instagram reference", "product": "ai", "status": "approved", "media": { "kind": "external", "url": "https://www.instagram.com/p/DcwVe6Vo2_K/" }, "reportedViews": "1.2 million views on Instagram", "viewsSource": "Reported by Titans · September 5, 2026" },
+    { "id": "mitch-tiktok-1", "title": "Mitch · First TikTok reference", "product": "ai", "status": "approved", "media": { "kind": "external", "url": "https://www.tiktok.com/@mitchhodz/video/7682106413518294285" } }
+  ],
   "hooks": [],
   "scripts": [],
   "captions": [],

@@ -41,7 +41,7 @@ async function render(mode = "ai", options = {}) {
   const response = options.response ?? affiliatePreview(mode);
   vm.runInNewContext(readFileSync(new URL("../assets/affiliate-center.js", import.meta.url), "utf8"), {
     document: { querySelector: element, querySelectorAll: selector => selector === "[data-copy-link]" ? copyButtons : selector === "[data-share-link]" ? shareButtons : [], createElement: () => ({ remove() {} }), addEventListener() {} },
-    window: { location: { hostname: options.hostname ?? "127.0.0.1" }, addEventListener() {} }, URL,
+    window: { location: { hostname: options.hostname ?? "127.0.0.1" }, addEventListener() {}, ...(options.missingDashboard ? {} : { TitansAffiliateDashboard: { render() {} } }), TitansToolkit: { load: async () => {} } }, URL,
     navigator: { clipboard: { writeText: async text => { if (options.clipboardError) throw Error(); copies.push(text); } },
       ...(options.share ? { share: async data => { shares.push(data); } } : {}) },
     fetch: async () => ({ status: response.status, ok: response.status === 200, json: async () => response }),
@@ -101,6 +101,20 @@ test("demo data cannot render on production or accept substituted destinations o
     await page.copyButtons[0].events.click();
     assert.equal(page.copies.length, 0);
   }
+});
+
+test("live Whop referral links render without preview labels, and unrelated domains are rejected", async () => {
+  const response = affiliatePreview("ai");
+  response.data.preview = false;
+  for (const link of response.data.links) link.url = `https://whop.com/checkout/plan_${link.product}/?a=member`;
+  const page = await render("ai", { response, hostname: "titansagency.co" });
+  assert.equal(page.element("[data-affiliate-content]").hidden, false);
+  assert.equal(page.element("[data-affiliate-preview]").hidden, true);
+  await page.copyButtons[0].events.click();
+  assert.equal(page.copies[0], response.data.links[0].url);
+  assert.equal((await render("ai", { response, missingDashboard: true })).element("[data-affiliate-content]").hidden, true);
+  response.data.links[0].url = "https://evil.test/?a=member";
+  assert.equal((await render("ai", { response })).element("[data-affiliate-content]").hidden, true);
 });
 
 test("My Titans exposes Earn only when the local preview explicitly enables it for an eligible member", async () => {

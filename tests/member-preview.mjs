@@ -13,7 +13,7 @@ http.createServer((req, res) => {
     res.writeHead(302, { "Set-Cookie": `preview_member=${mode}; Path=/; SameSite=Lax`, Location: url.searchParams.get("next") === "earn" ? "/members/earn/" : "/members/" }).end(); return;
   }
   if (url.pathname === "/auth/whop/affiliates") {
-    if (req.method !== "GET") { res.writeHead(405).end(); return; }
+    if (!["GET", "POST"].includes(req.method)) { res.writeHead(405).end(); return; }
     const mode = /preview_member=([a-z]+)/.exec(req.headers.cookie ?? "")?.[1] ?? "ai";
     const result = affiliatePreview(mode);
     res.writeHead(result.status, { "Content-Type": "application/json", "Cache-Control": "no-store" }).end(JSON.stringify(result)); return;

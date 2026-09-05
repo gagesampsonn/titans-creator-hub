@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 import { CourseProviderError, createCourseService } from "./course.mjs";
 import { createMemberService } from "./member.mjs";
 import { createUpgradeService, UpgradeUnavailable } from "./upgrade.mjs";
+import { createAffiliateService, AffiliateUnavailable } from "./affiliate.mjs";
 
 const WHOP_AUTHORIZE_URL = "https://api.whop.com/oauth/authorize";
 const WHOP_TOKEN_URL = "https://api.whop.com/oauth/token";
@@ -21,6 +22,7 @@ const ALLOWED_NEXT_PATHS = new Set([
   "/members",
   "/members/",
   "/members/upgrade/",
+  "/members/earn/",
   "/prompt",
   "/prompt/",
   "/generator",
@@ -526,6 +528,8 @@ function loadConfig(env = process.env) {
     upgradeEnabled: env.WHOP_UPGRADE_ENABLED === "true",
     whopCompanyId: env.WHOP_COMPANY_ID ?? "biz_kcMjlv7meKmJl7",
     exclusivePlanId: env.WHOP_EXCLUSIVE_PLAN_ID ?? "plan_i0exA8Z5f3XOZ",
+    aiPlanId: env.WHOP_AI_PLAN_ID ?? "plan_bJeNjIIJAtzSR",
+    affiliateEnabled: env.WHOP_AFFILIATE_ENABLED === "true",
     redirectUri:
       env.WHOP_REDIRECT_URI ??
       "https://titansagency.co/auth/whop/callback",
@@ -567,6 +571,7 @@ export function createAuthServer(config, { fetchFn = fetch } = {}) {
     checkAccess: (userId, productId) => checkProductAccess(config, fetchFn, userId, productId),
   });
   const upgradeService = createUpgradeService(config, memberService, { fetchFn });
+  const affiliateService = createAffiliateService(config, memberService, { fetchFn });
   return http.createServer(async (req, res) => {
     const url = new URL(req.url ?? "/", config.baseUrl);
     try {
@@ -590,11 +595,26 @@ export function createAuthServer(config, { fetchFn = fetch } = {}) {
         }
         try {
           const member = await memberService.getMember(session.sub, { start: req.method === "POST" });
+          member.affiliateEnabled = config.affiliateEnabled === true && (member.access.aiPurchased || member.access.exclusive);
           if (member.offer) member.upgradeCsrf = signValue({ sub: session.sub, purpose: "exclusive_upgrade", exp: Math.floor(member.offer.expiresAt / 1000) }, config.whopSessionSecret);
           sendJson(res, 200, { data: member });
         } catch {
           sendJson(res, 503, { error: "membership_check_unavailable" });
         }
+        return;
+      }
+      if (url.pathname === "/auth/whop/affiliates") {
+        const session = getSession(req, config);
+        if (!session) { sendJson(res, 401, { error: "authentication_required" }); return; }
+        if (req.method !== "POST") { sendJson(res, 405, { error: "method_not_allowed" }); return; }
+        // No cross-origin CORS allowance: the custom header and exact Origin
+        // protect enrollment against cross-site forms and credentialed requests.
+        if (req.headers.origin !== config.baseUrl || req.headers["x-titans-affiliate"] !== "1") {
+          sendJson(res, 403, { error: "invalid_request_origin" }); return;
+        }
+        if (isRateLimited(req, "affiliate-center", 20)) { sendJson(res, 429, { error: "rate_limit_exceeded" }); return; }
+        try { sendJson(res, 200, { data: await affiliateService.connect(session.sub) }); }
+        catch (error) { sendJson(res, error instanceof AffiliateUnavailable ? 403 : 503, { error: error instanceof AffiliateUnavailable ? error.message : "affiliate_connection_unavailable" }); }
         return;
       }
       if (url.pathname === "/auth/whop/upgrade" && req.method === "POST") {

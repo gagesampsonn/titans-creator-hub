@@ -68,7 +68,7 @@
       }
       if (!response.ok) throw new Error("membership_unavailable");
       const { data } = await response.json();
-      if (earnLink) earnLink.hidden = !(data.affiliatePreview === true && data.access?.ai === true);
+      if (earnLink) earnLink.hidden = !((data.affiliatePreview === true || data.affiliateEnabled === true) && data.access?.ai === true);
       if (products) renderProducts(data.access);
       renderOffer(data);
       window.dispatchEvent(new CustomEvent("titans:member", { detail: data }));

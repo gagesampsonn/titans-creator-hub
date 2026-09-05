@@ -44,6 +44,8 @@
           ]
         },
         "thumbnail": { "$ref": "#/$defs/url" },
+        "reportedViews": { "$ref": "#/$defs/text" },
+        "viewsSource": { "$ref": "#/$defs/text" },
         "hookUsed": { "$ref": "#/$defs/text" },
         "whyItWorked": { "type": "array", "maxItems": 10, "items": { "$ref": "#/$defs/text" } },
         "notes": { "$ref": "#/$defs/text" },

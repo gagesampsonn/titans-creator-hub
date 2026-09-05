@@ -37,7 +37,7 @@
       const example = document.querySelector(`[data-commission-example="${link.product}"]`);
       const amount = estimate(link);
       example.hidden = !amount;
-      example.textContent = amount ? `Approximately ${amount} per sale at the supplied price. Discounts and final commission terms can change this amount.` : "";
+      example.textContent = amount ? `Earn approximately ${amount} per full-price sale. Discounts and final commission terms can change this amount.` : "";
     }
     // Activity remains empty unless a future Whop adapter provides actual rows.
     const activity = document.querySelector("[data-activity-list]");
@@ -54,6 +54,7 @@
       activity.append(item);
     }
     document.querySelector("[data-activity-empty]").hidden = rows.length > 0;
+    document.querySelector("[data-activity-empty-title]").textContent = !data.preview && metrics?.sales !== 0 ? "Your referral activity lives in Whop." : "Your first commission starts with one share.";
     activity.hidden = rows.length === 0;
   }
   window.TitansAffiliateDashboard = { milestone, estimate, render };
