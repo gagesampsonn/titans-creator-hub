@@ -36,6 +36,16 @@
 .titans-upgrade .upgrade-timer { color: #ff967b; font-size: 0.88rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .titans-upgrade .upgrade-link { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; border: 1px solid #f15b3a; border-radius: 4px; padding: 10px 16px; background: #f15b3a; color: #080808; font-size: 0.88rem; font-weight: 700; text-decoration: none; }
 .titans-upgrade.upgrade-site-banner { width: min(1120px, calc(100% - 40px)); margin: 24px auto; }
+.titans-upgrade.upgrade-commerce-banner { margin-top: 96px; }
+.shell > .titans-upgrade.upgrade-site-banner { width: 100%; }
+.upgrade-details { max-width: 760px; }
+.upgrade-price { display: flex; flex-wrap: wrap; align-items: baseline; gap: 12px; }
+.upgrade-price strong { font-size: 2.5rem; letter-spacing: -0.04em; }
+.upgrade-price span, .upgrade-renewal { color: #c7c7c7; line-height: 1.65; }
+.upgrade-saving { color: #ff967b; }
+.upgrade-inclusions { padding: 20px 0 20px 20px; line-height: 1.8; border-block: 1px solid #2a2a2a; }
+.upgrade-clock { margin: 28px 0 16px; color: #c7c7c7; }
+.upgrade-clock strong { color: #ff967b; font-variant-numeric: tabular-nums; }
 @media (max-width: 700px) {
   .member-products { grid-template-columns: 1fr; }
   .member-shell { margin-top: 32px; }

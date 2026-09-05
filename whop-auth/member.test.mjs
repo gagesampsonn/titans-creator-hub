@@ -73,10 +73,65 @@ test("library API verifies the session owner, origin, and current Whop access", 
   assert.equal(result.status, 200);
   assert.equal(result.headers.get("cache-control"), "no-store");
   assert.equal((await result.json()).data.access.ai, true);
+  assert.equal((await fetch(`${origin}/auth/whop/upgrade`, { method: "POST" })).status, 401);
+  assert.equal((await fetch(`${origin}/auth/whop/upgrade`, { method: "POST", headers: { Cookie, Origin: f.config.baseUrl } })).status, 403);
   const login = await fetch(`${origin}/auth/whop/login`, { headers: { Cookie }, redirect: "manual" });
   assert.equal(login.headers.get("location"), "/members/");
   fail = true;
   const unavailable = await fetch(`${origin}/auth/whop/member`, { headers: { Cookie } });
   assert.equal(unavailable.status, 503);
   assert.doesNotMatch(await unavailable.text(), /private provider detail|test_key|user_a/);
+});
+
+test("checkout API accepts its issued token and rejects another member or expired token", async (t) => {
+  const f = fixture(t);
+  Object.assign(f.config, { whopCompanyId: "biz_test", exclusivePlanId: "plan_exclusive" });
+  let promo;
+  let creates = 0;
+  const server = createAuthServer(f.config, { fetchFn: async (url, options) => {
+    const path = new URL(url).pathname;
+    if (path.includes("/access/")) return Response.json({ has_access: path.endsWith("/prod_ai") });
+    if (path.endsWith("/plans/plan_exclusive")) return Response.json({ product: { id: "prod_exclusive" },
+      initial_price: 0, renewal_price: 50, billing_period: 30, plan_type: "renewal", currency: "usd" });
+    if (path.endsWith("/promo_codes") && options.method === "POST") {
+      creates++;
+      promo = { ...JSON.parse(options.body), id: "promo_test", uses: 0, status: "active", duration: "once" };
+      return Response.json(promo);
+    }
+    throw new Error("Unexpected provider request");
+  } });
+  await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
+  t.after(() => new Promise(resolve => server.close(resolve)));
+  const origin = `http://127.0.0.1:${server.address().port}`;
+  const sign = value => {
+    const payload = Buffer.from(JSON.stringify(value)).toString("base64url");
+    return payload + "." + createHmac("sha256", f.config.whopSessionSecret).update(payload).digest("base64url");
+  };
+  const exp = Math.floor(Date.now() / 1000) + 3600;
+  const Cookie = "titans_whop_session=" + sign({ sub: "user_a", exp });
+  const headers = { Cookie, Origin: f.config.baseUrl };
+  const member = await (await fetch(`${origin}/auth/whop/member`, { method: "POST", headers })).json();
+  const token = member.data.upgradeCsrf;
+  assert.ok(token);
+  const post = (extra = {}) => fetch(`${origin}/auth/whop/upgrade`, {
+    method: "POST", headers: { ...headers, "X-CSRF-Token": token, ...extra },
+  });
+  assert.equal((await post({ Origin: "https://evil.example" })).status, 403);
+  assert.equal((await post({ Cookie: "titans_whop_session=" + sign({ sub: "user_b", exp }) })).status, 403);
+  assert.equal((await post({ "X-CSRF-Token": sign({ sub: "user_a", purpose: "exclusive_upgrade", exp: 1 }) })).status, 403);
+  assert.equal(creates, 0);
+  const checkout = await post();
+  assert.equal(checkout.status, 200);
+  assert.equal(checkout.headers.get("cache-control"), "no-store");
+  const { data } = await checkout.json();
+  assert.equal(new URL(data.checkoutUrl).searchParams.get("promoCode"), promo.code);
+  assert.equal(data.expiresAt, member.data.offer.expiresAt);
+  assert.equal(creates, 1);
+});
+
+test("disabled upgrade flag never starts or returns an offer", async (t) => {
+  const f = fixture(t);
+  f.config.upgradeEnabled = false;
+  assert.equal((await f.service().getMember("user_a", { start: true })).offer, null);
+  assert.equal(f.service().readRecord("user_a"), null);
 });

@@ -6,7 +6,9 @@ live Whop product access checks.
 
 ## Access contract
 
-- `GET /auth/whop/login` starts Whop OAuth 2.1 authorization with PKCE.
+- `GET /auth/whop/login` starts Whop OAuth 2.1 authorization with PKCE, or
+  reuses an existing signed session. Its default destination is `/members/`;
+  explicit allowlisted tool/course destinations still work.
 - `GET /auth/whop/callback` exchanges the authorization code server-side,
   retrieves the Whop user ID, revokes the transient refresh token, and creates
   a signed, HTTP-only Titans session.
@@ -23,6 +25,12 @@ live Whop product access checks.
   Whop. They require the catalog's signed CSRF token.
 - `POST /auth/whop/logout` clears the Titans session.
 - `GET /auth/whop/healthz` is the deployment health check.
+- `GET /auth/whop/member` returns current product capabilities without starting
+  an offer. Same-origin `POST` also starts an eligible customer's 10-minute
+  upgrade window. Both require a signed session and return `Cache-Control: no-store`.
+- `POST /auth/whop/upgrade` requires the same session, same origin, and the
+  member response's `upgradeCsrf` token in `X-CSRF-Token`. It rechecks eligibility
+  and returns a single-use Whop checkout URL; it never submits a payment.
 
 The Whop API key and OAuth configuration must remain server-side. Required
 environment variable names are:
@@ -38,12 +46,16 @@ WHOP_REDIRECT_URI
 ```
 
 Optional variables are `PORT`, `TITANS_BASE_URL`, and
-`WHOP_SESSION_MAX_AGE_SECONDS`.
+`WHOP_SESSION_MAX_AGE_SECONDS`, `WHOP_WEEKLY_PRODUCT_ID`, `WHOP_COMPANY_ID`,
+`WHOP_EXCLUSIVE_PLAN_ID`, `WHOP_MEMBER_STATE_DIR`, and `WHOP_UPGRADE_ENABLED`.
+The upgrade flag defaults to false; only the literal `true` enables it.
+See [member library and upgrade decisions](../tasks/member-library-upgrade.md)
+for billing terms, durable-state requirements, and rollback notes.
 
 Run the tests with:
 
 ```bash
-node --test whop-auth/auth.test.mjs whop-auth/course.test.mjs
+node --test whop-auth/auth.test.mjs whop-auth/course.test.mjs whop-auth/member.test.mjs whop-auth/upgrade.test.mjs tests/checkout-return.test.mjs
 ```
 
 The production Caddy routes are documented in `Caddyfile.routes`, and the

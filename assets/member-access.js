@@ -18,6 +18,7 @@
     }
     banner = document.createElement("aside");
     banner.className = `titans-upgrade${library ? "" : " upgrade-site-banner"}`;
+    if (document.querySelector(".commerce-header")) banner.classList.add("upgrade-commerce-banner");
     banner.setAttribute("aria-label", "Limited-time Exclusive upgrade");
     // All markup here is static. Provider values are assigned as text below.
     banner.innerHTML = '<div><strong>Upgrade to Titans Exclusive for $10</strong><p>Get the TikTok Shop course, private Discord, and creator resources.</p><p>$10 for your first 30 days, then $50 every 30 days. Cancel before renewal.</p></div><div class="upgrade-actions"><span class="upgrade-timer" role="timer"></span><a class="upgrade-link" href="/members/upgrade/">See the upgrade</a></div>';

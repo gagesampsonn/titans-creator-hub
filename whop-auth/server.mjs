@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 
 import { CourseProviderError, createCourseService } from "./course.mjs";
 import { createMemberService } from "./member.mjs";
+import { createUpgradeService, UpgradeUnavailable } from "./upgrade.mjs";
 
 const WHOP_AUTHORIZE_URL = "https://api.whop.com/oauth/authorize";
 const WHOP_TOKEN_URL = "https://api.whop.com/oauth/token";
@@ -19,6 +20,7 @@ const DEFAULT_SESSION_MAX_AGE_SECONDS = 7 * 24 * 60 * 60;
 const ALLOWED_NEXT_PATHS = new Set([
   "/members",
   "/members/",
+  "/members/upgrade/",
   "/prompt",
   "/prompt/",
   "/generator",
@@ -522,6 +524,8 @@ function loadConfig(env = process.env) {
     weeklyProductId: env.WHOP_WEEKLY_PRODUCT_ID ?? "prod_jTg64CQQGpke0",
     memberStateDir: env.WHOP_MEMBER_STATE_DIR ?? "/var/lib/titans-whop-auth",
     upgradeEnabled: env.WHOP_UPGRADE_ENABLED === "true",
+    whopCompanyId: env.WHOP_COMPANY_ID ?? "biz_kcMjlv7meKmJl7",
+    exclusivePlanId: env.WHOP_EXCLUSIVE_PLAN_ID ?? "plan_i0exA8Z5f3XOZ",
     redirectUri:
       env.WHOP_REDIRECT_URI ??
       "https://titansagency.co/auth/whop/callback",
@@ -562,6 +566,7 @@ export function createAuthServer(config, { fetchFn = fetch } = {}) {
   const memberService = createMemberService(config, {
     checkAccess: (userId, productId) => checkProductAccess(config, fetchFn, userId, productId),
   });
+  const upgradeService = createUpgradeService(config, memberService, { fetchFn });
   return http.createServer(async (req, res) => {
     const url = new URL(req.url ?? "/", config.baseUrl);
     try {
@@ -585,9 +590,30 @@ export function createAuthServer(config, { fetchFn = fetch } = {}) {
         }
         try {
           const member = await memberService.getMember(session.sub, { start: req.method === "POST" });
+          if (member.offer) member.upgradeCsrf = signValue({ sub: session.sub, purpose: "exclusive_upgrade", exp: Math.floor(member.offer.expiresAt / 1000) }, config.whopSessionSecret);
           sendJson(res, 200, { data: member });
         } catch {
           sendJson(res, 503, { error: "membership_check_unavailable" });
+        }
+        return;
+      }
+      if (url.pathname === "/auth/whop/upgrade" && req.method === "POST") {
+        const session = getSession(req, config);
+        if (!session) { sendJson(res, 401, { error: "authentication_required" }); return; }
+        const token = verifyValue(req.headers["x-csrf-token"], config.whopSessionSecret);
+        if (req.headers.origin !== config.baseUrl || token?.sub !== session.sub ||
+            token?.purpose !== "exclusive_upgrade" || !Number.isInteger(token.exp) ||
+            token.exp <= Math.floor(Date.now() / 1000)) {
+          sendJson(res, 403, { error: "upgrade_request_invalid" }); return;
+        }
+        if (isRateLimited(req, "exclusive-upgrade", 10)) {
+          sendJson(res, 429, { error: "rate_limit_exceeded" }); return;
+        }
+        try {
+          sendJson(res, 200, { data: await upgradeService.createCheckout(session.sub) });
+        } catch (error) {
+          sendJson(res, error instanceof UpgradeUnavailable ? 403 : 503,
+            { error: error instanceof UpgradeUnavailable ? "offer_expired_or_ineligible" : "upgrade_checkout_unavailable" });
         }
         return;
       }

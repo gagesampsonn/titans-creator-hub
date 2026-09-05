@@ -1,5 +1,6 @@
 User-agent: *
 Allow: /
 Disallow: /checkout/complete/
+Disallow: /members/
 
 Sitemap: https://titansagency.co/sitemap.xml
