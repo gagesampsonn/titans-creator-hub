@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Titans approved Creator Toolkit catalog",
+  "type": "object",
+  "required": ["schemaVersion", "referenceVideos", "hooks", "scripts", "captions", "talkingPoints"],
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "referenceVideos": { "type": "array", "items": { "$ref": "#/$defs/reference" } },
+    "hooks": { "type": "array", "items": { "$ref": "#/$defs/resource" } },
+    "scripts": { "type": "array", "items": { "$ref": "#/$defs/resource" } },
+    "captions": { "type": "array", "items": { "$ref": "#/$defs/resource" } },
+    "talkingPoints": { "type": "array", "items": { "$ref": "#/$defs/resource" } }
+  },
+  "$defs": {
+    "product": { "enum": ["ai", "exclusive"] },
+    "status": { "enum": ["draft", "approved"] },
+    "text": { "type": "string", "minLength": 1, "maxLength": 20000 },
+    "url": { "type": "string", "maxLength": 2048, "pattern": "^(https://|/assets/)" },
+    "resource": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "title", "product", "status", "text"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 100 },
+        "title": { "$ref": "#/$defs/text" },
+        "product": { "$ref": "#/$defs/product" },
+        "status": { "$ref": "#/$defs/status" },
+        "text": { "$ref": "#/$defs/text" },
+        "referenceId": { "type": "string", "minLength": 1, "maxLength": 100 }
+      }
+    },
+    "reference": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "title", "product", "status", "media"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 100 },
+        "title": { "$ref": "#/$defs/text" },
+        "product": { "$ref": "#/$defs/product" },
+        "status": { "$ref": "#/$defs/status" },
+        "media": {
+          "oneOf": [
+            { "type": "object", "additionalProperties": false, "required": ["kind", "url"], "properties": { "kind": { "const": "uploaded" }, "url": { "type": "string", "pattern": "^/assets/.*\\.(mp4|webm)(\\?.*)?$" } } },
+            { "type": "object", "additionalProperties": false, "required": ["kind", "url"], "properties": { "kind": { "const": "external" }, "url": { "type": "string", "pattern": "^https://", "maxLength": 2048 } } }
+          ]
+        },
+        "thumbnail": { "$ref": "#/$defs/url" },
+        "hookUsed": { "$ref": "#/$defs/text" },
+        "whyItWorked": { "type": "array", "maxItems": 10, "items": { "$ref": "#/$defs/text" } },
+        "notes": { "$ref": "#/$defs/text" },
+        "cta": { "$ref": "#/$defs/text" }
+      }
+    }
+  }
+}

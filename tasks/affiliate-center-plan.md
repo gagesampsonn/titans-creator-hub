@@ -55,6 +55,57 @@ Files: `members/earn/index.html`, `assets/affiliate-center.js`,
 
 ## Slice 2: After visual approval (not included in local demo)
 
+### UI revision: color, motivation and empty approved-content toolkit
+
+User supersedes the earlier draft resource kit: remove its sample hooks,
+talking points, video and logo-download UI. Keep the original media files
+because other website pages still use them. No new marketing material is
+authored, generated or prepopulated. No Whop/auth/referral behavior changes.
+
+- [x] Compact semantic-color dashboard: green money, blue/purple analytics,
+  gold milestone, orange actions; two-column mobile stats.
+- [x] Explicitly labeled zero preview baseline, data-driven milestones,
+  conditional price-based estimate, inline temporary green copy feedback.
+- [x] Five empty Toolkit tabs, product switcher and associated affiliate link.
+- [x] Add empty catalog/schema and renderer for approved local video files or
+  HTTPS reference links, optional thumbnail, hook, rationale, notes and CTA.
+  Related resource `referenceId` links to reference `id` of the same product.
+- [x] Unit tests, responsive/keyboard browser checks, review, local save only.
+
+Revision verification: 55 tests pass and launch validation passes. Browser
+checks at 320/390/768/1024/1440 show no page overflow. Tested copy-to-green and
+automatic label restoration, keyboard Arrow/End tab navigation, all five empty
+states, and switching the Toolkit's product-specific affiliate link. Reduced
+motion is respected in CSS. Independent review fixes add nearby visible copy
+failure guidance and exact-reference focus/scroll, covered by regressions.
+No Whop/authentication/referral files, API requests, or server settings changed.
+All five content arrays remain empty. No upload service or admin editor was
+created; content entry is through the documented catalog and supplied assets.
+
+Content entry: `assets/affiliate-toolkit.json` follows
+`assets/affiliate-toolkit.schema.json`. Add only user-provided material. For
+uploaded media place the supplied file under `assets/affiliate-media/` and use
+`media.kind=uploaded`; external TikTok/Instagram/YouTube/other HTTPS links use
+`media.kind=external` and open safely in a new tab. No arbitrary third-party
+iframe HTML is accepted. The renderer does not invent "why it worked" bullets.
+It displays only the supplied values. Resources attach through `referenceId`.
+This is file-backed preparation, not a new admin upload/authentication service.
+
+Only `status=approved` items render. Static JSON is publicly fetchable; do not
+put private drafts in this asset, and publish approved records only. Future
+private editorial storage requires a separate authorized backend workflow.
+
+Presentation adapter accepts optional `links[].price={amount,currency}` with
+the existing `commissionPercent`/`payments` fields. No price is added to the
+fixture: estimates remain hidden until an authoritative price is supplied.
+Optional metrics: `totalEarnedUsd`, `sales`, `clicks`, `conversionRate` (percent),
+`pendingUsd`, `paidUsd`. Optional activity rows: `product`, `commissionUsd`,
+`status` (earned/pending/paid/reversed). These are display contracts, not a
+commission-calculation or payout system. Unknown real metrics stay unavailable;
+only the already-local-only preview permits a labeled zero baseline.
+
+### Deferred Whop implementation
+
 - [ ] Define and test authenticated server API. Resolve users from signed
   sessions only; check eligibility and affiliate ownership on every request.
 - [ ] Implement Whop enrollment and two standard plan-specific overrides,
