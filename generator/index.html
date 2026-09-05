@@ -3564,8 +3564,8 @@
           <article class="setup-step">
             <span>4</span>
             <div>
-              <strong>Add replacement reference as @Image1</strong>
-              <p>This controls the defining appearance of the selected person, outfit, vehicle, product, or environment.</p>
+              <strong>Add your replacement image references</strong>
+              <p>Upload the primary view as @Image1, then any supporting views as @Image2, @Image3, and so on. Choose the matching image count in Step 4.</p>
             </div>
           </article>
           <article class="setup-step">
@@ -3579,7 +3579,7 @@
             <span>6</span>
             <div>
               <strong>Paste the generated Titans prompt</strong>
-              <p>Use the Step 4 builder below after both references are attached.</p>
+              <p>Use the Step 4 builder below after the video and all selected image references are attached.</p>
             </div>
           </article>
           <article class="setup-step">
@@ -3642,6 +3642,19 @@
           </div>
 
           <div class="field">
+            <label for="referenceImageCount">How many reference images will you upload?</label>
+            <select id="referenceImageCount" aria-describedby="referenceImageHint">
+              <option value="1">1 image</option>
+              <option value="2">2 images</option>
+              <option value="3">3 images</option>
+              <option value="4">4 images</option>
+              <option value="5">5 images</option>
+              <option value="6">6 images</option>
+            </select>
+            <p class="form-hint" id="referenceImageHint">Upload your primary reference in Higgsfield as @Image1. This selector does not upload files.</p>
+          </div>
+
+          <div class="field">
             <label for="strictness">Strictness</label>
             <select id="strictness">
               <option value="strict">Strict 1:1 preservation</option>
@@ -3669,8 +3682,8 @@
           </div>
           <pre class="prompt-output" id="promptOutput"></pre>
           <div class="note-row">
-            <div class="mini-note"><strong>Attach first.</strong>Select the reference video and image inside Seedance before pasting.</div>
-            <div class="mini-note"><strong>Use @ references.</strong>Choose Video1 and Image1 from the @ menu so the green chips appear.</div>
+            <div class="mini-note"><strong>Attach first.</strong>Select the reference video and every image counted above inside Seedance before pasting.</div>
+            <div class="mini-note"><strong>Use @ references.</strong><span id="promptReferenceNote">Choose @Video1 and @Image1 from the @ menu so the green chips appear.</span></div>
             <div class="mini-note"><strong>Keep it strict.</strong>Do not add style labels unless they describe a concrete change.</div>
           </div>
         </section>
@@ -5520,6 +5533,9 @@
     const videoPromptBuilder = promptForm.closest(".video-prompt-builder");
     const modeSelect = document.getElementById("mode");
     const strictnessSelect = document.getElementById("strictness");
+    const referenceImageCount = document.getElementById("referenceImageCount");
+    const referenceImageHint = document.getElementById("referenceImageHint");
+    const promptReferenceNote = document.getElementById("promptReferenceNote");
     const extraInput = document.getElementById("extra");
     const extraLabel = document.getElementById("extraLabel");
     const extraHint = document.getElementById("extraHint");
@@ -5585,10 +5601,29 @@
         : "Example: Keep the exact blue hoodie from Image 1. Do not change the kitchen background.";
     }
 
+    function selectedReferenceImages() {
+      const count = /^[1-6]$/.test(referenceImageCount.value) ? Number(referenceImageCount.value) : 1;
+      return Array.from({ length: count }, (_, index) => `@Image${index + 1}`);
+    }
+
+    function joinReferences(references) {
+      return references.length < 3 ? references.join(" and ") : `${references.slice(0, -1).join(", ")}, and ${references.at(-1)}`;
+    }
+
+    function syncReferenceImageHelp() {
+      const references = selectedReferenceImages();
+      const imageNames = joinReferences(references);
+      referenceImageHint.textContent = references.length === 1
+        ? "Upload your primary reference in Higgsfield as @Image1. This selector does not upload files."
+        : `Upload ${imageNames} in that order in Higgsfield. Use different views of the same replacement; @Image1 is primary. This selector does not upload files.`;
+      promptReferenceNote.textContent = `Choose @Video1 and ${imageNames} from the @ menu so every reference becomes a green chip.`;
+    }
+
     function buildPrompt() {
       const mode = modeSelect.value;
       const video = "@Video1";
-      const image = "@Image1";
+      const references = selectedReferenceImages();
+      const image = joinReferences(references);
       const strictness = strictnessSelect.value;
       const extra = extraInput.value.replace(/\s+/g, " ").trim();
       const copy = modeCopy[mode] || modeCopy.person;
@@ -5601,10 +5636,11 @@
 
       const sections = [
         opening,
+        references.length > 1 ? `Use @Image1 as the primary visual reference. Use ${joinReferences(references.slice(1))} as supporting views of the same ${copy.replacement} to clarify angles and details. If the images conflict, follow @Image1. Do not blend different identities, add extra subjects, or copy motion, camera framing, or unrelated backgrounds from the image references.` : "",
         copy.videoRules,
         sceneRules,
-        "The replacement must consistently maintain the defining appearance, proportions, colors, materials, details, and overall identity shown in @Image1 throughout the entire video.",
-        copy.imageRules,
+        `The replacement must consistently maintain the defining appearance, proportions, colors, materials, details, and overall identity shown in ${image} throughout the entire video.`,
+        copy.imageRules.replaceAll("@Image1", image),
         `Only change the ${copy.replacement}. Do not reinterpret, restage, improve, or unnecessarily modify anything else from ${video}.`,
         "Preserve the reference video's timing, camera, framing, scene behavior, and primary motion. Allow only tiny physical corrections needed for the replacement to fit naturally.",
         strictnessCopy[strictness] || strictnessCopy.strict,
@@ -5630,6 +5666,7 @@
       invalidatePrompt();
     });
     strictnessSelect.addEventListener("change", invalidatePrompt);
+    referenceImageCount.addEventListener("change", () => { syncReferenceImageHelp(); invalidatePrompt(); });
     extraInput.addEventListener("input", invalidatePrompt);
 
     copyBtn.addEventListener("click", async () => {
@@ -5638,6 +5675,7 @@
 
     resetBtn.addEventListener("click", () => {
       promptForm.reset();
+      syncReferenceImageHelp();
       syncReplacementDetailsField();
       invalidatePrompt();
     });
@@ -5663,6 +5701,7 @@
       resultVideos.forEach((video) => videoObserver.observe(video));
     }
 
+    syncReferenceImageHelp();
     syncReplacementDetailsField();
     invalidatePrompt();
   </script>
