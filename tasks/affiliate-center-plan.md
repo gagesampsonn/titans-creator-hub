@@ -171,3 +171,12 @@ release to GitHub, then deploy immutable static/auth releases via Contabo SSH.
 Enable only after provider verification. Rollback: restore both current symlinks
 to 20260905-285cb31 and restart titans-whop-auth; preserve durable member offer
 records and all Whop agreements. Flag can also be disabled without removing data.
+
+Live verification: initial immutable release `20260905-ee00c41` activated and
+health verified. Existing signed eligible account received two native Whop
+affiliate links; read-only provider inspection confirmed standard 30% first-payment
+overrides on the exact AI and Exclusive plans. No payments or withdrawals made.
+Production returned earnings in USD-formatted strings (`$0.00`), so the follow-up
+strict parser accepts documented currency formatting and rejects malformed values.
+Unknown statistics use quieter typography. Unsigned affiliate/course APIs remain
+401; homepage and existing upgrade scripts are byte-identical to the prior release.

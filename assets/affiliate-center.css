@@ -102,6 +102,7 @@
 .earn-payouts p:not(.earn-eyebrow) { color:var(--earn-muted); font-size:.85rem; line-height:1.6; }
 .earn-payouts .member-button { flex-shrink:0; }
 .earn-stat dd:has(+ .stat-caption) { overflow-wrap:anywhere; }
+.earn-stat dd.stat-unavailable { font-size:1rem; color:var(--earn-muted); letter-spacing:0; }
 @media (max-width:800px) { .earn-payouts { align-items:stretch; flex-direction:column; gap:12px; padding:20px 16px; } }
 .toolkit-reference-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; align-items:start; }
 .toolkit-reference-grid .toolkit-reference { min-width:0; margin:0; }

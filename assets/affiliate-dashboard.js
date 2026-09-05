@@ -20,6 +20,7 @@
     set('[data-stat="conversion"]', display("conversionRate", value => `${value}%`));
     set('[data-stat="pending"]', display("pendingUsd", money));
     set('[data-stat="paid"]', display("paidUsd", money));
+    for (const stat of document.querySelectorAll("[data-stat]")) stat.classList.toggle("stat-unavailable", stat.textContent === "Not available");
     const goal = milestone(metrics?.sales ?? (data.preview ? 0 : null));
     document.querySelector("[data-milestone]").hidden = !goal;
     if (goal) {

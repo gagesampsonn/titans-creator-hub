@@ -40,6 +40,12 @@ test("eligible members receive only Whop links and supported totals, with curren
     assert.equal(call.body.override_type, "standard");
   }
 });
+test("Whop USD-formatted earnings are parsed strictly without inventing unavailable totals", async () => {
+  for (const [raw, expected] of [["$0.00", 0], ["$1,234.56", 1234.56], ["18.00", 18], ["$12,34.56", null], ["unknown", null], [null, null], ["", null]]) {
+    const result = await fixture({ affiliate: { total_referral_earnings_usd: raw } }).service.connect("user_member");
+    assert.equal(result.metrics.totalEarnedUsd, expected);
+  }
+});
 test("weekly, unpurchased and disabled accounts cannot enroll", async () => {
   for (const options of [{ access: { weekly: true } }, { access: {} }, { config: { affiliateEnabled: false } }]) {
     const { service, calls } = fixture(options);

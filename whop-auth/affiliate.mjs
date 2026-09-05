@@ -1,7 +1,13 @@
 // Native Whop standard affiliates. No local attribution, payout or earnings ledger.
 export class AffiliateUnavailable extends Error {}
 const number = value => typeof value === "number" && Number.isFinite(value) && value >= 0 ? value : null;
-const decimal = value => typeof value === "string" && /^\d+(\.\d+)?$/.test(value) ? number(Number(value)) : number(value);
+function decimal(value) {
+  if (typeof value !== "string") return number(value);
+  if (/^\d+(\.\d+)?$/.test(value)) return number(Number(value));
+  // Whop returns USD totals such as "$0.00" and "$1,234.56".
+  if (/^\$(?:\d+|\d{1,3}(?:,\d{3})+)\.\d{2}$/.test(value)) return number(Number(value.slice(1).replaceAll(",", "")));
+  return null;
+}
 
 export function createAffiliateService(config, memberService, { fetchFn = fetch } = {}) {
   const pending = new Map();
