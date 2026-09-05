@@ -5,6 +5,8 @@ import { resolve, extname, sep } from "node:path";
 import { affiliatePreview } from "./affiliate-preview-data.mjs";
 const root = resolve(import.meta.dirname, "..");
 const startedAt = Date.now();
+const port = Number(process.env.TITANS_PREVIEW_PORT || 8876);
+if (!Number.isInteger(port) || port < 1024 || port > 65535) throw new Error("Invalid preview port");
 http.createServer((req, res) => {
   const url = new URL(req.url, "http://127.0.0.1");
   if (url.pathname.startsWith("/__preview/")) {
@@ -34,4 +36,4 @@ http.createServer((req, res) => {
   const types = { ".html": "text/html; charset=utf-8", ".css": "text/css", ".js": "text/javascript", ".png": "image/png", ".webp": "image/webp", ".mp4": "video/mp4" };
   res.writeHead(200, { "Content-Type": types[extname(file)] ?? "application/octet-stream" });
   createReadStream(file).pipe(res);
-}).listen(8876, "127.0.0.1", () => console.log("Member preview: http://127.0.0.1:8876/__preview/ai"));
+}).listen(port, "127.0.0.1", () => console.log(`Member preview: http://127.0.0.1:${port}/__preview/ai`));
