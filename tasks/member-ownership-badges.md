@@ -15,3 +15,6 @@ Deployment is static-only, through GitHub to an immutable Contabo release. The
 authentication release remains unchanged. Roll back the static current symlink
 to `/srv/titans-marketing/releases/20260905-a228fe4` if verification fails.
 Unrelated pending upgrade-preview changes are excluded.
+
+Live verification caught returning browsers reusing the pre-badge script. The
+library now versions its CSS and script URLs; a regression test covers this.

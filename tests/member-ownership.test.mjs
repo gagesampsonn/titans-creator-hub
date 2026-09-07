@@ -52,3 +52,8 @@ test("cached pre-badge markup still renders product access during rollout", asyn
   assert.equal(view.products.hidden, false);
   assert.equal(view.cards[0].querySelector("[data-owned-actions]").hidden, false);
 });
+
+test("member library versions both assets so cached scripts cannot hide new checks", () => {
+  const html = readFileSync(new URL("../members/index.html", import.meta.url), "utf8");
+  for (const asset of ["member.css", "member-access.js"]) assert.ok(html.includes(`/assets/${asset}?v=ownership-20260907`));
+});
