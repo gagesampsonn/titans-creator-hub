@@ -81,6 +81,23 @@ test("changed plans and unsafe or unattributed referral URLs are rejected", asyn
   const { record } = fixture();
   for (const options of [{ plan: { product: { id: "prod_other" } } }, { overrides: [{ ...record("plan_ai"), checkout_direct_link: "https://evil.test/?a=member" }] }, { overrides: [{ ...record("plan_ai"), checkout_direct_link: "https://whop.com/checkout/plan_ai/" }] }]) await assert.rejects(fixture(options).service.connect("user_member"));
 });
+
+test("an explicitly approved coach keeps the exact revenue share and legacy deals alongside new first-payment links", async () => {
+  const revenueShare = { id: "affov_coach", override_type: "rev_share", commission_type: "percentage", commission_value: 10, applies_to_payments: null, plan_id: null, product_id: null, applies_to_products: "all_products", revenue_basis: "post_fees" };
+  const approval = { userId: "user_member", ...revenueShare };
+  const legacy = { ...fixture().record("plan_legacy"), commission_value: 40 };
+  const page = fixture({ overrides: [{ ...revenueShare }, { ...legacy }], config: { affiliateRevenueShareApprovals: [approval] } });
+  assert.equal((await page.service.connect("user_member")).links.length, 2);
+  assert.deepEqual(page.overrides.slice(0, 2), [revenueShare, legacy]);
+  assert.equal(page.calls.filter(c => c.method === "POST" && c.path.endsWith("/overrides")).length, 2);
+  for (const changed of [{ commission_value: 20 }, { id: "affov_other" }, { revenue_basis: "pre_fees" }, { applies_to_products: "single_product", product_id: "prod_ai" }]) {
+    const altered = fixture({ overrides: [{ ...revenueShare, ...changed }], config: { affiliateRevenueShareApprovals: [approval] } });
+    await assert.rejects(altered.service.connect("user_member"), AffiliateUnavailable);
+    assert.equal(altered.calls.some(c => c.method === "POST" && c.path.endsWith("/overrides")), false);
+  }
+  const wrongOwner = fixture({ overrides: [revenueShare], config: { affiliateRevenueShareApprovals: [{ ...approval, userId: "user_other" }] } });
+  await assert.rejects(wrongOwner.service.connect("user_member"), AffiliateUnavailable);
+});
 test("a provider timeout is reconciled by reading overrides on the next attempt", async () => {
   const { service, calls } = fixture({ timeoutOnce: true });
   await assert.rejects(service.connect("user_member"));

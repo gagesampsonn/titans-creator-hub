@@ -37,6 +37,12 @@ export function createAffiliateService(config, memberService, { fetchFn = fetch 
   function validTerms(record) {
     return record.override_type === "standard" && record.commission_type === "percentage" && record.commission_value === 30 && record.applies_to_payments === "first_payment";
   }
+  function approvedRevenueShare(record, userId) {
+    const approvals = config.affiliateRevenueShareApprovals ?? [];
+    if (!Array.isArray(approvals)) return false;
+    const terms = ["id", "override_type", "commission_type", "commission_value", "applies_to_payments", "plan_id", "product_id", "applies_to_products", "revenue_basis"];
+    return approvals.some(approval => approval?.userId === userId && /^affov_[A-Za-z0-9_]+$/.test(approval.id) && terms.every(key => Object.hasOwn(approval, key) && approval[key] === record[key]));
+  }
   function referralUrl(record, username) {
     const url = new URL(record.checkout_direct_link);
     if (url.origin !== "https://whop.com" || url.username || url.password || ![ `/checkout/${record.plan_id}`, `/checkout/${record.plan_id}/` ].includes(url.pathname) || url.searchParams.getAll("a").length !== 1 || url.searchParams.get("a") !== username) throw Error("invalid_affiliate_link");
@@ -64,8 +70,9 @@ export function createAffiliateService(config, memberService, { fetchFn = fetch 
     if (typeof affiliate.user.username !== "string" || !affiliate.user.username) throw Error("affiliate_username_unavailable");
     const overrides = await listOverrides(affiliate.id);
     // Inspect both plans before writing either; special arrangements need review,
-    // never replacement or automatic stacking with a native revenue-share deal.
-    if (overrides.some(o => o.override_type === "rev_share" && (o.applies_to_products !== "single_product" || !o.product_id || products.some(p => p.productId === o.product_id)))) throw new AffiliateUnavailable("affiliate_custom_agreement");
+    // Only exact owner-approved revenue-share snapshots may coexist. Changed
+    // terms or another owner still require review; existing deals are never edited.
+    if (overrides.some(o => o.override_type === "rev_share" && (o.applies_to_products !== "single_product" || !o.product_id || products.some(p => p.productId === o.product_id)) && !approvedRevenueShare(o, userId))) throw new AffiliateUnavailable("affiliate_custom_agreement");
     for (const product of products) {
       const existing = overrides.filter(o => o.plan_id === product.planId);
       if (existing.length > 1 || existing.some(o => !validTerms(o))) throw new AffiliateUnavailable("affiliate_custom_agreement");

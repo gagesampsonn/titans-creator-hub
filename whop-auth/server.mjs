@@ -530,6 +530,7 @@ function loadConfig(env = process.env) {
     exclusivePlanId: env.WHOP_EXCLUSIVE_PLAN_ID ?? "plan_i0exA8Z5f3XOZ",
     aiPlanId: env.WHOP_AI_PLAN_ID ?? "plan_bJeNjIIJAtzSR",
     affiliateEnabled: env.WHOP_AFFILIATE_ENABLED === "true",
+    affiliateRevenueShareApprovals: JSON.parse(env.WHOP_AFFILIATE_REVENUE_SHARE_APPROVALS || "[]"),
     redirectUri:
       env.WHOP_REDIRECT_URI ??
       "https://titansagency.co/auth/whop/callback",
