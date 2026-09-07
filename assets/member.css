@@ -18,6 +18,11 @@
 .member-product.is-locked { background: #0c0c0c; border-color: #252525; }
 .member-product.is-locked h2, .member-product.is-locked .member-status { color: #a5a5a5; }
 .member-product > div { margin-top: auto; display: flex; flex-wrap: wrap; align-items: center; gap: 16px; }
+.member-product > .member-status-row { margin: 0; flex-wrap: nowrap; gap: 8px; }
+.member-ownership-check { display: inline-flex; width: 24px; height: 24px; flex: 0 0 24px; }
+.member-ownership-check svg { width: 100%; height: 100%; }
+.member-ownership-check circle { fill: #103522; stroke: #4ade80; stroke-width: 2; }
+.member-ownership-check path { fill: none; stroke: #fff; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
 .member-button { display: inline-flex; align-items: center; justify-content: center; min-height: 46px; padding: 12px 18px; border: 1px solid #f15b3a; border-radius: 4px; background: #f15b3a; color: #080808; font: inherit; font-weight: 700; text-decoration: none; cursor: pointer; }
 .member-button:hover { background: #ff795a; }
 .member-button:disabled { background: #262626; color: #aaa; border-color: #444; cursor: not-allowed; }

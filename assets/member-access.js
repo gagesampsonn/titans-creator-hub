@@ -41,6 +41,8 @@
       const key = product.dataset.product;
       const owned = access[key] === true;
       product.classList.toggle("is-locked", !owned);
+      const ownershipCheck = product.querySelector("[data-ownership-check]");
+      if (ownershipCheck) ownershipCheck.hidden = !owned;
       product.querySelector("[data-product-status]").textContent = owned
         ? (key === "ai" && access.exclusive && !access.aiPurchased ? "Included with Exclusive" : "You have access")
         : "Not included in your purchases";
