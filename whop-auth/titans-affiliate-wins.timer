@@ -1,0 +1,11 @@
+[Unit]
+Description=Check Whop affiliate earnings every minute
+
+[Timer]
+OnBootSec=30s
+OnUnitInactiveSec=60s
+AccuracySec=5s
+Unit=titans-affiliate-wins.service
+
+[Install]
+WantedBy=timers.target

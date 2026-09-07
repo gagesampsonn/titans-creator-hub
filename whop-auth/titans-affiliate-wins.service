@@ -1,0 +1,20 @@
+[Unit]
+Description=Titans Whop affiliate earnings notifications
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=www-data
+Group=www-data
+EnvironmentFile=/etc/titans-affiliate-wins.env
+ExecStart=/usr/bin/flock -n /var/lib/titans-affiliate-wins/worker.lock /usr/bin/node /opt/titans-whop-auth/current/affiliate-wins-worker.mjs
+TimeoutStartSec=300
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/titans-affiliate-wins
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+
