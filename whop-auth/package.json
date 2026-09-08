@@ -1,0 +1,13 @@
+{
+  "name": "titans-whop-auth",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=22.19.0" },
+  "packageManager": "npm@10.9.3",
+  "scripts": { "test": "node --test *.test.mjs" },
+  "dependencies": {
+    "@whop/sdk": "1.1.2",
+    "pg": "8.23.0",
+    "sharp": "0.35.4"
+  }
+}
