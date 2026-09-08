@@ -3,6 +3,7 @@ import { readFileSync, existsSync, statSync, createReadStream } from 'node:fs';
 import { join, resolve, extname, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
+import { composeCharacterUpgrade, upgradeRoot } from './character-upgrade.mjs';
 
 const root = resolve(import.meta.dirname, '../..');
 const samples = { original:'b97538f0-d0f2-4a60-9eba-b715561e5a38', selfie:'347ae7f3-3741-4890-bfd3-21e18e551717' };
@@ -17,12 +18,13 @@ async function loadSavedSample(kind) {
   const image = Buffer.concat(chunks); cache.set(kind,image); return image;
 }
 export function createBuilderPreview({ loadSample = loadSavedSample } = {}) {
-  const html = readFileSync(join(root,'prompt/index.html'),'utf8')
+  const html = composeCharacterUpgrade(readFileSync(join(root,'prompt/index.html'),'utf8'),readFileSync(join(upgradeRoot,'source.html'),'utf8'))
     .replace(/\r\n?/g,'\n') // HTML parsing normalizes newlines before checking inline script hashes.
     .replace('<script src="/assets/member-access.js" defer></script>', '')
     .replace('</head>', '<meta name="robots" content="noindex,nofollow"><link rel="stylesheet" href="/__demo/demo-style.css"><script type="module" src="/__demo/demo-app.js"></script></head>');
   const scriptHashes = [...html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/g)].filter(match => match[1].trim()).map(match => `'sha256-${createHash('sha256').update(match[1]).digest('base64')}'`);
   const files = new Map(['demo-app.js','demo-style.css','demo-model.mjs','panel.html'].map(name => [`/__demo/${name}`,join(import.meta.dirname,name)]));
+  files.set('/__demo/character-library.js',join(upgradeRoot,'character-library.js'));
   const types = {'.js':'text/javascript','.mjs':'text/javascript','.html':'text/html; charset=utf-8','.css':'text/css','.png':'image/png','.jpg':'image/jpeg','.webp':'image/webp','.svg':'image/svg+xml','.mp4':'video/mp4'};
   const server = http.createServer(async(req,res) => {
     res.setHeader('Cache-Control','no-store'); res.setHeader('X-Content-Type-Options','nosniff'); res.setHeader('Referrer-Policy','no-referrer');

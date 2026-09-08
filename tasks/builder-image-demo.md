@@ -7,7 +7,7 @@ Direct image section: http://127.0.0.1:8892/prompt/#titans-image-flow
 This is a no-charge, local-only UI simulation. It reads the existing Prompt
 Builder HTML, then injects the new module into the returned page. Neither
 prompt/index.html nor generator/index.html is edited. Other worktrees and the
-separate avatar-uniqueness work are untouched. No production deployment.
+original supplied avatar package are untouched. No production deployment.
 
 Flow: current finished character prompt -> mock original -> optional selfie ->
 downloads -> Step 4 reference count of 1 or 2, preserving the existing video
@@ -46,5 +46,41 @@ Verification September8,2026:
   Real preview attempt balance unchanged by all mock checks.
 - 320/390/768/1024/1440px layouts have no horizontal overflow. Mobile pack dialog
   and desktop image section inspected visually. Browser error/warning logs clean.
-- The production credit ledger, paid packs, admin controls and the other AI's
-  avatar improvements are not implemented or merged by this mock.
+- The production credit ledger, paid packs and admin controls remain unimplemented.
+
+## Supplied character upgrade combined September 8
+
+The owner approved the package at Documents/Codex/2026-09-08/lo/outputs/
+titans-character-upgrade after sharing its PDF. The preview now includes a local
+snapshot of its source HTML and complete 1,063-entry dataset in
+ops/builder-preview/character-upgrade/. Original source files were not edited.
+Imported HTML (newline-normalized) and parsed dataset match the supplied package,
+including provenance metadata. Only the runtime library is exposed as an asset;
+the snapshot HTML is not served as a separate, outdated page.
+
+The supplied page was older than the website: replacing the whole page would
+remove Instagram downloads and multiple image references. Instead, the composer
+imports only Step 2 HTML, character engine, character event handlers and slot
+control styles. Existing navigation, downloader markup/logic and video-reference
+logic stay intact. Explicit boundary checks fail if either source shape changes.
+There is no runtime dependency on the owner's Documents folder.
+
+Local-only adaptations add category-specific accessible lock labels, 44px touch
+targets and wrapping headers. Automatic unlocks must update the visible label as
+well as aria-pressed. No claim that a text prompt guarantees perfect realism.
+
+Browser checks: six locks/rerolls visible, Face preserved across a full reroll,
+individual Hair reroll changes only Hair, exact garments preserved, new-character
+default uses no replacement language, optional frame reference uses neutral
+existing-person language. Image and selfie simulation reduces demo credits15->13;
+handoff sets Step 4 to2 and its generated prompt includes both @Image1 and @Image2.
+320/390/768/1024/1440 layouts have no horizontal overflow; touch targets44px.
+Saved image examples remain mock results, not outputs of the newly rerolled prompt.
+
+Final verification: 107 tests and launch validation pass. Independent review
+identified the stale automatic-unlock label; both affected paths are corrected in
+the composer, with failing-before/passing-after regressions for editing a locked
+outfit and changing age with age-incompatible locked hair. Browser verification
+confirms the label returns to Lock and aria-pressed=false. No API charges or live
+deployment. Full rerolls, per-category rerolls and outfit inputs feed the same
+finished prompt used by the image mock.
