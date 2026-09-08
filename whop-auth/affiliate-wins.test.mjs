@@ -49,3 +49,15 @@ test("Discord embed reports provider totals, not invented sale prices, sale coun
   assert.equal(msg.embeds[0].author.name.includes("@everyone"), false);
   assert.match(msg.embeds[0].footer.text, new RegExp(notice.id));
 });
+
+test("a verified Discord identity changes presentation only, not referral amounts", () => {
+  const state = newWinState(); planWins(state, [item(0)], 1000);
+  const [notice] = planWins(state, [item(900)], 2000);
+  const msg = winMessage(notice, { userId: "1060255772874903704", username: "gagesampson_" });
+  assert.equal(msg.embeds[0].author.name, "gagesampson_ earned with Titans");
+  assert.match(msg.content, /<@1060255772874903704>/);
+  assert.deepEqual(msg.allowed_mentions, { parse: [], users: ["1060255772874903704"] });
+  assert.match(msg.embeds[0].title, /9\.00/);
+  assert.throws(() => winMessage(notice, { userId: "invalid", username: "@everyone" }), /invalid_discord_identity/);
+  assert.equal(winMessage(notice).embeds[0].author.name, "Creator earned with Titans");
+});

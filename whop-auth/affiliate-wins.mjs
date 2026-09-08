@@ -32,11 +32,18 @@ export function planWins(state, items, now) {
   return notices;
 }
 
-export function winMessage(notice) {
+export function validateDiscordIdentity(identity) {
+  if (!identity || typeof identity.userId !== "string" || !/^\d{17,20}$/.test(identity.userId) ||
+      typeof identity.username !== "string" || !/^[a-z0-9_.]{2,32}$/.test(identity.username)) throw Error("invalid_discord_identity");
+}
+
+export function winMessage(notice, discordIdentity = null) {
+  if (discordIdentity) validateDiscordIdentity(discordIdentity);
   return {
-    allowed_mentions: { parse: [] }, nonce: notice.id, enforce_nonce: true,
+    ...(discordIdentity ? { content: `<@${discordIdentity.userId}> earned with Titans.` } : {}),
+    allowed_mentions: discordIdentity ? { parse: [], users: [discordIdentity.userId] } : { parse: [] }, nonce: notice.id, enforce_nonce: true,
     embeds: [{ color: 3066993,
-      author: { name: `${plainName(notice.name || notice.username)} earned with Titans`, icon_url: "https://titansagency.co/assets/icon.png" },
+      author: { name: `${discordIdentity?.username ?? plainName(notice.name || notice.username)} earned with Titans`, icon_url: "https://titansagency.co/assets/icon.png" },
       title: `+${dollars(notice.deltaCents)} REFERRAL EARNINGS`,
       description: "Whop-reported earnings increased since the last check. This update may include multiple referrals or adjustments.",
       thumbnail: { url: "https://titansagency.co/assets/icon.png" },

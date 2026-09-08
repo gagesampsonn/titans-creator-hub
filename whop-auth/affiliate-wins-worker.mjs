@@ -3,7 +3,7 @@ import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { randomUUID } from "node:crypto";
 import { realpathSync } from "node:fs";
-import { newWinState, planWins, winMessage } from "./affiliate-wins.mjs";
+import { newWinState, planWins, winMessage, validateDiscordIdentity } from "./affiliate-wins.mjs";
 
 const validId = (value, prefix) => typeof value === "string" && new RegExp(`^${prefix}_[A-Za-z0-9_]+$`).test(value);
 function cents(value) {
@@ -18,6 +18,14 @@ export async function runWinPoll(config, { fetchFn = fetch, load, save } = {}) {
   const counters = { affiliates: 0, tracked: 0, delivered: 0, reconciled: 0, requests: 0 };
   for (const key of ["channelId", "guildId", "botId"]) if (!/^\d{17,20}$/.test(config[key])) throw Error("invalid_discord_configuration");
   if (!validId(config.companyId, "biz") || !config.whopApiKey || !config.botToken) throw Error("invalid_win_configuration");
+  // Operator-verified identity mapping affects display/mentions only. Whop
+  // remains the source of the affiliate owner and every earnings increase.
+  const identities = config.discordIdentities ?? {};
+  if (typeof identities !== "object" || Array.isArray(identities) || Object.keys(identities).length > 1000) throw Error("invalid_discord_identities");
+  for (const [userId, identity] of Object.entries(identities)) {
+    if (!validId(userId, "user")) throw Error("invalid_discord_identity");
+    validateDiscordIdentity(identity);
+  }
   const products = [
     { planId: config.aiPlanId, productId: config.aiProductId, title: "AI Prompter + Guide" },
     { planId: config.exclusivePlanId, productId: config.exclusiveProductId, title: "Titans Exclusive" },
@@ -103,7 +111,7 @@ export async function runWinPoll(config, { fetchFn = fetch, load, save } = {}) {
     // before any retry, with the same nonce and footer identity on every attempt.
     record.notice.attemptedAt ??= Date.now();
     await save(state);
-    const message = await api("discord", `/channels/${config.channelId}/messages`, winMessage(notice));
+    const message = await api("discord", `/channels/${config.channelId}/messages`, winMessage(notice, identities[notice.userId]));
     if (!/^\d{17,20}$/.test(message.id) || message.channel_id !== config.channelId || message.author?.id !== config.botId) throw Error("invalid_discord_delivery");
     record.notice = null; counters.delivered++; await save(state);
   }
@@ -131,7 +139,9 @@ async function main() {
   };
   const runId = randomUUID();
   try {
-    const summary = await runWinPoll({ companyId: env.WHOP_COMPANY_ID, whopApiKey: env.WHOP_API_KEY, botToken: env.BOT_TOKEN, botId: env.TITANS_DISCORD_BOT_ID, channelId: env.TITANS_AFFILIATE_WINS_CHANNEL_ID, guildId: env.TITANS_DISCORD_GUILD_ID, aiPlanId: env.WHOP_AI_PLAN_ID, aiProductId: env.WHOP_AI_PRODUCT_ID, exclusivePlanId: env.WHOP_EXCLUSIVE_PLAN_ID, exclusiveProductId: env.WHOP_EXCLUSIVE_PRODUCT_ID }, { load, save });
+    const summary = await runWinPoll({ companyId: env.WHOP_COMPANY_ID, whopApiKey: env.WHOP_API_KEY, botToken: env.BOT_TOKEN, botId: env.TITANS_DISCORD_BOT_ID, channelId: env.TITANS_AFFILIATE_WINS_CHANNEL_ID, guildId: env.TITANS_DISCORD_GUILD_ID, aiPlanId: env.WHOP_AI_PLAN_ID, aiProductId: env.WHOP_AI_PRODUCT_ID, exclusivePlanId: env.WHOP_EXCLUSIVE_PLAN_ID, exclusiveProductId: env.WHOP_EXCLUSIVE_PRODUCT_ID,
+      discordIdentities: JSON.parse(env.TITANS_AFFILIATE_DISCORD_IDENTITIES || "{}"),
+    }, { load, save });
     console.log(JSON.stringify({ event: "affiliate_wins_poll_ok", runId, ...summary }));
   } catch (error) {
     const code = /^(whop|discord|invalid|unreadable|win)_[a-z0-9_]+$/.test(error.message) ? error.message : "provider_or_storage_unavailable";
