@@ -23,6 +23,8 @@ CREATE TABLE IF NOT EXISTS titans_images.jobs (
   budget_micros integer NOT NULL DEFAULT 250000 CHECK (budget_micros >= 0),
   cost_micros integer CHECK (cost_micros >= 0),
   usage jsonb,
+  consent_version text NOT NULL DEFAULT 'images-v1',
+  images_expired boolean NOT NULL DEFAULT false,
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now()
 );
@@ -43,3 +45,30 @@ CREATE TABLE IF NOT EXISTS titans_images.settings (
   month_micros integer NOT NULL DEFAULT 20000000 CHECK (month_micros >= 0)
 );
 INSERT INTO titans_images.settings(id) VALUES (true) ON CONFLICT DO NOTHING;
+CREATE TABLE IF NOT EXISTS titans_images.packs (
+  id text PRIMARY KEY,
+  price_cents integer NOT NULL CHECK (price_cents BETWEEN 100 AND 100000),
+  credits integer NOT NULL CHECK (credits BETWEEN 1 AND 10000),
+  enabled boolean NOT NULL DEFAULT true
+);
+INSERT INTO titans_images.packs(id,price_cents,credits) VALUES
+  ('photos_10',500,10), ('photos_25',1000,25), ('photos_40',1500,40),
+  ('photos_60',2000,60), ('photos_80',2500,80), ('photos_100',3000,100)
+  ON CONFLICT DO NOTHING;
+CREATE TABLE IF NOT EXISTS titans_images.orders (
+  id uuid PRIMARY KEY,
+  user_id text NOT NULL REFERENCES titans_images.accounts(user_id),
+  pack_id text NOT NULL REFERENCES titans_images.packs(id),
+  price_cents integer NOT NULL CHECK (price_cents > 0),
+  credits integer NOT NULL CHECK (credits > 0),
+  checkout_id text UNIQUE,
+  plan_id text,
+  checkout_url text,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE TABLE IF NOT EXISTS titans_images.admin_audit (
+  id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  action text NOT NULL,
+  details jsonb NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT now()
+);

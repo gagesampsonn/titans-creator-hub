@@ -7,6 +7,7 @@ import { CourseProviderError, createCourseService } from "./course.mjs";
 import { createMemberService } from "./member.mjs";
 import { createUpgradeService, UpgradeUnavailable } from "./upgrade.mjs";
 import { createAffiliateService, AffiliateUnavailable } from "./affiliate.mjs";
+import { createImageHandler } from './image-routes.mjs';
 
 const WHOP_AUTHORIZE_URL = "https://api.whop.com/oauth/authorize";
 const WHOP_TOKEN_URL = "https://api.whop.com/oauth/token";
@@ -566,7 +567,16 @@ function loadConfig(env = process.env) {
   return config;
 }
 
-export function createAuthServer(config, { fetchFn = fetch } = {}) {
+export function createAuthServer(config, { fetchFn = fetch, imageService = null, imageBilling = null } = {}) {
+  const imageHandler = createImageHandler({ service: imageService, billing: imageBilling, origin: config.baseUrl,
+    authorize: async req => {
+      const session = getSession(req, config);
+      if (!session) throw Error('authentication_required');
+      if (isRateLimited(req, 'image-api', 90)) throw Error('rate_limit');
+      if (!(await hasAiAccess(config, fetchFn, session.sub))) throw Error('access_required');
+      return session.sub;
+    }
+  });
   const courseService = createCourseService(config, { fetchFn });
   const memberService = createMemberService(config, {
     checkAccess: (userId, productId) => checkProductAccess(config, fetchFn, userId, productId),
@@ -575,6 +585,10 @@ export function createAuthServer(config, { fetchFn = fetch } = {}) {
   const affiliateService = createAffiliateService(config, memberService, { fetchFn });
   return http.createServer(async (req, res) => {
     const url = new URL(req.url ?? "/", config.baseUrl);
+    if (url.pathname.startsWith('/image-api/')) {
+      await imageHandler(req, res, url);
+      return;
+    }
     try {
       if (req.method === "GET" && url.pathname === "/auth/whop/healthz") {
         send(res, 200, "ok\n", { "Content-Type": "text/plain; charset=utf-8" });
@@ -777,7 +791,23 @@ export function isMainModule(
   }
 }
 
+export async function stopAuthServer(server, images) {
+  // Already admitted requests may still enqueue image work or finish checkout.
+  // Drain those HTTP handlers before taking the background-work snapshot.
+  await new Promise(resolve => server.close(resolve));
+  await images.close?.();
+}
+
 if (isMainModule(import.meta.url, process.argv[1])) {
   const config = loadConfig();
-  createAuthServer(config).listen(config.port, "127.0.0.1");
+  let images = {};
+  try {
+    const { openImageRuntime } = await import('./image-runtime.mjs');
+    images = await openImageRuntime(process.env, config);
+  } catch { process.stderr.write('Image features unavailable; existing authentication remains active.\n'); }
+  const server = createAuthServer(config, images).listen(config.port, "127.0.0.1");
+  process.once('SIGTERM', async () => {
+    await stopAuthServer(server, images);
+    process.exit(0);
+  });
 }
