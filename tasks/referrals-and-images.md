@@ -19,7 +19,7 @@ verified production commit 49772c4, not either unfinished feature branch.
   agreements, commissions, payouts, legacy URLs and coach approvals unchanged.
 - [x] Regression tests: loader ordering, both products, invalid/duplicate input,
   expiry, blocked storage, no referral, route parsing, copy/share/toolkit links.
-- [ ] Browser-check mobile/desktop and Whop iframe attribution. Commit/push to
+- [x] Browser-check mobile/desktop and Whop iframe attribution. Commit/push to
   GitHub, deploy an immutable Contabo static release and validated Caddy routes,
   and verify the live branded links. No Vercel. No fabricated sale/referral.
 
@@ -42,6 +42,21 @@ passes installed Caddy 2.11.3 validation before any production switch.
 No paid transaction was submitted: iframe attribution is verified, but this
 does not claim an actual commission or settlement has occurred. Whop continues
 to enforce its real eligibility, attribution and existing affiliate terms.
+
+Released commit `49108e2` through GitHub to immutable static release
+`/srv/titans-marketing/releases/20260908-49108e2`. Live checks confirm both
+Mitch routes (including trailing slash variants), invalid-route 404s, correct
+Whop iframe affiliate and plan, and the signed-in member's branded Earn and
+toolkit links. Live Copy reports success; mobile Earn has no horizontal overflow.
+Auth remains at `20260907-49772c4`; homepage, Prompt Builder, member library and
+the complete auth directory are byte-identical to the previous release.
+
+Deployment note: root-only staging permissions initially prevented Caddy's
+service-user reload. The error trap restored the previous static release.
+Corrected the active/staged config to root:caddy 0640 and validated explicitly
+as caddy before reloading successfully. The root-only pre-referral backup is
+`/etc/caddy/Caddyfile.pre-referrals-20260908`; the active config imports this
+release's immutable referral snippet. No downtime or auth restart was required.
 
 ## Phase 2: OpenAI account and economic feasibility
 
