@@ -76,3 +76,44 @@ test('rejects invalid prompt or identifier before provider access', async t => {
   }
   assert.equal(getSnapshot(root).attemptsRemaining, 5);
 });
+
+test('selfie uses the saved original as its only reference and preserves both images', async t => {
+  const root = fixture(t), sourceId = randomUUID(), id = randomUUID();
+  const success = () => new Response(JSON.stringify({ data: [{ b64_json: png().toString('base64') }] }));
+  await runGeneration(root, { id: sourceId, prompt }, { apiKey: 'test-only', fetchImpl: success });
+  let calls = 0;
+  const input = { id, kind: 'selfie', sourceId, accessory: 'studs' };
+  const fetchImpl = async (url, options) => {
+    calls++;
+    assert.equal(url, 'https://api.openai.com/v1/images/edits');
+    const body = JSON.parse(options.body);
+    assert.deepEqual(body.images, [{ image_url: `data:image/png;base64,${png().toString('base64')}` }]);
+    assert.equal(body.model, 'gpt-image-2'); assert.equal(body.quality, 'high');
+    assert.equal(body.size, '1024x1536'); assert.equal(body.n, 1);
+    assert.match(body.prompt, /same person/); assert.match(body.prompt, /pores/);
+    assert.match(body.prompt, /iris/); assert.match(body.prompt, /eyebrow/);
+    assert.match(body.prompt, /stud earrings/);
+    assert.equal(body.input_fidelity, undefined);
+    return success();
+  };
+  const job = await runGeneration(root, input, { apiKey: 'test-only', fetchImpl });
+  assert.equal(job.status, 'succeeded'); assert.equal(job.kind, 'selfie'); assert.equal(job.sourceId, sourceId);
+  assert.deepEqual(readFileSync(join(root, `${sourceId}.png`)), png());
+  assert.deepEqual(readFileSync(join(root, `${id}.png`)), png());
+  await runGeneration(root, input, { fetchImpl }); assert.equal(calls, 1);
+  await assert.rejects(runGeneration(root, { ...input, accessory: 'preserve' }), /intent_conflict/);
+  assert.equal(getSnapshot(root).attemptsRemaining, 3);
+  await assert.rejects(runGeneration(root, { ...input, id: randomUUID(), sourceId: id }, { apiKey: 'test-only', fetchImpl }), /invalid_source/);
+  assert.equal(calls, 1); assert.equal(getSnapshot(root).attemptsRemaining, 3);
+});
+
+test('invalid selfie sources and options cannot spend an attempt or call the provider', async t => {
+  const root = fixture(t);
+  for (const input of [
+    { kind: 'selfie', sourceId: '../file', accessory: 'preserve' },
+    { kind: 'selfie', sourceId: randomUUID(), accessory: 'custom prompt injection' },
+    { kind: 'other', prompt },
+    { kind: 'selfie', sourceId: randomUUID(), accessory: 'preserve' }
+  ]) await assert.rejects(runGeneration(root, { id: randomUUID(), ...input }, { apiKey: 'test-only', fetchImpl: () => assert.fail('Must not call API') }), /invalid_(input|source)/);
+  assert.equal(getSnapshot(root).attemptsRemaining, 5);
+});

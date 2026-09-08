@@ -8,7 +8,15 @@ Contract:
 - POST /api/generations accepts {id: UUID, prompt: string (10–4000 characters)}.
 - GET /api/state returns up to five persisted preview attempts and their states.
 - GET /api/images/:id returns only a completed, saved PNG. Downloads do not generate.
-- Server fixes gpt-image-2, high, 1024x1536, n=1, PNG. Text-only first slice.
+- Server fixes gpt-image-2, high, 1024x1536, n=1, PNG.
+- Selfie requests use {id, kind: 'selfie', sourceId, accessory}. Accessories are
+  preserve/studs/hoops only. The backend supplies the close-up realism prompt;
+  identity, eye color, skin tone and facial structure should remain consistent.
+- A selfie uses the saved original PNG as the only input to Images edits. Source
+  must be a successful original, never another selfie. Maximum source 14 MiB,
+  fixed portrait PNG. No client-supplied file paths, image URLs or edit prompts.
+- Both original and selfie remain individually viewable/downloadable. Selfies
+  use the same five-attempt budget and durable idempotency/uncertainty guards.
 - Existing SSH authentication connects the owner’s local server to a private CLI.
   The OpenAI key never leaves Contabo; no public generation endpoint is created.
 - A filesystem exclusive lock serializes claims. Save intent before calling OpenAI;
@@ -22,6 +30,9 @@ Contract:
 Official sources checked September 8, 2026:
 https://developers.openai.com/api/docs/guides/image-generation
 https://developers.openai.com/api/docs/models/gpt-image-2
+https://developers.openai.com/api/reference/resources/images/methods/edit
+Edits use the documented JSON images[].image_url base64 data URL shape. Reference
+bytes stay inside the private helper-to-OpenAI request. No public storage URL.
 Output estimate for high portrait: $0.165, plus text input. Paid pack economics and
 production credit accounting remain a separate unfinished integration.
 
@@ -46,3 +57,21 @@ Run: `node ops/image-preview/server.mjs` in this Windows worktree. Local URL:
 http://127.0.0.1:8891/
 Server-side private helper: /opt/titans-image-preview/worker.mjs.
 Stop the local server to close its preview connection. No production service restart.
+
+Selfie verification, September 8, 2026:
+- Tests were written first and failed before implementation. All 99 tests now pass,
+  including 10 preview tests; launch validation passes. Independent review found
+  no required issues. The unrelated avatar builder and live site were not changed.
+- One real selfie edit succeeded in 104 seconds using the first saved original.
+  Source: b97538f0-d0f2-4a60-9eba-b715561e5a38.
+  Selfie: 347ae7f3-3741-4890-bfd3-21e18e551717. No repeated live requests.
+- Provider usage: 236 text input tokens, 1,536 image input tokens, 5,488 output
+  tokens. Standard-rate calculated API cost: $0.178108, including reference input
+  (not invoice-reconciled; excludes hosting). High-quality 1024x1536 PNG saved.
+- Original/selfie navigation and separate downloads verified. New selfies keep
+  pointing to the original, including when viewing a selfie. Downloads do not
+  change the attempt counter. Two attempts remain (another original was created
+  by the owner before this test); the lifetime preview limit was not reset.
+- 320/390/768/1024/1440px layouts show no horizontal overflow. Mobile controls
+  inspected visually; busy state disables both generation buttons and history.
+  Browser console clean. Optional accessory choices remain user-controlled.

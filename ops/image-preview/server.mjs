@@ -80,10 +80,11 @@ export function createPreviewServer({ bridge = createSshBridge() } = {}) {
         if (active || bridgeWarning) { send(409, { error: 'A request is active or needs review. No additional request was sent.' }); return; }
         let body = ''; for await (const chunk of req) { body += chunk; if (Buffer.byteLength(body) > 20000) { send(413, { error: 'Prompt is too large.' }); return; } }
         let input;
-        try { input = JSON.parse(body); validateInput(input); } catch { send(400, { error: 'Enter a prompt between 10 and 4,000 characters.' }); return; }
+        try { input = JSON.parse(body); validateInput(input); } catch { send(400, { error: 'Enter a valid prompt or select a saved original and a supported selfie accessory option.' }); return; }
         if (active || bridgeWarning) { send(409, { error: 'A request is active or needs review. No additional request was sent.' }); return; }
         active = input.id;
-        bridge({ action: 'generate', id: input.id, prompt: input.prompt }).catch(() => {
+        const intent = input.kind === 'selfie' ? { kind: 'selfie', sourceId: input.sourceId, accessory: input.accessory } : { prompt: input.prompt };
+        bridge({ action: 'generate', id: input.id, ...intent }).catch(() => {
           bridgeWarning = 'The test connection needs review. No automatic retry was sent.';
         }).finally(() => { active = null; });
         send(202, { id: input.id }); return;

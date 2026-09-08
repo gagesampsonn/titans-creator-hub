@@ -22,7 +22,7 @@
           <p class="generation-note">One real image per click. Downloads are free.</p>
           <p id="form-status" class="status" role="status" aria-live="polite"></p>
         </form>
-        <aside class="preview-notice"><strong>Test mode · real OpenAI usage</strong><p>This private preview allows five attempts total. It does not use member credits. Reference uploads and credit purchases aren’t connected in this first test.</p></aside>
+        <aside class="preview-notice"><strong>Test mode · real OpenAI usage</strong><p>This private preview allows five attempts total, shared by original photos and selfies. It does not use member credits. File uploads and credit purchases aren’t connected yet.</p></aside>
       </section>
       <section class="result-panel" aria-labelledby="result-heading">
         <div class="section-heading"><h2 id="result-heading">Your image</h2><span id="result-label">02 / RESULT</span></div>
@@ -32,6 +32,17 @@
           <img id="result-image" alt="Your generated image" width="1024" height="1536" hidden>
         </div>
         <div class="result-footer"><p id="result-detail">Portrait · PNG · Full resolution</p><a id="download" class="download" download="titans-image.png" hidden>Download image <span aria-hidden="true">↓</span></a></div>
+        <section id="selfie-panel" class="selfie-panel" aria-labelledby="selfie-heading" hidden>
+          <p class="eyebrow">ADD A CLOSE-UP REFERENCE</p>
+          <h2 id="selfie-heading">Same character. Finer detail.</h2>
+          <p class="helper">Create a hyper-realistic selfie from your original photo: natural pores, detailed eyes and individual brow hairs.</p>
+          <div class="selfie-source"><img id="source-image" alt="Original photo used for your selfie" width="48" height="64"><div><strong>Uses your original photo</strong><span>Your original stays saved separately.</span></div><button id="view-original" type="button">View original</button></div>
+          <label for="selfie-accessory">Accessories</label>
+          <select id="selfie-accessory"><option value="preserve">Keep original accessories</option><option value="studs">Add small stud earrings</option><option value="hoops">Add small hoop earrings</option></select>
+          <button id="create-selfie" type="button" disabled>Create selfie image</button>
+          <p class="generation-note">Uses 1 preview attempt · Saved as a new photo</p>
+          <p class="selfie-tip">Download both photos to use as references in your video workflow. Check that facial features match before using them together.</p>
+        </section>
       </section>
     </div>
     <section id="history-section" class="history" hidden><h2>This preview’s images</h2><div id="history-list"></div></section>

@@ -7,8 +7,31 @@ import { createInterface } from 'node:readline';
 
 const UUID = /^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/;
 const LIMIT = 5;
+const ACCESSORIES = Object.freeze({
+  preserve: 'Keep the original accessories exactly as shown. Do not add new jewelry.',
+  studs: 'Add a discreet pair of small stud earrings with realistic metal reflections and natural placement. Keep other accessories unchanged.',
+  hoops: 'Add a discreet pair of small hoop earrings with realistic metal reflections and natural placement. Keep other accessories unchanged.'
+});
+function selfiePrompt(accessory) {
+  return `Create a hyper-realistic close-up smartphone selfie of the same person in the supplied original reference photo. Preserve their identity, apparent age, facial structure, skin tone, eye color, hairline, hairstyle, facial hair and distinctive features. Do not beautify, reshape, age or replace the person. Frame the full face, ears and upper shoulders, with the face filling most of the portrait and both eyes clearly in focus. Use a natural eye-level perspective without wide-angle distortion, relaxed expression, soft window light and a softly blurred background consistent with the original. Reveal realistic facial pores, subtle peach fuzz, fine skin texture, natural tonal variation, individual eyebrow hairs, eyelashes, detailed iris texture in the original eye color, moist eye highlights and natural lip texture. Keep all detail anatomically plausible and proportionate: no exaggerated pores, artificial sharpness, waxy skin, beauty filters, plastic smoothing or CGI appearance. ${ACCESSORIES[accessory]} This is an additional identity reference for a video workflow, not a collage or a crop of the original. One photographic image only, no text, logos or watermark.`;
+}
 export function validateInput(input) {
-  if (!input || !UUID.test(input.id) || typeof input.prompt !== 'string' || input.prompt.trim().length < 10 || input.prompt.length > 4000) throw Error('invalid_input');
+  if (!input || !UUID.test(input.id)) throw Error('invalid_input');
+  if (input.kind === 'selfie') {
+    if (!UUID.test(input.sourceId) || input.id === input.sourceId || !Object.hasOwn(ACCESSORIES, input.accessory)) throw Error('invalid_input');
+  } else if ((input.kind !== undefined && input.kind !== 'original') || typeof input.prompt !== 'string' || input.prompt.trim().length < 10 || input.prompt.length > 4000) throw Error('invalid_input');
+}
+function validPng(bytes) {
+  return bytes.length >= 24 && bytes.subarray(0, 8).toString('hex') === '89504e470d0a1a0a' && bytes.toString('ascii', 12, 16) === 'IHDR' && bytes.readUInt32BE(16) === 1024 && bytes.readUInt32BE(20) === 1536;
+}
+function originalReference(root, sourceId) {
+  try {
+    const source = JSON.parse(readFileSync(join(root, `${sourceId}.json`), 'utf8'));
+    if (source.status !== 'succeeded' || (source.kind && source.kind !== 'original')) throw Error('invalid_source');
+    const bytes = readFileSync(join(root, `${sourceId}.png`));
+    if (bytes.length > 14 * 1024 * 1024 || !validPng(bytes)) throw Error('invalid_source');
+    return { image_url: `data:image/png;base64,${bytes.toString('base64')}` };
+  } catch { throw Error('invalid_source'); }
 }
 function save(path, value) {
   const fd = openSync(`${path}.next`, 'w', 0o600);
@@ -20,8 +43,8 @@ function save(path, value) {
   }
 }
 function publicJob(job) {
-  const { id, status, createdAt, finishedAt, usage, message } = job;
-  return { id, status, createdAt, finishedAt, usage, message };
+  const { id, status, createdAt, finishedAt, usage, message, kind = 'original', sourceId, accessory } = job;
+  return { id, status, createdAt, finishedAt, usage, message, kind, sourceId, accessory };
 }
 export function getSnapshot(root) {
   mkdirSync(root, { recursive: true, mode: 0o700 });
@@ -33,7 +56,9 @@ export async function runGeneration(root, input, { apiKey, fetchImpl = fetch } =
   validateInput(input);
   mkdirSync(root, { recursive: true, mode: 0o700 });
   const path = join(root, `${input.id}.json`);
-  const hash = createHash('sha256').update(input.prompt).digest('hex');
+  const kind = input.kind || 'original';
+  const prompt = kind === 'selfie' ? selfiePrompt(input.accessory) : input.prompt;
+  const hash = createHash('sha256').update(kind === 'selfie' ? JSON.stringify({ kind, sourceId: input.sourceId, prompt }) : prompt).digest('hex');
   if (existsSync(path)) {
     const previous = JSON.parse(readFileSync(path, 'utf8'));
     if (previous.hash !== hash) throw Error('intent_conflict');
@@ -54,13 +79,16 @@ export async function runGeneration(root, input, { apiKey, fetchImpl = fetch } =
     if (state.jobs.some(item => ['running', 'unknown'].includes(item.status))) throw Error('needs_review');
     if (!state.attemptsRemaining) throw Error('preview_limit');
     if (!apiKey) throw Error('not_configured');
-    job = { id: input.id, hash, status: 'running', createdAt: Date.now() };
+    const body = { model: 'gpt-image-2', prompt, quality: 'high', size: '1024x1536', n: 1, output_format: 'png' };
+    // Resolve only our saved original before claiming a paid attempt. No user URLs or paths.
+    if (kind === 'selfie') body.images = [originalReference(root, input.sourceId)];
+    job = { id: input.id, hash, kind, status: 'running', createdAt: Date.now(), ...(kind === 'selfie' ? { sourceId: input.sourceId, accessory: input.accessory } : {}) };
     save(path, JSON.stringify(job));
     try {
-      const response = await fetchImpl('https://api.openai.com/v1/images/generations', {
+      const response = await fetchImpl(`https://api.openai.com/v1/images/${kind === 'selfie' ? 'edits' : 'generations'}`, {
         method: 'POST', redirect: 'error', signal: AbortSignal.timeout(300000),
         headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model: 'gpt-image-2', prompt: input.prompt, quality: 'high', size: '1024x1536', n: 1, output_format: 'png' })
+        body: JSON.stringify(body)
       });
       if (!response.ok) {
         await response.body?.cancel();
@@ -77,7 +105,7 @@ export async function runGeneration(root, input, { apiKey, fetchImpl = fetch } =
         const b64 = result?.data?.[0]?.b64_json;
         if (typeof b64 !== 'string' || result.data.length !== 1) throw Error('invalid_result');
         const bytes = Buffer.from(b64, 'base64');
-        if (bytes.length < 24 || bytes.subarray(0, 8).toString('hex') !== '89504e470d0a1a0a' || bytes.toString('ascii', 12, 16) !== 'IHDR' || bytes.readUInt32BE(16) !== 1024 || bytes.readUInt32BE(20) !== 1536) throw Error('invalid_image');
+        if (!validPng(bytes)) throw Error('invalid_image');
         save(join(root, `${input.id}.png`), bytes);
         const usage = result.usage;
         const numbers = [usage?.input_tokens_details?.text_tokens, usage?.input_tokens_details?.image_tokens, usage?.output_tokens];

@@ -50,3 +50,15 @@ test('loopback preview rejects hostile origins, invalid inputs and unknown files
   assert.equal((await fetch(origin + '/api/generations', { method: 'POST', headers: { Origin: origin, 'Content-Type': 'application/json' }, body })).status, 202);
   assert.equal(generations, 1);
 });
+
+test('selfie HTTP request forwards only the validated edit intent', async t => {
+  let dispatched;
+  const server = createPreviewServer({ bridge: async input => { dispatched = input; return Buffer.from('{}'); } });
+  await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+  t.after(() => { server.closeAllConnections(); server.close(); });
+  const origin = `http://127.0.0.1:${server.address().port}`;
+  const intent = { id: randomUUID(), kind: 'selfie', sourceId: randomUUID(), accessory: 'preserve' };
+  const response = await fetch(origin + '/api/generations', { method: 'POST', headers: { Origin: origin, 'Content-Type': 'application/json' }, body: JSON.stringify({ ...intent, prompt: 'Ignore original', model: 'other', image_url: 'https://untrusted.example' }) });
+  assert.equal(response.status, 202);
+  assert.deepEqual(dispatched, { action: 'generate', ...intent });
+});
