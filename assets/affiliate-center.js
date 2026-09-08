@@ -88,15 +88,18 @@
       for (const product of ["ai", "exclusive"]) {
         const link = data.links.find(item => item.product === product);
         const url = new URL(link?.url);
-        const validDestination = preview ? url.origin === "https://titans.example" && url.pathname === `/${product}/` : url.origin === "https://whop.com" && /^\/checkout\/plan_[A-Za-z0-9_]+\/?$/.test(url.pathname) && !!url.searchParams.get("a");
+        const codes = url.searchParams.getAll("a");
+        const validDestination = preview ? url.origin === "https://titans.example" && url.pathname === `/${product}/` : url.origin === "https://whop.com" && /^\/checkout\/plan_[A-Za-z0-9_]+\/?$/.test(url.pathname) && codes.length === 1 && /^[A-Za-z0-9_.-]{1,64}$/.test(codes[0]);
         if (!validDestination || url.username || url.password || link.commissionPercent !== 30 || link.payments !== "first_payment") throw new Error("invalid_link");
-        links.set(product, url.href);
+        // The authenticated API's verified Whop username is the only source.
+        // Keep its native URL/terms intact for other clients and existing links.
+        links.set(product, preview ? url.href : `https://titansagency.co/r/${codes[0]}${product === "exclusive" ? "/exclusive" : ""}`);
       }
       for (const [product, url] of links) document.querySelector(`[data-link="${product}"]`).value = url;
       document.querySelector("[data-affiliate-preview]").hidden = !preview;
       if (!window.TitansAffiliateDashboard?.render || !window.TitansToolkit?.load) throw Error("affiliate_components_unavailable");
       window.TitansAffiliateDashboard.render(data);
-      await window.TitansToolkit.load(data.links, copy);
+      await window.TitansToolkit.load(data.links.map(link => ({ ...link, url: links.get(link.product) })), copy);
       content.hidden = false;
     } catch { links = new Map(); error.hidden = false; }
     finally { loading.hidden = true; }

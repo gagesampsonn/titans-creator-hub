@@ -9,6 +9,13 @@ const port = Number(process.env.TITANS_PREVIEW_PORT || 8876);
 if (!Number.isInteger(port) || port < 1024 || port > 65535) throw new Error("Invalid preview port");
 http.createServer((req, res) => {
   const url = new URL(req.url, "http://127.0.0.1");
+  if (url.pathname.startsWith("/r/")) {
+    const ai = /^\/r\/([A-Za-z0-9_.-]{1,64})\/?$/.exec(url.pathname);
+    const exclusive = /^\/r\/([A-Za-z0-9_.-]{1,64})\/exclusive\/?$/.exec(url.pathname);
+    const match = ai || exclusive;
+    if (!match) { res.writeHead(404).end("Referral link not found"); return; }
+    res.writeHead(302, { Location: `/${ai ? "ai" : "exclusive"}/?a=${match[1]}` }).end(); return;
+  }
   if (url.pathname.startsWith("/__preview/")) {
     const mode = url.pathname.split("/")[2];
     if (!["ai", "exclusive", "none", "weekly", "expired", "error", "unauth"].includes(mode)) { res.writeHead(404).end(); return; }

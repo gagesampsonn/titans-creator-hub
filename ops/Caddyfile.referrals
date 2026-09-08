@@ -1,0 +1,10 @@
+# Import inside the titansagency.co site block. Whop validates attribution at
+# checkout; these routes only carry the original affiliate username to a fixed
+# Titans product page. No custom commission ledger or arbitrary redirects.
+handle /r/* {
+  @titans_ai_ref path_regexp titans_ai_ref ^/r/([A-Za-z0-9_.-]{1,64})/?$
+  redir @titans_ai_ref "/ai/?a={re.titans_ai_ref.1}" 302
+  @titans_exclusive_ref path_regexp titans_exclusive_ref ^/r/([A-Za-z0-9_.-]{1,64})/exclusive/?$
+  redir @titans_exclusive_ref "/exclusive/?a={re.titans_exclusive_ref.1}" 302
+  respond "Referral link not found" 404
+}

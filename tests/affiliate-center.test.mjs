@@ -32,7 +32,7 @@ async function render(mode = "ai", options = {}) {
       addEventListener(name, fn) { this.events[name] = fn; }, focus() {}, select() {} });
     return elements.get(selector);
   };
-  const copies = [], shares = [];
+  const copies = [], shares = [], toolkitLinks = [];
   const timers = [];
   const copyButtons = ["ai", "exclusive"].map(product => ({ ...element(`copy-${product}`), dataset: { copyLink: product } }));
   const inlineErrors = [];
@@ -41,14 +41,14 @@ async function render(mode = "ai", options = {}) {
   const response = options.response ?? affiliatePreview(mode);
   vm.runInNewContext(readFileSync(new URL("../assets/affiliate-center.js", import.meta.url), "utf8"), {
     document: { querySelector: element, querySelectorAll: selector => selector === "[data-copy-link]" ? copyButtons : selector === "[data-share-link]" ? shareButtons : [], createElement: () => ({ remove() {} }), addEventListener() {} },
-    window: { location: { hostname: options.hostname ?? "127.0.0.1" }, addEventListener() {}, ...(options.missingDashboard ? {} : { TitansAffiliateDashboard: { render() {} } }), TitansToolkit: { load: async () => {} } }, URL,
+    window: { location: { hostname: options.hostname ?? "127.0.0.1" }, addEventListener() {}, ...(options.missingDashboard ? {} : { TitansAffiliateDashboard: { render() {} } }), TitansToolkit: { load: async links => { toolkitLinks.push(...links); } } }, URL,
     navigator: { clipboard: { writeText: async text => { if (options.clipboardError) throw Error(); copies.push(text); } },
       ...(options.share ? { share: async data => { shares.push(data); } } : {}) },
     fetch: async () => ({ status: response.status, ok: response.status === 200, json: async () => response }),
     setTimeout(fn) { timers.push(fn); return timers.length - 1; }, clearTimeout(id) { timers[id] = null; },
   });
   await new Promise(resolve => setImmediate(resolve));
-  return { element, copies, shares, copyButtons, shareButtons, inlineErrors, resetFeedback() { for (const timer of timers) timer?.(); } };
+  return { element, copies, shares, toolkitLinks, copyButtons, shareButtons, inlineErrors, resetFeedback() { for (const timer of timers) timer?.(); } };
 }
 
 test("copy and share use the selected product's link with accessible feedback", async () => {
@@ -103,7 +103,7 @@ test("demo data cannot render on production or accept substituted destinations o
   }
 });
 
-test("live Whop referral links render without preview labels, and unrelated domains are rejected", async () => {
+test("verified live Whop links become branded links everywhere without changing the native response", async () => {
   const response = affiliatePreview("ai");
   response.data.preview = false;
   for (const link of response.data.links) link.url = `https://whop.com/checkout/plan_${link.product}/?a=member`;
@@ -111,10 +111,26 @@ test("live Whop referral links render without preview labels, and unrelated doma
   assert.equal(page.element("[data-affiliate-content]").hidden, false);
   assert.equal(page.element("[data-affiliate-preview]").hidden, true);
   await page.copyButtons[0].events.click();
-  assert.equal(page.copies[0], response.data.links[0].url);
+  assert.equal(page.copies[0], "https://titansagency.co/r/member");
+  await page.shareButtons[1].events.click();
+  assert.equal(page.copies[1], "https://titansagency.co/r/member/exclusive");
+  assert.equal(page.toolkitLinks[0].url, page.copies[0]);
+  assert.equal(page.toolkitLinks[1].url, page.copies[1]);
+  assert.match(response.data.links[0].url, /^https:\/\/whop.com\//);
   assert.equal((await render("ai", { response, missingDashboard: true })).element("[data-affiliate-content]").hidden, true);
   response.data.links[0].url = "https://evil.test/?a=member";
   assert.equal((await render("ai", { response })).element("[data-affiliate-content]").hidden, true);
+});
+
+test("ambiguous or unsafe native affiliate codes are never converted to branded links", async () => {
+  for (const query of ["a=", "a=x&a=y", "a=%2Fevil", `a=${"x".repeat(65)}`]) {
+    const response = affiliatePreview("ai");
+    response.data.preview = false;
+    for (const link of response.data.links) link.url = `https://whop.com/checkout/plan_${link.product}/?${query}`;
+    const page = await render("ai", { response, hostname: "titansagency.co" });
+    assert.equal(page.element("[data-affiliate-content]").hidden, true);
+    assert.equal(page.element("[data-affiliate-error]").hidden, false);
+  }
 });
 
 test("My Titans exposes Earn only when the local preview explicitly enables it for an eligible member", async () => {
