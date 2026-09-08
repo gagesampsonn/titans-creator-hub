@@ -44,3 +44,19 @@ auth restart is involved, and all customer records remain intact. Roll back for
 new builder JavaScript failures, missing dependencies, auth regression or broken
 existing tools. Verify signed-in prompt/reroll, anonymous auth gate, health and
 unchanged public-page hashes immediately after switching.
+
+## Live result
+
+Released commit `638418ca2b018ce46c1a6e28407cb57e1a54f827` after confirming the
+same commit on GitHub. Current static release is
+`/srv/titans-marketing/releases/20260908-638418c`. The five-file archive SHA-256 is
+`97d072df3dcd5d1718d1702a084256b95e8e811de32392296feaf609f56f92a5`.
+Every preexisting file outside that payload was verified unchanged before switch.
+
+Signed-in live browser verification confirms both dependencies load, concise
+summaries render, the full prompt retains the requested opening, expansion works
+and a locked face survives rerolls. No browser console errors. Anonymous requests
+to both builder routes and new scripts still redirect to Whop login. Auth health,
+member library and Earn return 200; both branded Mitch routes retain redirects.
+The auth release remains `20260907-49772c4`. Direct OpenAI generation, included
+image credits and credit-pack checkout are not enabled by this static release.
