@@ -25,6 +25,7 @@ export function createBuilderPreview({ loadSample = loadSavedSample } = {}) {
   const scriptHashes = [...html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/g)].filter(match => match[1].trim()).map(match => `'sha256-${createHash('sha256').update(match[1]).digest('base64')}'`);
   const files = new Map(['demo-app.js','demo-style.css','demo-model.mjs','panel.html'].map(name => [`/__demo/${name}`,join(import.meta.dirname,name)]));
   files.set('/__demo/character-library.js',join(upgradeRoot,'character-library.js'));
+  files.set('/__demo/character-summary.js',join(upgradeRoot,'character-summary.js'));
   const types = {'.js':'text/javascript','.mjs':'text/javascript','.html':'text/html; charset=utf-8','.css':'text/css','.png':'image/png','.jpg':'image/jpeg','.webp':'image/webp','.svg':'image/svg+xml','.mp4':'video/mp4'};
   const server = http.createServer(async(req,res) => {
     res.setHeader('Cache-Control','no-store'); res.setHeader('X-Content-Type-Options','nosniff'); res.setHeader('Referrer-Policy','no-referrer');

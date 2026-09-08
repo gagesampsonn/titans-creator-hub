@@ -50,15 +50,16 @@ function characterEngine() {
   };
   for (const [id, value] of Object.entries({ characterAge: '60', characterGender: 'male', professionSelect: 'construction', imagePromptMode: 'character' })) element(id).value = value;
   const context = vm.createContext({
-    window: {}, document: { getElementById: element },
+    window: {}, document: { getElementById: element, querySelector: element },
     crypto: { getRandomValues: values => values.fill(0) },
     setTimeout(callback, delay) { timers.set(delay, callback); return delay; },
     clearTimeout(id) { timers.delete(id); }
   });
   vm.runInContext(readFileSync(join(upgradeRoot, 'character-library.js'), 'utf8'), context);
+  vm.runInContext(readFileSync(join(upgradeRoot, 'character-summary.js'), 'utf8'), context);
   const html = composeCharacterUpgrade(current, supplied);
   vm.runInContext(html.slice(html.indexOf('    const genericBucket = {'), html.indexOf('    const modeCopy = {')), context);
-  const events = html.indexOf('    buildImagePrompt(true);\n\n    characterForm.addEventListener');
+  const events = html.indexOf('    buildImagePrompt(true);\n\n');
   vm.runInContext(html.slice(events, html.indexOf('    function invalidatePrompt()', events)), context);
   return {
     element, context,

@@ -2136,7 +2136,9 @@
     }
 
     .image-generator-output {
-      min-height: 420px;
+      min-height: 0;
+      max-height: 420px;
+      overflow: auto;
     }
 
     .slot-grid {
@@ -2148,8 +2150,22 @@
       background: #f9f9f6;
     }
 
+    .slot-grid-intro {
+      grid-column: 1 / -1;
+      margin: 0 0 2px;
+      color: #343731;
+      font-size: 13px;
+      font-weight: 800;
+      line-height: 1.4;
+    }
+
+    .slot-grid-intro span {
+      color: var(--muted);
+      font-weight: 600;
+    }
+
     .slot-card {
-      min-height: 88px;
+      min-height: 108px;
       border: 1px solid var(--line);
       border-radius: var(--radius);
       padding: 12px;
@@ -2178,7 +2194,8 @@
     .slot-control {
       border: 1px solid #d9d9d4;
       border-radius: 999px;
-      padding: 4px 7px;
+      min-height: 32px;
+      padding: 7px 9px;
       background: #fff;
       color: #5d615b;
       font: inherit;
@@ -2215,9 +2232,44 @@
     .slot-value {
       display: block;
       color: #171917;
+      font-size: 14px;
+      line-height: 1.4;
+      font-weight: 750;
+      text-wrap: pretty;
+    }
+
+    .prompt-details {
+      border-bottom: 1px solid var(--line);
+      background: #fff;
+    }
+
+    .prompt-details summary {
+      display: flex;
+      min-height: 48px;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 12px 18px;
+      color: #272a26;
       font-size: 13px;
-      line-height: 1.3;
-      font-weight: 800;
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    .prompt-details summary:hover,
+    .prompt-details summary:focus-visible {
+      color: var(--orange);
+    }
+
+    .prompt-details-hint {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 600;
+      text-align: right;
+    }
+
+    .prompt-details .prompt-output {
+      border-top: 1px solid var(--line);
     }
 
     .slot-card.is-spinning .slot-value {
@@ -2671,6 +2723,12 @@
       border-top: 1px solid var(--line);
     }
 
+    @media (max-width: 1180px) {
+      .slot-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
     @media (max-width: 980px) {
       .links {
         display: none;
@@ -2946,6 +3004,16 @@
 
       .slot-grid {
         padding: 14px;
+      }
+
+      .prompt-details summary {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 3px;
+      }
+
+      .prompt-details-hint {
+        text-align: left;
       }
 
       footer {
@@ -3374,14 +3442,18 @@
             <button class="btn secondary" type="button" id="copyImagePromptBtn">Copy image prompt</button>
           </div>
           <div class="slot-grid" id="slotGrid" aria-label="Randomized character attributes">
-            <div class="slot-card" data-slot="body"><div class="slot-card-head"><span class="slot-label">Body</span><span class="slot-controls"><button class="slot-control" type="button" data-reroll="body" aria-label="Reroll body">Reroll</button><button class="slot-control" type="button" data-lock="body" aria-pressed="false">Lock</button></span></div><span class="slot-value" id="slotBody">-</span></div>
-            <div class="slot-card" data-slot="face"><div class="slot-card-head"><span class="slot-label">Face</span><span class="slot-controls"><button class="slot-control" type="button" data-reroll="face" aria-label="Reroll face">Reroll</button><button class="slot-control" type="button" data-lock="face" aria-pressed="false">Lock</button></span></div><span class="slot-value" id="slotFace">-</span></div>
-            <div class="slot-card" data-slot="hair"><div class="slot-card-head"><span class="slot-label">Hair</span><span class="slot-controls"><button class="slot-control" type="button" data-reroll="hair" aria-label="Reroll hair">Reroll</button><button class="slot-control" type="button" data-lock="hair" aria-pressed="false">Lock</button></span></div><span class="slot-value" id="slotHair">-</span></div>
-            <div class="slot-card" data-slot="eyes"><div class="slot-card-head"><span class="slot-label">Eyes</span><span class="slot-controls"><button class="slot-control" type="button" data-reroll="eyes" aria-label="Reroll eyes">Reroll</button><button class="slot-control" type="button" data-lock="eyes" aria-pressed="false">Lock</button></span></div><span class="slot-value" id="slotEyes">-</span></div>
-            <div class="slot-card" data-slot="skin"><div class="slot-card-head"><span class="slot-label">Skin</span><span class="slot-controls"><button class="slot-control" type="button" data-reroll="skin" aria-label="Reroll skin">Reroll</button><button class="slot-control" type="button" data-lock="skin" aria-pressed="false">Lock</button></span></div><span class="slot-value" id="slotSkin">-</span></div>
-            <div class="slot-card" data-slot="outfit"><div class="slot-card-head"><span class="slot-label">Outfit</span><span class="slot-controls"><button class="slot-control" type="button" data-reroll="outfit" aria-label="Reroll outfit">Reroll</button><button class="slot-control" type="button" data-lock="outfit" aria-pressed="false">Lock</button></span></div><span class="slot-value" id="slotOutfit">-</span></div>
+            <p class="slot-grid-intro">Quick preview <span>Full realism details are included automatically in the copied prompt.</span></p>
+            <div class="slot-card" data-slot="body"><div class="slot-card-head"><span class="slot-label">Body</span><span class="slot-controls"><button class="slot-control" type="button" data-reroll="body" aria-label="Reroll body">Reroll</button><button class="slot-control" type="button" data-lock="body" aria-pressed="false">Lock</button></span></div><span class="slot-value" id="slotBody" role="status" aria-live="polite">-</span></div>
+            <div class="slot-card" data-slot="face"><div class="slot-card-head"><span class="slot-label">Face</span><span class="slot-controls"><button class="slot-control" type="button" data-reroll="face" aria-label="Reroll face">Reroll</button><button class="slot-control" type="button" data-lock="face" aria-pressed="false">Lock</button></span></div><span class="slot-value" id="slotFace" role="status" aria-live="polite">-</span></div>
+            <div class="slot-card" data-slot="hair"><div class="slot-card-head"><span class="slot-label">Hair</span><span class="slot-controls"><button class="slot-control" type="button" data-reroll="hair" aria-label="Reroll hair">Reroll</button><button class="slot-control" type="button" data-lock="hair" aria-pressed="false">Lock</button></span></div><span class="slot-value" id="slotHair" role="status" aria-live="polite">-</span></div>
+            <div class="slot-card" data-slot="eyes"><div class="slot-card-head"><span class="slot-label">Eyes</span><span class="slot-controls"><button class="slot-control" type="button" data-reroll="eyes" aria-label="Reroll eyes">Reroll</button><button class="slot-control" type="button" data-lock="eyes" aria-pressed="false">Lock</button></span></div><span class="slot-value" id="slotEyes" role="status" aria-live="polite">-</span></div>
+            <div class="slot-card" data-slot="skin"><div class="slot-card-head"><span class="slot-label">Skin</span><span class="slot-controls"><button class="slot-control" type="button" data-reroll="skin" aria-label="Reroll skin">Reroll</button><button class="slot-control" type="button" data-lock="skin" aria-pressed="false">Lock</button></span></div><span class="slot-value" id="slotSkin" role="status" aria-live="polite">-</span></div>
+            <div class="slot-card" data-slot="outfit"><div class="slot-card-head"><span class="slot-label">Outfit</span><span class="slot-controls"><button class="slot-control" type="button" data-reroll="outfit" aria-label="Reroll outfit">Reroll</button><button class="slot-control" type="button" data-lock="outfit" aria-pressed="false">Lock</button></span></div><span class="slot-value" id="slotOutfit" role="status" aria-live="polite">-</span></div>
           </div>
-          <pre class="prompt-output image-generator-output" id="imagePromptOutput"></pre>
+          <details class="prompt-details">
+            <summary id="promptDetailsSummary" role="button" aria-controls="imagePromptOutput" aria-expanded="false"><span>View full prompt</span><span class="prompt-details-hint">All realism details are still included</span></summary>
+            <pre class="prompt-output image-generator-output" id="imagePromptOutput"></pre>
+          </details>
           <div class="prompt-warning" id="productPromptWarning">
             <strong>Product sellers: be specific before you copy.</strong>
             If the image is meant to sell or show a product, put the exact product/outfit requirement in the field on the left. For hats, shirts, jackets, glasses, jewelry, bags, or uniforms, the product needs to be named directly or the image model may invent the wrong item.
@@ -3883,6 +3955,7 @@
   </footer>
 
   <script src="./character-library.js"></script>
+  <script src="./character-summary.js"></script>
   <script>
     const TIKTOK_API_BASE = "https://app.titansagency.co";
     const tiktokForm = document.getElementById("tiktokForm");
@@ -5015,6 +5088,8 @@
     const avatarImageName = document.getElementById("avatarImageName");
     const avatarChanges = document.getElementById("avatarChanges");
     const imagePromptOutput = document.getElementById("imagePromptOutput");
+    const promptDetails = document.querySelector(".prompt-details");
+    const promptDetailsSummary = document.getElementById("promptDetailsSummary");
     const copyImagePromptBtn = document.getElementById("copyImagePromptBtn");
     const rerollBtn = document.getElementById("rerollBtn");
     const generateImagePromptBtn = document.getElementById("generateImagePromptBtn");
@@ -5031,6 +5106,7 @@
 
     let lastCharacterRoll = null;
     const characterLibrary = window.TITANS_CHARACTER_LIBRARY;
+    const characterSummary = window.TITANS_CHARACTER_SUMMARY;
     const visibleCharacterCategories = ["body", "face", "hair", "eyes", "skin", "outfit"];
     const lockedCharacterCategories = new Set();
     const recentEntryIds = new Map();
@@ -5038,6 +5114,9 @@
 
     if (!characterLibrary || !Array.isArray(characterLibrary.entries)) {
       throw new Error("Titans character library failed to load.");
+    }
+    if (!characterSummary || typeof characterSummary.summarize !== "function") {
+      throw new Error("Titans character summary helper failed to load.");
     }
 
     function randomUnit() {
@@ -5485,12 +5564,17 @@
     }
 
     function updateSlotDisplay(roll) {
-      slotElements.body.textContent = roll.body;
-      slotElements.face.textContent = roll.face;
-      slotElements.hair.textContent = roll.hair;
-      slotElements.eyes.textContent = roll.eyes;
-      slotElements.skin.textContent = roll.skin;
-      slotElements.outfit.textContent = roll.outfit;
+      for (const category of visibleCharacterCategories) {
+        const selection = roll._selections?.[category];
+        const entry = selection && !String(selection.baseId).startsWith("manual:")
+          ? getEntryById(selection.baseId)
+          : null;
+        slotElements[category].textContent = characterSummary.summarize(
+          category,
+          entry,
+          selection?.fragment || roll[category]
+        );
+      }
     }
 
     function getAvatarPronouns() {
@@ -5661,6 +5745,10 @@
     const resetBtn = document.getElementById("resetBtn");
 
     buildImagePrompt(true);
+
+    promptDetails.addEventListener("toggle", () => {
+      promptDetailsSummary.setAttribute("aria-expanded", String(promptDetails.open));
+    });
 
     characterForm.addEventListener("submit", (event) => {
       event.preventDefault();

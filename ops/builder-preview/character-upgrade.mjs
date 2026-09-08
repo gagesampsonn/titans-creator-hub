@@ -7,18 +7,19 @@ function section(text,start,end) {
   if(from < 0 || to < 0 || text.indexOf(start,from+start.length) >= 0) throw Error(`Character upgrade boundary missing or ambiguous: ${start}`);
   return text.slice(from,to);
 }
-export function composeCharacterUpgrade(current,supplied) {
+export function composeCharacterUpgrade(current,supplied,{ assetRoot = '/__demo' } = {}) {
   let html = current.replace(/\r\n?/g,'\n');
   const upgrade = supplied.replace(/\r\n?/g,'\n');
   // Deliberately retain the current downloader, navigation and multi-image video code.
   for(const [start,end] of [
     ['    <section class="section" id="character-builder">','    <section class="section" id="character-examples">'],
     ['    const genericBucket = {','    const modeCopy = {'],
-    ['    buildImagePrompt(true);\n\n    characterForm.addEventListener','    function invalidatePrompt()']
+    ['    buildImagePrompt(true);\n\n','    function invalidatePrompt()']
   ]) html = html.replace(section(html,start,end),section(upgrade,start,end));
-  const styles = section(upgrade,'    .slot-card-head {','    .slot-label {');
-  html = html.replace('    .slot-label {',styles+'    .slot-label {');
-  html = html.replace('  <script>','  <script src="/__demo/character-library.js"></script>\n  <script>');
+  const styleStart = '    .image-generator-output {', styleEnd = '    .slot-card.is-spinning .slot-value {';
+  html = html.replace(section(html,styleStart,styleEnd),section(upgrade,styleStart,styleEnd));
+  html = html.replace(/  <script src="\/(?:__demo|prompt)\/character-(?:library|summary)\.js"><\/script>\n/g,'');
+  html = html.replace('  <script>',`  <script src="${assetRoot}/character-library.js"></script>\n  <script src="${assetRoot}/character-summary.js"></script>\n  <script>`);
   html = html.replace(/data-lock="(body|face|hair|eyes|skin|outfit)" aria-pressed="false"/g, '$& aria-label="Lock $1"');
   const unlock = 'if (lockButton) lockButton.setAttribute("aria-pressed", "false");';
   if (html.split(unlock).length !== 3) throw Error('Character auto-unlock boundary changed');

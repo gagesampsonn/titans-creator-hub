@@ -1,0 +1,19 @@
+/* Compact character summaries; full detail remains in the copied prompt. */
+#character-builder .slot-card { min-width: 0; }
+#character-builder .slot-card-head { flex-wrap: wrap; }
+#character-builder .slot-control { min-height: 44px; min-width: 44px; }
+#character-builder .slot-value { overflow-wrap: anywhere; }
+#character-builder .output-toolbar { flex-wrap: wrap; gap: 8px; }
+#character-builder .prompt-details summary:focus-visible,
+#character-builder .slot-control:focus-visible { outline: 2px solid var(--orange); outline-offset: 3px; }
+@media (max-width: 1180px) {
+  #character-builder .slot-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 640px) {
+  #character-builder .slot-grid { grid-template-columns: 1fr; }
+  #character-builder .prompt-details summary { align-items: flex-start; flex-direction: column; gap: 3px; }
+  #character-builder .prompt-details-hint { text-align: left; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #character-builder .slot-card, #character-builder .slot-value { animation: none; transition: none; }
+}

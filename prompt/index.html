@@ -2143,7 +2143,9 @@
     }
 
     .image-generator-output {
-      min-height: 420px;
+      min-height: 0;
+      max-height: 420px;
+      overflow: auto;
     }
 
     .slot-grid {
@@ -2155,13 +2157,73 @@
       background: #f9f9f6;
     }
 
+    .slot-grid-intro {
+      grid-column: 1 / -1;
+      margin: 0 0 2px;
+      color: #343731;
+      font-size: 13px;
+      font-weight: 800;
+      line-height: 1.4;
+    }
+
+    .slot-grid-intro span {
+      color: var(--muted);
+      font-weight: 600;
+    }
+
     .slot-card {
-      min-height: 88px;
+      min-height: 108px;
       border: 1px solid var(--line);
       border-radius: var(--radius);
       padding: 12px;
       background: #fff;
       overflow: hidden;
+    }
+
+    .slot-card-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .slot-card-head .slot-label {
+      margin-bottom: 0;
+    }
+
+    .slot-controls {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .slot-control {
+      border: 1px solid #d9d9d4;
+      border-radius: 999px;
+      min-height: 32px;
+      padding: 7px 9px;
+      background: #fff;
+      color: #5d615b;
+      font: inherit;
+      font-size: 9px;
+      font-weight: 900;
+      letter-spacing: 0.04em;
+      line-height: 1;
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+
+    .slot-control:hover,
+    .slot-control:focus-visible {
+      border-color: var(--orange);
+      color: var(--orange);
+    }
+
+    .slot-control[aria-pressed="true"] {
+      border-color: #171917;
+      background: #171917;
+      color: #fff;
     }
 
     .slot-label {
@@ -2177,9 +2239,44 @@
     .slot-value {
       display: block;
       color: #171917;
+      font-size: 14px;
+      line-height: 1.4;
+      font-weight: 750;
+      text-wrap: pretty;
+    }
+
+    .prompt-details {
+      border-bottom: 1px solid var(--line);
+      background: #fff;
+    }
+
+    .prompt-details summary {
+      display: flex;
+      min-height: 48px;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 12px 18px;
+      color: #272a26;
       font-size: 13px;
-      line-height: 1.3;
-      font-weight: 800;
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    .prompt-details summary:hover,
+    .prompt-details summary:focus-visible {
+      color: var(--orange);
+    }
+
+    .prompt-details-hint {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 600;
+      text-align: right;
+    }
+
+    .prompt-details .prompt-output {
+      border-top: 1px solid var(--line);
     }
 
     .slot-card.is-spinning .slot-value {
@@ -2915,6 +3012,7 @@
       }
     }
   </style>
+  <link rel="stylesheet" href="/prompt/character-controls.css">
 </head>
 <body>
   <header class="header">
@@ -3302,6 +3400,15 @@
               <textarea id="productInstruction" placeholder="Example: Include the exact red branded baseball cap. Keep it clean, centered, and easy to see."></textarea>
               <p class="form-hint">If the product is a hat, shirt, jacket, glasses, jewelry, bag, or anything worn/held, describe it here.</p>
             </div>
+
+            <div class="field">
+              <label for="useFrameReference">Are you using an image from your video as a layout reference?</label>
+              <select id="useFrameReference">
+                <option value="no" selected>No - create a new character image</option>
+                <option value="yes">Yes - preserve its pose and framing</option>
+              </select>
+              <p class="form-hint">Choose Yes only when you will supply a video frame or screenshot. The prompt will never assume there is a man to replace.</p>
+            </div>
           </div>
 
           <details class="advanced-options">
@@ -3317,15 +3424,6 @@
               </div>
 
               <div id="characterAdvancedFields">
-                <div class="field">
-                  <label for="sourceSubject">Source subject</label>
-                  <select id="sourceSubject">
-                    <option value="man">man</option>
-                    <option value="person in the reference image">person in the reference image</option>
-                    <option value="woman">woman</option>
-                  </select>
-                </div>
-
                 <div class="field">
                   <label for="customProfession">Custom identifier</label>
                   <input id="customProfession" type="text" placeholder="Example: golf dad, skincare founder, boutique owner" />
@@ -3375,14 +3473,18 @@
             <button class="btn secondary" type="button" id="copyImagePromptBtn">Copy image prompt</button>
           </div>
           <div class="slot-grid" id="slotGrid" aria-label="Randomized character attributes">
-            <div class="slot-card"><span class="slot-label">Body</span><span class="slot-value" id="slotBody">-</span></div>
-            <div class="slot-card"><span class="slot-label">Face</span><span class="slot-value" id="slotFace">-</span></div>
-            <div class="slot-card"><span class="slot-label">Hair</span><span class="slot-value" id="slotHair">-</span></div>
-            <div class="slot-card"><span class="slot-label">Eyes</span><span class="slot-value" id="slotEyes">-</span></div>
-            <div class="slot-card"><span class="slot-label">Skin</span><span class="slot-value" id="slotSkin">-</span></div>
-            <div class="slot-card"><span class="slot-label">Outfit</span><span class="slot-value" id="slotOutfit">-</span></div>
+            <p class="slot-grid-intro">Quick preview <span>Full realism details are included automatically in the copied prompt.</span></p>
+            <div class="slot-card" data-slot="body"><div class="slot-card-head"><span class="slot-label">Body</span><span class="slot-controls"><button class="slot-control" type="button" data-reroll="body" aria-label="Reroll body">Reroll</button><button class="slot-control" type="button" data-lock="body" aria-pressed="false" aria-label="Lock body">Lock</button></span></div><span class="slot-value" id="slotBody" role="status" aria-live="polite">-</span></div>
+            <div class="slot-card" data-slot="face"><div class="slot-card-head"><span class="slot-label">Face</span><span class="slot-controls"><button class="slot-control" type="button" data-reroll="face" aria-label="Reroll face">Reroll</button><button class="slot-control" type="button" data-lock="face" aria-pressed="false" aria-label="Lock face">Lock</button></span></div><span class="slot-value" id="slotFace" role="status" aria-live="polite">-</span></div>
+            <div class="slot-card" data-slot="hair"><div class="slot-card-head"><span class="slot-label">Hair</span><span class="slot-controls"><button class="slot-control" type="button" data-reroll="hair" aria-label="Reroll hair">Reroll</button><button class="slot-control" type="button" data-lock="hair" aria-pressed="false" aria-label="Lock hair">Lock</button></span></div><span class="slot-value" id="slotHair" role="status" aria-live="polite">-</span></div>
+            <div class="slot-card" data-slot="eyes"><div class="slot-card-head"><span class="slot-label">Eyes</span><span class="slot-controls"><button class="slot-control" type="button" data-reroll="eyes" aria-label="Reroll eyes">Reroll</button><button class="slot-control" type="button" data-lock="eyes" aria-pressed="false" aria-label="Lock eyes">Lock</button></span></div><span class="slot-value" id="slotEyes" role="status" aria-live="polite">-</span></div>
+            <div class="slot-card" data-slot="skin"><div class="slot-card-head"><span class="slot-label">Skin</span><span class="slot-controls"><button class="slot-control" type="button" data-reroll="skin" aria-label="Reroll skin">Reroll</button><button class="slot-control" type="button" data-lock="skin" aria-pressed="false" aria-label="Lock skin">Lock</button></span></div><span class="slot-value" id="slotSkin" role="status" aria-live="polite">-</span></div>
+            <div class="slot-card" data-slot="outfit"><div class="slot-card-head"><span class="slot-label">Outfit</span><span class="slot-controls"><button class="slot-control" type="button" data-reroll="outfit" aria-label="Reroll outfit">Reroll</button><button class="slot-control" type="button" data-lock="outfit" aria-pressed="false" aria-label="Lock outfit">Lock</button></span></div><span class="slot-value" id="slotOutfit" role="status" aria-live="polite">-</span></div>
           </div>
-          <pre class="prompt-output image-generator-output" id="imagePromptOutput"></pre>
+          <details class="prompt-details">
+            <summary id="promptDetailsSummary" role="button" aria-controls="imagePromptOutput" aria-expanded="false"><span>View full prompt</span><span class="prompt-details-hint">All realism details are still included</span></summary>
+            <pre class="prompt-output image-generator-output" id="imagePromptOutput"></pre>
+          </details>
           <div class="prompt-warning" id="productPromptWarning">
             <strong>Product sellers: be specific before you copy.</strong>
             If the image is meant to sell or show a product, put the exact product/outfit requirement in the field on the left. For hats, shirts, jackets, glasses, jewelry, bags, or uniforms, the product needs to be named directly or the image model may invent the wrong item.
@@ -3390,7 +3492,7 @@
           <div class="note-row">
             <div class="mini-note"><strong>Use the start frame.</strong>This gives the image model the exact original pose and angle.</div>
             <div class="mini-note"><strong>Image first.</strong>This prompt creates Image1. The Seedance prompt below handles the video replacement.</div>
-            <div class="mini-note"><strong>Reroll details.</strong>Same age, gender, and profession can produce different realistic combinations without leaving that character context.</div>
+            <div class="mini-note"><strong>Reroll or lock.</strong>Reroll one category, lock details you want to keep, or change every unlocked category at once.</div>
           </div>
           <div class="preset-chips" aria-label="Preset detail examples">
             <span>age</span>
@@ -3896,6 +3998,8 @@
     <span>Reference video = motion. Image reference = identity. Prompt = rules.</span>
   </footer>
 
+  <script src="/prompt/character-library.js"></script>
+  <script src="/prompt/character-summary.js"></script>
   <script>
     const TIKTOK_API_BASE = "https://app.titansagency.co";
     const tiktokForm = document.getElementById("tiktokForm");
@@ -5107,7 +5211,7 @@
     const characterFields = document.getElementById("characterFields");
     const characterAdvancedFields = document.getElementById("characterAdvancedFields");
     const avatarFields = document.getElementById("avatarFields");
-    const sourceSubject = document.getElementById("sourceSubject");
+    const useFrameReference = document.getElementById("useFrameReference");
     const characterAge = document.getElementById("characterAge");
     const characterGender = document.getElementById("characterGender");
     const professionSelect = document.getElementById("professionSelect");
@@ -5118,6 +5222,8 @@
     const avatarImageName = document.getElementById("avatarImageName");
     const avatarChanges = document.getElementById("avatarChanges");
     const imagePromptOutput = document.getElementById("imagePromptOutput");
+    const promptDetails = document.querySelector(".prompt-details");
+    const promptDetailsSummary = document.getElementById("promptDetailsSummary");
     const copyImagePromptBtn = document.getElementById("copyImagePromptBtn");
     const rerollBtn = document.getElementById("rerollBtn");
     const generateImagePromptBtn = document.getElementById("generateImagePromptBtn");
@@ -5133,6 +5239,19 @@
     };
 
     let lastCharacterRoll = null;
+    const characterLibrary = window.TITANS_CHARACTER_LIBRARY;
+    const characterSummary = window.TITANS_CHARACTER_SUMMARY;
+    const visibleCharacterCategories = ["body", "face", "hair", "eyes", "skin", "outfit"];
+    const lockedCharacterCategories = new Set();
+    const recentEntryIds = new Map();
+    const recentCharacterSignatures = [];
+
+    if (!characterLibrary || !Array.isArray(characterLibrary.entries)) {
+      throw new Error("Titans character library failed to load.");
+    }
+    if (!characterSummary || typeof characterSummary.summarize !== "function") {
+      throw new Error("Titans character summary helper failed to load.");
+    }
 
     function randomUnit() {
       const values = new Uint32Array(1);
@@ -5319,66 +5438,277 @@
       ];
     }
 
-    function hasManualOutfitInstruction() {
-      const instruction = productInstruction.value.trim();
-      return /\b(?:wear|wearing|outfit|shirt|tee|top|blouse|dress|jacket|coat|hoodie|sweater|pants|jeans|shorts|skirt|uniform|scrubs|apron|hat|cap|glasses|jewelry|bag)\b/i.test(instruction);
+    function classifyOutfitInstruction(instruction) {
+      const normalized = instruction.trim().toLowerCase();
+      const styleMatchers = [
+        { pattern: /\b(?:cute\s+college|college\s+casual|campus)\b/, family: "college-casual" },
+        { pattern: /\b(?:campus\s+lounge|loungewear|cozy\s+student)\b/, family: "campus-lounge" },
+        { pattern: /\b(?:athleisure|gym|workout|sporty|activewear)\b/, family: "athleisure" },
+        { pattern: /\b(?:creator|product\s+demo|camera-ready)\b/, family: "creator-demo" },
+        { pattern: /\b(?:construction|trade|workwear|utility)\b/, family: "construction-trades" },
+        { pattern: /\b(?:business\s+casual|smart\s+casual|office)\b/, family: "education-office" },
+        { pattern: /\b(?:professional|corporate|realtor|executive)\b/, family: "polished-professional" },
+        { pattern: /\b(?:streetwear|street\s+style|skater|oversized)\b/, family: "streetwear" },
+        { pattern: /\b(?:minimalist|minimal|quiet\s+luxury)\b/, family: "creator-demo" },
+        { pattern: /\b(?:vintage|heritage|retro)\b/, family: "heritage-vintage" },
+        { pattern: /\b(?:outdoor|hiking|trail|rural)\b/, family: "farm-outdoor" },
+        { pattern: /\b(?:older-adult|mature|retired)\b/, family: "older-everyday" }
+      ];
+      const garmentPattern = /\b(?:shirt|tee|t-shirt|tank|top|blouse|dress|jacket|coat|hoodie|sweater|cardigan|blazer|pants|trousers|jeans|shorts|skirt|uniform|scrubs|apron|vest|cap|hat|glasses|jewelry|bag|shoes|sneakers|boots|loafers)\b/g;
+      const garments = normalized.match(garmentPattern) || [];
+      const hasSpecificColor = /\b(?:black|white|ivory|cream|beige|brown|tan|red|rust|orange|yellow|green|olive|sage|blue|navy|cobalt|purple|plum|pink|gray|grey|charcoal|denim|gold|silver)\b/.test(normalized);
+      const hasLockLanguage = /\b(?:exact|must|keep|preserve|include|same|specific|branded|logo|label)\b/.test(normalized);
+      const isProduct = /\b(?:product|bottle|package|packaging|device|phone|watch|jewelry|glasses|bag|hat|cap)\b/.test(normalized);
+      const style = styleMatchers.find(({ pattern }) => pattern.test(normalized));
+      const exact = Boolean(normalized) && (garments.length >= 2 || isProduct || (garments.length >= 1 && (hasSpecificColor || hasLockLanguage)));
+      return {
+        raw: instruction.trim(),
+        exact,
+        broad: Boolean(normalized) && !exact && Boolean(style),
+        styleFamily: style?.family || "",
+        garments
+      };
     }
 
-    function rollCharacter() {
+    function hasManualOutfitInstruction() {
+      return Boolean(productInstruction.value.trim());
+    }
+
+    function libraryEntries(category) {
+      return characterLibrary.entries.filter((entry) => entry.category === category);
+    }
+
+    function isEntryCompatible(entry, context) {
+      const { tags = {} } = entry;
+      if (tags.ageMin && context.age < tags.ageMin) return false;
+      if (tags.ageMax && context.age > tags.ageMax) return false;
+      if (tags.genders && !tags.genders.includes(context.gender)) return false;
+      if (entry.category === "outfit" && !context.ignoreProfession && tags.professions?.length && !tags.professions.includes(context.profession)) return false;
+      if (context.styleFamily && entry.category === "outfit" && !tags.styleFamily?.includes(context.styleFamily)) return false;
+      return true;
+    }
+
+    function recentFor(category) {
+      if (!recentEntryIds.has(category)) recentEntryIds.set(category, []);
+      return recentEntryIds.get(category);
+    }
+
+    function rememberEntry(entry) {
+      if (!entry) return;
+      const recent = recentFor(entry.category);
+      recent.unshift(entry.id);
+      recentEntryIds.set(entry.category, [...new Set(recent)].slice(0, 14));
+    }
+
+    function effectiveEntryWeight(entry, category, context) {
+      let weight = entry.weight || 1;
+      if (category === "outfit") {
+        const presentation = entry.tags?.presentation?.[0] || "neutral";
+        if (presentation === "feminine" && context.gender === "male") weight *= 0.08;
+        if (presentation === "feminine" && context.gender === "female") weight *= 1.25;
+        return weight;
+      }
+      if (category !== "hair") return weight;
+
+      const gray = entry.tags?.gray?.[0] || "none";
+      const ageSignal = entry.tags?.ageSignal || [];
+      const hasLossPattern = ageSignal.some((signal) => ["thinning", "receding", "bald", "shaved"].includes(signal));
+
+      if (context.age >= 70) {
+        if (gray === "majority") weight *= 5.5;
+        else if (gray === "partial") weight *= 3.4;
+        else weight *= 0.12;
+        if (hasLossPattern) weight *= context.gender === "male" ? 5 : 1.8;
+      } else if (context.age >= 60) {
+        if (gray === "majority") weight *= 4;
+        else if (gray === "partial") weight *= 3;
+        else weight *= 0.3;
+        if (hasLossPattern) weight *= context.gender === "male" ? 3.2 : 1.4;
+      } else if (context.age >= 45) {
+        if (gray === "partial") weight *= 2.2;
+        if (gray === "majority") weight *= 1.4;
+        if (hasLossPattern && context.gender === "male") weight *= 1.6;
+      }
+
+      return Math.max(0.05, weight);
+    }
+
+    function weightedEntry(category, context, predicate = () => true) {
+      const compatible = libraryEntries(category).filter((entry) => isEntryCompatible(entry, context) && predicate(entry));
+      const recent = new Set(recentFor(category));
+      const fresh = compatible.filter((entry) => !recent.has(entry.id));
+      const candidates = fresh.length ? fresh : compatible;
+      if (!candidates.length) throw new Error(`No compatible ${category} entries were found.`);
+
+      const total = candidates.reduce((sum, entry) => sum + effectiveEntryWeight(entry, category, context), 0);
+      let cursor = randomUnit() * total;
+      for (const entry of candidates) {
+        cursor -= effectiveEntryWeight(entry, category, context);
+        if (cursor <= 0) return entry;
+      }
+      return candidates[candidates.length - 1];
+    }
+
+    function getEntryById(id) {
+      return characterLibrary.entries.find((entry) => entry.id === id);
+    }
+
+    function supportingStyleForExactInstruction(instruction, context) {
+      const footwearTerms = /\b(?:shoes|sneakers|boots|loafers|flats|heels|clogs|sandals)\b/i;
+      const accessoryTerms = /\b(?:glasses|sunglasses|bag|belt|jewelry|earrings|necklace|watch|hat|cap|headband|scarf)\b/i;
+      const footwear = [
+        "clean white low-profile sneakers",
+        "simple black leather loafers",
+        "neutral gray walking shoes",
+        "dark brown low-profile ankle boots",
+        "plain black slip-on shoes",
+        "cream canvas sneakers"
+      ];
+      const additions = [];
+      if (!footwearTerms.test(instruction)) additions.push(footwear[Math.floor(randomUnit() * footwear.length)]);
+      if (!accessoryTerms.test(instruction) && randomUnit() < 0.55) {
+        const accessory = weightedEntry("accessory", context);
+        rememberEntry(accessory);
+        additions.push(accessory.fragment);
+      }
+      return additions.length ? `; unspecified styling completed only with ${additions.join(" and ")}` : "";
+    }
+
+    function selectionIsCompatible(selection, context) {
+      if (!selection?.baseId) return false;
+      const base = getEntryById(selection.baseId);
+      return Boolean(base && isEntryCompatible(base, context));
+    }
+
+    function buildCategorySelection(category, context, instructionIntent) {
+      if (category === "outfit" && instructionIntent.exact) {
+        return {
+          baseId: `manual:${instructionIntent.raw}`,
+          fragment: `the exact user-specified requirement: ${instructionIntent.raw}${supportingStyleForExactInstruction(instructionIntent.raw, context)}`
+        };
+      }
+
+      const categoryContext = category === "outfit" && instructionIntent.broad
+        ? { ...context, styleFamily: instructionIntent.styleFamily, ignoreProfession: true }
+        : context;
+      const base = weightedEntry(category, categoryContext);
+      rememberEntry(base);
+      const selection = { baseId: base.id, fragment: base.fragment, optionalIds: [] };
+
+      if (category === "face" && randomUnit() < 0.18) {
+        const detail = weightedEntry("distinctive", context);
+        rememberEntry(detail);
+        selection.optionalIds.push(detail.id);
+        selection.fragment += `; ${detail.fragment}`;
+      }
+
+      if (category === "hair" && context.gender === "male" && randomUnit() < 0.38) {
+        const hairColor = base.tags?.color?.[0] || "";
+        const compatibleFacialHairColors = {
+          black: ["black", "dark-brown"],
+          "dark-brown": ["black", "dark-brown", "medium-brown"],
+          "medium-brown": ["dark-brown", "medium-brown", "auburn-brown"],
+          auburn: ["medium-brown", "auburn-brown"],
+          "dark-blonde": ["dark-blonde", "warm-blonde", "medium-brown"],
+          "warm-blonde": ["dark-blonde", "warm-blonde", "medium-brown"],
+          "salt-and-pepper": ["salt-and-pepper", "mostly-gray", "dark-brown"],
+          "silver-gray": ["mostly-gray", "salt-and-pepper"]
+        };
+        const allowed = compatibleFacialHairColors[hairColor] || [];
+        const facialHair = weightedEntry("facialHair", context, (entry) => !allowed.length || entry.tags?.color?.some((color) => allowed.includes(color)));
+        rememberEntry(facialHair);
+        selection.optionalIds.push(facialHair.id);
+        selection.fragment += `; ${facialHair.fragment}`;
+      }
+
+      return selection;
+    }
+
+    function rollCharacter(categoriesToReroll = null) {
       const bucket = getBucket();
       const gender = getGender();
       const age = getAge();
-      const outfit = hasManualOutfitInstruction()
-        ? "the exact manually specified outfit with age-appropriate supporting styling"
-        : weightedPick(getContextualAttributeItems(bucket, "outfit", gender, age));
+      const profession = bucket.id || professionSelect.value || "none";
+      const context = { age, gender, profession, styleFamily: "" };
+      const instructionIntent = classifyOutfitInstruction(productInstruction.value);
+      const previousSelections = lastCharacterRoll?._selections || {};
+      const requested = categoriesToReroll || new Set(visibleCharacterCategories.filter((category) => !lockedCharacterCategories.has(category)));
+      const selections = {};
+
+      for (const category of visibleCharacterCategories) {
+        const previous = previousSelections[category];
+        const manuallyLocked = lockedCharacterCategories.has(category);
+        const manualOutfitChanged = category === "outfit" && String(previous?.baseId || "").startsWith("manual:") && previous.baseId !== `manual:${instructionIntent.raw}`;
+        const compatible = category === "outfit" && String(previous?.baseId || "").startsWith("manual:")
+          ? !manualOutfitChanged
+          : selectionIsCompatible(previous, context);
+
+        if (manuallyLocked && previous && compatible && !requested.has(category)) {
+          selections[category] = previous;
+          continue;
+        }
+
+        if (manuallyLocked && !compatible) {
+          lockedCharacterCategories.delete(category);
+          const lockButton = slotGrid.querySelector(`[data-lock="${category}"]`);
+          if (lockButton) { lockButton.setAttribute("aria-pressed", "false"); lockButton.textContent = "Lock"; }
+        }
+
+        if (!requested.has(category) && previous && compatible) selections[category] = previous;
+        else selections[category] = buildCategorySelection(category, context, instructionIntent);
+      }
+
+      const signature = visibleCharacterCategories.map((category) => selections[category].baseId).join("|");
+      if (!recentCharacterSignatures.includes(signature)) {
+        recentCharacterSignatures.unshift(signature);
+        recentCharacterSignatures.splice(24);
+      }
+
       return {
         age,
         gender,
         genderLabel: genderPools[gender].label,
         noun: bucket.noun,
-        body: weightedPick(getContextualAttributeItems(bucket, "body", gender, age)),
-        face: weightedPick(getContextualAttributeItems(bucket, "face", gender, age)),
-        hair: weightedPick(getContextualAttributeItems(bucket, "hair", gender, age)),
-        eyes: weightedPick(getContextualAttributeItems(bucket, "eyes", gender, age)),
-        skin: weightedPick(getContextualAttributeItems(bucket, "skin", gender, age)),
-        outfit,
-        realism: weightedPick(getContextualAttributeItems(bucket, "realism", gender, age))
+        body: selections.body.fragment,
+        face: selections.face.fragment,
+        hair: selections.hair.fragment,
+        eyes: selections.eyes.fragment,
+        skin: selections.skin.fragment,
+        outfit: selections.outfit.fragment,
+        _selections: selections,
+        _signature: signature,
+        _instructionIntent: instructionIntent
       };
     }
 
-    function showSlotSpin() {
-      Object.values(slotElements).forEach((element) => {
+    function showSlotSpin(categories = new Set(visibleCharacterCategories)) {
+      Object.entries(slotElements).forEach(([category, element]) => {
+        if (!categories.has(category)) return;
         element.closest(".slot-card").classList.remove("is-spinning");
         void element.offsetWidth;
         element.closest(".slot-card").classList.add("is-spinning");
       });
 
       setTimeout(() => {
-        Object.values(slotElements).forEach((element) => {
+        Object.entries(slotElements).forEach(([category, element]) => {
+          if (!categories.has(category)) return;
           element.closest(".slot-card").classList.remove("is-spinning");
         });
       }, 460);
     }
 
     function updateSlotDisplay(roll) {
-      slotElements.body.textContent = roll.body;
-      slotElements.face.textContent = roll.face;
-      slotElements.hair.textContent = roll.hair;
-      slotElements.eyes.textContent = roll.eyes;
-      slotElements.skin.textContent = roll.skin;
-      slotElements.outfit.textContent = roll.outfit;
-    }
-
-    function getSourcePronoun(source) {
-      if (source === "man") {
-        return "him";
+      for (const category of visibleCharacterCategories) {
+        const selection = roll._selections?.[category];
+        const entry = selection && !String(selection.baseId).startsWith("manual:")
+          ? getEntryById(selection.baseId)
+          : null;
+        slotElements[category].textContent = characterSummary.summarize(
+          category,
+          entry,
+          selection?.fragment || roll[category]
+        );
       }
-
-      if (source === "woman") {
-        return "her";
-      }
-
-      return "them";
     }
 
     function getAvatarPronouns() {
@@ -5407,15 +5737,15 @@
       return element.value.trim() || fallback;
     }
 
-    function buildCharacterPrompt(shouldReroll = false) {
+    function buildCharacterPrompt(shouldReroll = false, categoriesToReroll = null) {
       if (shouldReroll || !lastCharacterRoll) {
-        lastCharacterRoll = rollCharacter();
-        showSlotSpin();
+        const rerolledCategories = categoriesToReroll || new Set(visibleCharacterCategories.filter((category) => !lockedCharacterCategories.has(category)));
+        lastCharacterRoll = rollCharacter(rerolledCategories);
+        showSlotSpin(rerolledCategories);
       }
 
       const roll = lastCharacterRoll;
-      const source = sourceSubject.value || "man";
-      const sourcePronoun = getSourcePronoun(source);
+      const isUsingFrameReference = useFrameReference.value === "yes";
       const product = productInstruction.value.trim();
       const identity = [
         `${roll.age}-year-old`,
@@ -5423,17 +5753,26 @@
         roll.genderLabel,
         roll.noun
       ].filter(Boolean).join(" ");
-      const target = `${identity} with ${roll.face}, ${roll.hair}, ${roll.eyes}, ${roll.skin}, ${roll.body}, and ${roll.outfit}`;
-      const productLine = product
-        ? `Specific product/outfit requirement: ${product}. Keep this product or outfit detail clear, accurate, visible, and consistent with the character.`
-        : "";
+      const instructionIntent = roll._instructionIntent || classifyOutfitInstruction(product);
+      const outfitDescription = instructionIntent.exact
+        ? "the exact specified outfit or product requirement stated below"
+        : roll.outfit;
+      const target = `${identity}. Face: ${roll.face}. Hair: ${roll.hair}. Eyes: ${roll.eyes}. Skin: ${roll.skin}. Build: ${roll.body}. Outfit: ${outfitDescription}`;
+      const productLine = !product
+        ? ""
+        : instructionIntent.exact
+          ? `Exact product/outfit requirement: ${product}. Preserve every specified garment, color, material, logo, label, and product detail. Keep it accurate, consistent, and visible where the reference framing allows.`
+          : `Requested style direction: ${product}. Use the concrete coordinated outfit selected above; rerolls may vary the garments while keeping this style direction.`;
+      const compositionLine = isUsingFrameReference
+        ? `Use the supplied video frame or screenshot as a layout reference. Replace the existing person with this character: ${target}. Preserve the reference pose, camera angle, framing, perspective, facial direction, body position, hand placement, and lighting direction. Replace the background with a seamless soft light-gray studio background with subtle tonal falloff.`
+        : `A picture is taken of a: ${target}. Use a natural relaxed pose, anatomically plausible hand placement, a straightforward phone-camera perspective, and a seamless soft light-gray studio background with subtle tonal falloff.`;
 
       updateSlotDisplay(roll);
 
       const sections = [
-        `Remove the ${source} and replace ${sourcePronoun} with a ${target}. Keep the exact same pose, camera angle, framing, perspective, facial direction, body position, hand placement, and lighting direction as the reference image, but replace the background with a seamless soft light-gray studio background with subtle tonal falloff.`,
+        compositionLine,
         productLine,
-        `Prioritize extreme photorealism: visible pores, natural skin variation, individual hair strands, realistic eyes and teeth, subtle facial asymmetry, accurate anatomy, natural hands, ${roll.realism}.`
+        "Render this as an unretouched high-resolution phone-camera portrait. Keep coherent catchlights in both eyes, natural tooth and ear structure, separate hair strands, accurate hands, visible garment seams and fabric weave, and true skin microtexture. Avoid waxy skin, beauty-filter smoothing, mannequin symmetry, painted hair, fused accessories, and airbrushed clothing."
       ].filter(Boolean);
 
       imagePromptOutput.textContent = sections.join("\n\n");
@@ -5456,7 +5795,7 @@
       imagePromptOutput.textContent = sections.join("\n\n");
     }
 
-    function buildImagePrompt(shouldReroll = false) {
+    function buildImagePrompt(shouldReroll = false, categoriesToReroll = null) {
       const isAvatarMode = imagePromptMode.value === "avatar";
       characterFields.classList.toggle("is-hidden", isAvatarMode);
       characterAdvancedFields.classList.toggle("is-hidden", isAvatarMode);
@@ -5471,7 +5810,7 @@
         return;
       }
 
-      buildCharacterPrompt(shouldReroll);
+      buildCharacterPrompt(shouldReroll, categoriesToReroll);
     }
 
     async function copyText(text, button, restoredLabel) {
@@ -5544,6 +5883,10 @@
 
     buildImagePrompt(true);
 
+    promptDetails.addEventListener("toggle", () => {
+      promptDetailsSummary.setAttribute("aria-expanded", String(promptDetails.open));
+    });
+
     characterForm.addEventListener("submit", (event) => {
       event.preventDefault();
       buildImagePrompt(true);
@@ -5554,25 +5897,47 @@
       buildImagePrompt(true);
     });
     professionSelect.addEventListener("change", () => {
-      lastCharacterRoll = null;
       buildImagePrompt(true);
     });
     characterAge.addEventListener("input", () => {
-      lastCharacterRoll = null;
       buildImagePrompt(true);
     });
     characterGender.addEventListener("change", () => {
-      lastCharacterRoll = null;
       buildImagePrompt(true);
     });
     customProfession.addEventListener("input", () => {
       if (professionSelect.value === "custom") {
-        lastCharacterRoll = null;
         buildImagePrompt(true);
       }
     });
-    sourceSubject.addEventListener("input", () => buildImagePrompt(false));
-    productInstruction.addEventListener("input", () => buildImagePrompt(false));
+    useFrameReference.addEventListener("input", () => buildImagePrompt(false));
+    let productInputTimer = null;
+    productInstruction.addEventListener("input", () => {
+      clearTimeout(productInputTimer);
+      productInputTimer = setTimeout(() => {
+        lockedCharacterCategories.delete("outfit");
+        const lockButton = slotGrid.querySelector('[data-lock="outfit"]');
+        if (lockButton) { lockButton.setAttribute("aria-pressed", "false"); lockButton.textContent = "Lock"; }
+        buildImagePrompt(true, new Set(["outfit"]));
+      }, 220);
+    });
+    slotGrid.addEventListener("click", (event) => {
+      const lockButton = event.target.closest("[data-lock]");
+      if (lockButton) {
+        const category = lockButton.dataset.lock;
+        const willLock = !lockedCharacterCategories.has(category);
+        if (willLock) lockedCharacterCategories.add(category);
+        else lockedCharacterCategories.delete(category);
+        lockButton.setAttribute("aria-pressed", String(willLock));
+        lockButton.textContent = willLock ? "Locked" : "Lock";
+        return;
+      }
+
+      const rerollButton = event.target.closest("[data-reroll]");
+      if (rerollButton) {
+        buildImagePrompt(true, new Set([rerollButton.dataset.reroll]));
+      }
+    });
     avatarPronoun.addEventListener("change", () => buildImagePrompt(false));
     avatarReferenceName.addEventListener("input", () => buildImagePrompt(false));
     avatarImageName.addEventListener("input", () => buildImagePrompt(false));
