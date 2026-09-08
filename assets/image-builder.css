@@ -6,4 +6,4 @@
 
 
 .flow-consent{display:flex;align-items:flex-start;gap:10px;margin:18px 0 8px;font-size:12px;color:#d1d3d9}.flow-consent input{width:20px;height:20px;flex-shrink:0;accent-color:#f36b21}.image-flow .flow-privacy{font-size:11px;margin-bottom:18px}
-#character-builder .image-flow label{font-weight:400;letter-spacing:normal;text-transform:none}
+#character-builder .image-flow label{font-weight:400;letter-spacing:normal;text-transform:none;color:#d1d3d9}

@@ -64,8 +64,49 @@ Prior owner tests cost approximately $0.165–$0.178/image before checkout fees,
 failures and storage. Paid-pack economics must include all of those costs and
 any applicable affiliate fees; do not imply the $0.30/photo pack is approved yet.
 
-## Post-deployment verification
+Illustrative stress estimate, NOT verified checkout margins: $0.196928 API/photo
+(4,000 text tokens + 1,536 reference tokens + 5,488 output tokens), 10% API-failure
+reserve, $0.01/photo hosting/storage allowance, and 6.5% + $0.40 payment fees.
+These fee/hosting assumptions must be replaced with the actual pack setup.
 
-Pending at commit: live signed-in allowance persistence, original+selfie generation,
-downloads, anonymous denial, saved-file permissions, real usage totals and health.
-Record actual outcomes after deployment; do not claim launch completion until then.
+| Pack | Photos | Estimated costs | Contribution | Margin | If 30% affiliate fee also applies |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| $5 | 10 | $2.99 | $2.01 | 40.2% | 10.2% |
+| $10 | 25 | $6.72 | $3.28 | 32.8% | 2.8% |
+| $15 | 40 | $10.44 | $4.56 | 30.4% | 0.4% |
+| $20 | 60 | $15.30 | $4.70 | 23.5% | -6.5% |
+| $25 | 80 | $20.15 | $4.85 | 19.4% | -10.6% |
+| $30 | 100 | $25.01 | $4.99 | 16.6% | -13.4% |
+
+In particular, if the existing 30% affiliate terms apply to credit packs, the
+three largest packs become loss-making under this stress estimate. Additional
+cross-border, tax, refund/dispute and failed-attempt charges can further reduce
+margins. This is why credit checkout remains disabled, not why free generation
+should remain unavailable.
+
+## Post-deployment verification — passed
+
+GitHub commit 62962ca was pushed and verified before the immutable API/static
+deployment. Private auth release: /opt/titans-whop-auth/releases/20260908-62962ca.
+Image schema/runtime role provisioned; root-only env mode 0600, image directory
+0700 www-data, original PNG 0600. Caddy route and both services healthy.
+
+- Live signed-in member received 15 credits once; repeated loads did not regrant.
+- Original succeeded: 411 text / 0 image-input / 5,488 output tokens,
+  usage-derived API estimate $0.166695; saved PNG 1,946,818 bytes.
+- Original-backed selfie with small stud earrings succeeded: 232 text /
+  1,536 image-input / 5,488 output tokens; estimated $0.178088.
+- Two attempts, two saved photos, zero uncertain jobs; combined estimate $0.344783.
+- Both images display at 1024x1536, both download actions work, downloads do not
+  deduct credits, final balance 13. Reload during selfie preserved the job.
+- Buttons disable during submission/generation; no duplicate attempt was created.
+- Two-reference handoff sets the existing video selector to 2; no Higgsfield
+  upload is implied. Live browser console has no errors.
+- Anonymous live state/generation/image/checkout requests each return 401.
+- Cross-member lookup of the actual saved original returns no record.
+- Footer co-founder link live; name not added to homepage main content.
+- Generation enabled with $10 rolling24h / $20 rolling30d caps; both paid-sales
+  controls remain disabled. No further paid image tests or funding changes made.
+
+The one-line label-contrast follow-up is a selective static-only immutable release;
+it does not restart the auth service or alter image data/credit balances.
