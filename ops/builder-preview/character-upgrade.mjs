@@ -23,5 +23,6 @@ export function composeCharacterUpgrade(current,supplied) {
   const unlock = 'if (lockButton) lockButton.setAttribute("aria-pressed", "false");';
   if (html.split(unlock).length !== 3) throw Error('Character auto-unlock boundary changed');
   html = html.replaceAll(unlock,'if (lockButton) { lockButton.setAttribute("aria-pressed", "false"); lockButton.textContent = "Lock"; }');
+  html = html.replace('Create a new character reference portrait of this person:', 'A picture is taken of a:');
   return html;
 }

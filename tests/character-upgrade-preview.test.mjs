@@ -74,6 +74,15 @@ function characterEngine() {
   };
 }
 
+test('new character prompts use the requested picture opening, including after rerolls', () => {
+  const engine = characterEngine();
+  const output = engine.element('imagePromptOutput');
+  assert.ok(output.textContent.startsWith('A picture is taken of a: '));
+  engine.element('rerollBtn').handlers.click();
+  assert.ok(output.textContent.startsWith('A picture is taken of a: '));
+  assert.ok(!output.textContent.includes('Create a new character reference portrait of this person'));
+});
+
 test('editing a locked outfit resets both its visible lock label and pressed state', () => {
   const engine = characterEngine();
   const button = engine.lock('outfit');
