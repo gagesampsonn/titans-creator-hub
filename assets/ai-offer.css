@@ -1,0 +1,25 @@
+/* Public offer display. No visitor timer or unconfigured checkout price change. */
+.ai-offer-banner {
+  display: flex; align-items: center; justify-content: center; flex-wrap: wrap;
+  gap: .25rem 1.5rem; min-height: 2.75rem; padding: .375rem 1rem;
+  background: var(--titan-coral); color: #fff; text-decoration: none;
+  font-size: .8125rem; line-height: 1.5;
+}
+.ai-offer-banner > span { display: inline-flex; align-items: baseline; gap: .5rem; }
+.ai-offer-banner s { text-decoration-thickness: 1.5px; }
+.ai-offer-banner strong, .ai-offer-banner b { font-weight: 600; }
+.ai-offer-banner b { margin-left: .25rem; text-decoration: underline; text-underline-offset: .2em; }
+.ai-offer-banner:hover { background: var(--titan-coral-light); }
+.ai-offer-banner:focus-visible { outline-color: var(--titan-text); outline-offset: -3px; }
+.ai-inline-price .ai-regular-price { color: var(--titan-dim); font-size: 1.25rem; font-weight: 400; text-decoration-thickness: 1.5px; text-decoration-color: var(--titan-coral); }
+.ai-offer-checkout { padding: 1rem; margin-bottom: 1rem; border-bottom: 1px solid var(--titan-line); background: var(--titan-bg); }
+.ai-offer-checkout p { margin: 0 0 .5rem; color: var(--titan-coral); font-size: .6875rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; }
+.ai-offer-checkout > div { display: flex; align-items: baseline; flex-wrap: wrap; gap: .5rem; }
+.ai-offer-checkout strong { color: var(--titan-text); font-size: 2rem; font-weight: 600; letter-spacing: -.04em; }
+.ai-offer-checkout s { color: var(--titan-dim); text-decoration-color: var(--titan-coral); }
+.ai-offer-checkout div > span { color: var(--titan-muted); font-size: .8125rem; }
+.ai-landing:has(.ai-offer-banner) .commerce-section { scroll-margin-top: 3rem; }
+@media (max-width: 480px) {
+  .ai-offer-banner { flex-direction: column; gap: 0; padding: .375rem .75rem; font-size: .75rem; }
+  .ai-landing:has(.ai-offer-banner) .commerce-section { scroll-margin-top: 4rem; }
+}

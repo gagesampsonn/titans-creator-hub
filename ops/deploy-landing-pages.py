@@ -9,12 +9,9 @@ import tarfile
 import urllib.request
 
 BASE = Path('/srv/titans-marketing')
-PREVIOUS = BASE / 'releases/20260909-8cf19aa'
+PREVIOUS = BASE / 'releases/20260909-159042a'
 AUTH = Path('/opt/titans-whop-auth/releases/20260908-62962ca')
-FILES = {'index.html', 'ai/index.html', 'exclusive/index.html',
-         'assets/ai-landing.css', 'assets/home-landing.css',
-         'assets/exclusive-landing.css', 'assets/titans-logo-light.png',
-         'assets/ai-promotion-preview.js', 'assets/ai-promotion-preview.css'}
+FILES = {'index.html', 'ai/index.html', 'assets/ai-offer.css'}
 
 
 def stream_digest(stream):
@@ -83,7 +80,7 @@ def main():
             elif old.is_file() and relative.as_posix() not in FILES:
                 guard(not new.is_symlink() and digest(old) == digest(new), 'unrelated_file_changed')
     if action == 'prepare':
-        print('Nine public files staged and verified; unrelated files unchanged; live pointer unchanged.')
+        print('Public offer files staged and verified; unrelated files unchanged; live pointer unchanged.')
         return
     switch(release, commit)
     try:
