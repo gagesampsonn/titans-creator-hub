@@ -1,0 +1,17 @@
+.ai-promotion {
+  display: flex; align-items: center; justify-content: center; flex-wrap: wrap;
+  gap: .25rem 1.5rem; min-height: 2.75rem; padding: .375rem 1rem;
+  background: var(--titan-coral); color: #fff; text-decoration: none;
+  font-size: .8125rem; line-height: 1.5;
+}
+.ai-promotion[hidden] { display: none; }
+.ai-promotion:hover { background: var(--titan-coral-light); }
+.ai-promotion-product, .ai-promotion-time { display: inline-flex; align-items: baseline; gap: .5rem; }
+.ai-promotion s { color: #fff; text-decoration-thickness: 1px; }
+.ai-promotion strong { font-weight: 700; }
+.ai-promotion-clock { min-width: 3rem; font-variant-numeric: tabular-nums; font-weight: 600; }
+.ai-landing:has(.ai-promotion:not([hidden])) .commerce-section { scroll-margin-top: 3rem; }
+@media (max-width: 480px) {
+  .ai-promotion { flex-direction: column; gap: 0; padding: .375rem .75rem; font-size: .75rem; }
+  .ai-landing:has(.ai-promotion:not([hidden])) .commerce-section { scroll-margin-top: 4rem; }
+}

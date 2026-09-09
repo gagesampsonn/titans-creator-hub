@@ -14,6 +14,15 @@ Phone typography scales down with compact spacing and 44–48px button targets.
 The header is sticky in normal document flow so content is not obscured.
 The supplied `pfp-titan.png` is copied unchanged to `assets/titans-logo-light.png`;
 CSS frames its central mark without distorting or regenerating the artwork.
+
+Promotion banner follow-up: local AI preview only shows the requested $45
+strike-through / $29.99 price and a ten-minute countdown. Clearly labelled
+"Promotion preview"; it is not a live pricing or eligibility claim. Deadline
+persists across refreshes, hides after expiry, and fails closed if browser
+storage is unavailable. Production hosts cannot show it. Existing Whop prices
+and the separate $10 Exclusive member upgrade are unchanged. Before going live,
+confirm the regular price and enforce the promotional terms server-side.
+Added tests for countdown, refresh, expiry and production/storage safety.
 Retained the homepage's two paths, page section order, navigation, all current
 benefits, $29.99 one-time price, Whop plan, return URL and referral scripts.
 Did not import the reference's promotion timer, unverified $59 comparison price,
