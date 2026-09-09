@@ -8,11 +8,14 @@ function preview({ host = '127.0.0.1', search = '', saved = null, now = 1000000,
   let clock = now, tick, writes = 0, inserted = 0;
   const timer = { textContent: '' };
   const banner = { hidden: false, querySelector: () => timer };
+  const heroPrices = [];
   const storage = { getItem() { if (blocked) throw Error('denied'); return saved; }, setItem(k, v) { writes++; saved = v; } };
   vm.runInNewContext(script, { location: { hostname: host, pathname: '/ai/', search }, URLSearchParams, localStorage: storage,
-    Date: { now: () => clock }, document: { querySelector: () => ({ prepend: () => inserted++ }), createElement: () => banner },
+    Date: { now: () => clock }, document: {
+      querySelector: selector => selector === '.ai-inline-price' ? { prepend: node => heroPrices.push(node) } : { prepend: () => inserted++ },
+      createElement: tag => tag === 'a' ? banner : { hidden: false, setAttribute() {} } },
     setInterval(fn) { tick = fn; return 1; }, clearInterval() {} });
-  return { banner, timer, get saved() { return saved; }, writes, inserted, advance(ms) { clock += ms; tick?.(); } };
+  return { banner, timer, heroPrices, get saved() { return saved; }, writes, inserted, advance(ms) { clock += ms; tick?.(); } };
 }
 test('promotion preview starts at ten minutes and survives refresh', () => {
   const first = preview();
@@ -23,6 +26,16 @@ test('promotion preview starts at ten minutes and survives refresh', () => {
   const refreshed = preview({ saved: first.saved, now: 1061000 });
   assert.equal(refreshed.timer.textContent, '08:59');
   assert.equal(refreshed.writes, 0);
+});
+test('hero shows the same regular price as the active banner and hides it on expiry', () => {
+  const active = preview();
+  assert.equal(active.heroPrices[0]?.textContent, '$45');
+  active.advance(600000);
+  assert.equal(active.heroPrices[0].hidden, true);
+  assert.equal(preview({ saved: '1' }).heroPrices.length, 0);
+  assert.equal(preview({ host: 'titansagency.co' }).heroPrices.length, 0);
+  const review = preview({ saved: '1', search: '?bannerPreview=1' });
+  assert.equal(review.heroPrices[0]?.textContent, '$45');
 });
 test('expired preview does not restart or continue advertising a discount', () => {
   const first = preview();

@@ -5,6 +5,10 @@
   font-size: .8125rem; line-height: 1.5;
 }
 .ai-promotion[hidden] { display: none; }
+.ai-inline-price .ai-regular-price {
+  color: var(--titan-dim); font-size: 1.25rem; font-weight: 400;
+  text-decoration-thickness: 1.5px; text-decoration-color: var(--titan-dim);
+}
 .ai-promotion:hover { background: var(--titan-coral-light); }
 .ai-promotion-product, .ai-promotion-time { display: inline-flex; align-items: baseline; gap: .5rem; }
 .ai-promotion s { color: #fff; text-decoration-thickness: 1px; }

@@ -14,6 +14,11 @@
     if (!Number.isFinite(endsAt) || endsAt <= now || endsAt > now + duration) return;
     if (saved === null) localStorage.setItem(key, String(endsAt));
   } catch { return; }
+  const regularPrice = document.createElement('s');
+  regularPrice.className = 'ai-regular-price';
+  regularPrice.textContent = '$45';
+  regularPrice.setAttribute('aria-label', 'Regular price $45');
+  document.querySelector('.ai-inline-price')?.prepend(regularPrice);
   const banner = document.createElement('a');
   banner.className = 'ai-promotion';
   banner.href = '#checkout';
@@ -28,7 +33,7 @@
   let interval;
   const update = () => {
     const remaining = Math.max(0, Math.ceil((endsAt - Date.now()) / 1000));
-    if (!remaining) { banner.hidden = true; clearInterval(interval); return; }
+    if (!remaining) { banner.hidden = true; regularPrice.hidden = true; clearInterval(interval); return; }
     timer.textContent = `${String(Math.floor(remaining / 60)).padStart(2, '0')}:${String(remaining % 60).padStart(2, '0')}`;
   };
   update();
