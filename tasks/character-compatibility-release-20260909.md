@@ -35,3 +35,15 @@ database migration or paid image test needed for this local-only selection logic
 Rollback: atomically restore static current to 20260908-040ae87. Preserve all
 customer data, credits and the unchanged API release. Verify auth health and live
 signed-in builder after the switch; restore the prior pointer on failed checks.
+
+## Live verification — passed
+
+Released commit 746dc20 through GitHub and switched static current to
+/srv/titans-marketing/releases/20260909-746dc20. Archive SHA256:
+421fd67dacce4facc869a7e3dabfc87b1d48a03d94f87925dda467f10b2e903d.
+All non-payload static files hash-identical; auth health 200, backend unchanged.
+Signed-in live browser confirms the helper loads, female college-student outfits
+are compatible, three consecutive skin rerolls cover medium/deep/light groups,
+and Generate Image/Create Selfie controls remain present. Both prior saved images
+load at 1024px width, balance remains 13, and no browser console errors occur.
+No paid image request was submitted during this release.
