@@ -23,6 +23,11 @@ storage is unavailable. Production hosts cannot show it. Existing Whop prices
 and the separate $10 Exclusive member upgrade are unchanged. Before going live,
 confirm the regular price and enforce the promotional terms server-side.
 Added tests for countdown, refresh, expiry and production/storage safety.
+Design-review fix: `http://127.0.0.1:8898/ai/?bannerPreview=1` keeps the banner
+visible with a clearly labelled static timer demo, even after the normal local
+countdown expires. It never resets the stored deadline, changes pricing, or
+enables a promotion on production hosts. The ordinary preview URL retains its
+original ten-minute countdown and expiry behavior.
 Retained the homepage's two paths, page section order, navigation, all current
 benefits, $29.99 one-time price, Whop plan, return URL and referral scripts.
 Did not import the reference's promotion timer, unverified $59 comparison price,

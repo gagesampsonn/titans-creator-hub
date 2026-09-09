@@ -6,8 +6,9 @@
   const duration = 10 * 60 * 1000;
   const key = 'titans.ai-promotion.design-preview.ends-at.v1';
   const now = Date.now();
+  const designReview = new URLSearchParams(location.search).get('bannerPreview') === '1';
   let endsAt;
-  try {
+  if (!designReview) try {
     const saved = localStorage.getItem(key);
     endsAt = saved === null ? now + duration : Number(saved);
     if (!Number.isFinite(endsAt) || endsAt <= now || endsAt > now + duration) return;
@@ -17,7 +18,13 @@
   banner.className = 'ai-promotion';
   banner.href = '#checkout';
   banner.innerHTML = '<span class="ai-promotion-product">AI Prompter + Guide <s aria-label="Regular price $45">$45</s> <strong>$29.99</strong></span><span class="ai-promotion-time">Promotion preview <span role="timer" aria-label="Time remaining" class="ai-promotion-clock"></span></span>';
+  if (designReview) banner.innerHTML = banner.innerHTML.replace('Promotion preview', 'Design preview · Timer demo');
   const timer = banner.querySelector('.ai-promotion-clock');
+  if (designReview) {
+    timer.textContent = '10:00';
+    header.prepend(banner);
+    return;
+  }
   let interval;
   const update = () => {
     const remaining = Math.max(0, Math.ceil((endsAt - Date.now()) / 1000));

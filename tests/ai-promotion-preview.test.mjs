@@ -4,12 +4,12 @@ import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 
 const script = readFileSync(new URL('../assets/ai-promotion-preview.js', import.meta.url), 'utf8');
-function preview({ host = '127.0.0.1', saved = null, now = 1000000, blocked = false } = {}) {
+function preview({ host = '127.0.0.1', search = '', saved = null, now = 1000000, blocked = false } = {}) {
   let clock = now, tick, writes = 0, inserted = 0;
   const timer = { textContent: '' };
   const banner = { hidden: false, querySelector: () => timer };
   const storage = { getItem() { if (blocked) throw Error('denied'); return saved; }, setItem(k, v) { writes++; saved = v; } };
-  vm.runInNewContext(script, { location: { hostname: host, pathname: '/ai/' }, localStorage: storage,
+  vm.runInNewContext(script, { location: { hostname: host, pathname: '/ai/', search }, URLSearchParams, localStorage: storage,
     Date: { now: () => clock }, document: { querySelector: () => ({ prepend: () => inserted++ }), createElement: () => banner },
     setInterval(fn) { tick = fn; return 1; }, clearInterval() {} });
   return { banner, timer, get saved() { return saved; }, writes, inserted, advance(ms) { clock += ms; tick?.(); } };
@@ -34,4 +34,16 @@ test('production, broken storage and altered deadlines never show the preview', 
   for (const options of [{ host: 'titansagency.co' }, { host: 'evil.localhost.example' }, { blocked: true }, { saved: 'broken' }, { saved: '99999999999' }]) {
     assert.equal(preview(options).inserted, 0);
   }
+});
+test('explicit design review shows a static banner even after expiry without resetting the real preview deadline', () => {
+  for (const options of [{ saved: '1' }, { blocked: true }]) {
+    const result = preview({ ...options, search: '?bannerPreview=1' });
+    assert.equal(result.inserted, 1);
+    assert.equal(result.timer.textContent, '10:00');
+    assert.equal(result.writes, 0);
+    result.advance(700000);
+    assert.equal(result.banner.hidden, false);
+    assert.equal(result.timer.textContent, '10:00');
+  }
+  assert.equal(preview({ host: 'titansagency.co', search: '?bannerPreview=1' }).inserted, 0);
 });
