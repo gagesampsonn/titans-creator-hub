@@ -19,3 +19,11 @@
   .ai-promotion { flex-direction: column; gap: 0; padding: .375rem .75rem; font-size: .75rem; }
   .ai-landing:has(.ai-promotion:not([hidden])) .commerce-section { scroll-margin-top: 4rem; }
 }
+.ai-checkout-promotion { margin-bottom: 1.5rem; padding: 1rem; border: 1px solid var(--titan-coral); border-radius: .5rem; background: var(--titan-bg); }
+.ai-checkout-promotion p { margin: 0 0 .5rem; color: var(--titan-text); font-size: .875rem; }
+.ai-checkout-promotion .ai-checkout-promotion-label { color: var(--titan-coral); font-size: .6875rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; }
+.ai-checkout-promotion strong { margin-inline: .375rem; font-size: 2rem; font-weight: 600; letter-spacing: -.04em; }
+.ai-checkout-promotion s, .ai-checkout-promotion small { color: var(--titan-muted); }
+.ai-checkout-promotion s { text-decoration-color: var(--titan-coral); }
+.ai-checkout-promotion .ai-promotion-clock { color: var(--titan-coral); font-weight: 600; font-variant-numeric: tabular-nums; }
+.ai-checkout-promotion small { display: block; font-size: .75rem; line-height: 1.5; }

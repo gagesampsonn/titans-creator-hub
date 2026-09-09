@@ -25,16 +25,23 @@
   banner.innerHTML = '<span class="ai-promotion-product">AI Prompter + Guide <s aria-label="Regular price $45">$45</s> <strong>$29.99</strong></span><span class="ai-promotion-time">Promotion preview <span role="timer" aria-label="Time remaining" class="ai-promotion-clock"></span></span>';
   if (designReview) banner.innerHTML = banner.innerHTML.replace('Promotion preview', 'Design preview · Timer demo');
   const timer = banner.querySelector('.ai-promotion-clock');
+  const checkoutNotice = document.createElement('div');
+  checkoutNotice.className = 'ai-checkout-promotion';
+  checkoutNotice.innerHTML = '<p class="ai-checkout-promotion-label">Design preview · Limited-time offer</p><p><s>$45</s> <strong>$29.99</strong> <span>one-time</span></p><p>Offer ends in <span role="timer" aria-label="Offer time remaining" class="ai-promotion-clock"></span></p><small>Preview only. Live offer terms and checkout pricing are not changed.</small>';
+  const checkoutTimer = checkoutNotice.querySelector('.ai-promotion-clock');
+  document.querySelector('.checkout-panel')?.prepend(checkoutNotice);
   if (designReview) {
     timer.textContent = '10:00';
+    checkoutTimer.textContent = '10:00';
     header.prepend(banner);
     return;
   }
   let interval;
   const update = () => {
     const remaining = Math.max(0, Math.ceil((endsAt - Date.now()) / 1000));
-    if (!remaining) { banner.hidden = true; regularPrice.hidden = true; clearInterval(interval); return; }
+    if (!remaining) { banner.hidden = true; regularPrice.hidden = true; checkoutNotice.hidden = true; clearInterval(interval); return; }
     timer.textContent = `${String(Math.floor(remaining / 60)).padStart(2, '0')}:${String(remaining % 60).padStart(2, '0')}`;
+    checkoutTimer.textContent = timer.textContent;
   };
   update();
   header.prepend(banner);

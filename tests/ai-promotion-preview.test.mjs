@@ -8,14 +8,16 @@ function preview({ host = '127.0.0.1', search = '', saved = null, now = 1000000,
   let clock = now, tick, writes = 0, inserted = 0;
   const timer = { textContent: '' };
   const banner = { hidden: false, querySelector: () => timer };
+  const checkoutTimer = { textContent: '' };
+  const checkoutNotices = [];
   const heroPrices = [];
   const storage = { getItem() { if (blocked) throw Error('denied'); return saved; }, setItem(k, v) { writes++; saved = v; } };
   vm.runInNewContext(script, { location: { hostname: host, pathname: '/ai/', search }, URLSearchParams, localStorage: storage,
     Date: { now: () => clock }, document: {
-      querySelector: selector => selector === '.ai-inline-price' ? { prepend: node => heroPrices.push(node) } : { prepend: () => inserted++ },
-      createElement: tag => tag === 'a' ? banner : { hidden: false, setAttribute() {} } },
+      querySelector: selector => selector === '.ai-inline-price' ? { prepend: node => heroPrices.push(node) } : selector === '.checkout-panel' ? { prepend: node => checkoutNotices.push(node) } : { prepend: () => inserted++ },
+      createElement: tag => tag === 'a' ? banner : { hidden: false, setAttribute() {}, querySelector: () => checkoutTimer } },
     setInterval(fn) { tick = fn; return 1; }, clearInterval() {} });
-  return { banner, timer, heroPrices, get saved() { return saved; }, writes, inserted, advance(ms) { clock += ms; tick?.(); } };
+  return { banner, timer, heroPrices, checkoutTimer, checkoutNotices, get saved() { return saved; }, writes, inserted, advance(ms) { clock += ms; tick?.(); } };
 }
 test('promotion preview starts at ten minutes and survives refresh', () => {
   const first = preview();
@@ -59,4 +61,18 @@ test('explicit design review shows a static banner even after expiry without res
     assert.equal(result.timer.textContent, '10:00');
   }
   assert.equal(preview({ host: 'titansagency.co', search: '?bannerPreview=1' }).inserted, 0);
+});
+test('checkout deadline matches the banner, expires with it, and stays preview-only', () => {
+  const active = preview();
+  assert.equal(active.checkoutNotices.length, 1);
+  assert.equal(active.checkoutTimer.textContent, '10:00');
+  active.advance(61000);
+  assert.equal(active.checkoutTimer.textContent, active.timer.textContent);
+  active.advance(600000);
+  assert.equal(active.checkoutNotices[0].hidden, true);
+  assert.equal(preview({ host: 'titansagency.co' }).checkoutNotices.length, 0);
+  assert.equal(preview({ saved: '1' }).checkoutNotices.length, 0);
+  const demo = preview({ saved: '1', search: '?bannerPreview=1' });
+  assert.equal(demo.checkoutTimer.textContent, '10:00');
+  assert.match(demo.checkoutNotices[0].innerHTML, /Design preview/);
 });
