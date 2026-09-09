@@ -158,7 +158,7 @@ if (weekly && !weekly.includes('data-ai-access="false"')) {
 const ai = load(offers.ai.file);
 if (ai && !ai.includes('data-community-access="false"')) {
   failures.push(
-    "AI does not explicitly state that community access is excluded",
+    "AI does not explicitly exclude full Titans community access",
   );
 }
 
@@ -183,6 +183,11 @@ if (ai) {
     "Create high-quality, realistic AI videos for TikTok Shop",
     "Full step-by-step guide",
     "does not include subscriptions or credits for third-party AI software",
+    "15 lifetime photo credits",
+    "Image generation",
+    "Close-up selfies",
+    "AI-only Discord",
+    "Affiliate Center",
   ]) {
     if (!searchable(ai).includes(requiredAiCopy.toLowerCase())) {
       failures.push(
@@ -385,7 +390,7 @@ if (ai) {
     'class="ai-showcase-step ai-showcase-prompts"',
     'class="ai-showcase-step ai-showcase-finish"',
     "Record a video",
-    "Build image + video prompts",
+    "Create your character",
     "Plug in. Get your AI video.",
     'src="/assets/hero-example/hero-motion.mp4"',
     'poster="/assets/hero-example/hero-motion.jpg"',
@@ -433,6 +438,8 @@ if (ai) {
       "muted",
       "loop",
       "playsinline",
+      "webkit-playsinline",
+      "controls",
       "poster=",
       "preload=",
     ]) {
@@ -442,10 +449,11 @@ if (ai) {
         );
       }
     }
-    if (video.includes("controls")) {
-      failures.push("AI transformation videos must not show native controls");
+    if (/\bautoplay\b/.test(video)) {
+      failures.push("AI transformation videos must wait for deliberate playback");
     }
   }
+  if (/\.play\s*\(/.test(ai)) failures.push("AI page must not start videos from scroll or visibility events");
 }
 
 for (const requiredCompactShowcaseCss of [
