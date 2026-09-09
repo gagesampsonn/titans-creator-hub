@@ -180,7 +180,7 @@ if (ai) {
     }
   }
   for (const requiredAiCopy of [
-    "Create high-quality, realistic AI videos for TikTok Shop",
+    "Turn one real take into an AI product video",
     "Full step-by-step guide",
     "does not include subscriptions or credits for third-party AI software",
     "15 lifetime photo credits",
@@ -374,9 +374,9 @@ if (ai) {
   }
 
   for (const preservedConversionCopy of [
-    "Create realistic AI videos for TikTok Shop.",
+    "Your product.<br />New character.",
     "Get the AI Prompt Builder",
-    "See how it works",
+    "Explore the workflow",
     "Buy AI Content",
   ]) {
     if (!ai.includes(preservedConversionCopy)) {
@@ -387,14 +387,14 @@ if (ai) {
     'class="ai-transformation-showcase"',
     'class="ai-showcase-flow"',
     'class="ai-showcase-step ai-showcase-record"',
-    'class="ai-showcase-step ai-showcase-prompts"',
     'class="ai-showcase-step ai-showcase-finish"',
-    "Record a video",
-    "Create your character",
-    "Plug in. Get your AI video.",
+    "<h2>Before</h2>",
+    "<h2>After</h2>",
+    "Same take. New character.",
+    'class="ai-inline-price"',
+    '/assets/ai-landing.css?v=',
     'src="/assets/hero-example/hero-motion.mp4"',
     'poster="/assets/hero-example/hero-motion.jpg"',
-    'src="/assets/hero-example/hero-character.png"',
     'src="/assets/hero-example/hero-result.mp4"',
     'poster="/assets/hero-example/hero-result.jpg"',
     'data-showcase-video="source"',

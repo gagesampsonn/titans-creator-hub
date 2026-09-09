@@ -20,6 +20,7 @@
       rel="stylesheet"
       href="/assets/commerce.css?v=ai-media-compact-20260831"
     />
+    <link rel="stylesheet" href="/assets/ai-landing.css?v=20260909" />
     <script src="/assets/referral-checkout.js?v=20260908" defer></script>
     <script
       defer
@@ -27,7 +28,7 @@
     ></script>
     <script src="/assets/commerce.js" defer></script>
   </head>
-  <body data-community-access="false" data-ai-community-access="true">
+  <body class="ai-landing" data-community-access="false" data-ai-community-access="true">
     <a class="skip-link" href="#main-content">Skip to content</a>
     <header class="commerce-header">
       <div class="commerce-nav-shell">
@@ -83,22 +84,21 @@
       <section class="product-hero ai-product-hero">
         <div class="product-hero-grid ai-product-hero-grid">
           <div class="ai-hero-copy">
-            <p class="eyebrow">AI Content · Standalone purchase</p>
-            <h1>Create realistic AI videos for TikTok Shop.</h1>
+            <p class="eyebrow">Titans AI Prompter + Guide</p>
+            <h1>Your product.<br />New character.</h1>
             <p class="product-hero-copy">
-              Create high-quality, realistic AI videos for TikTok Shop without
-              starting every prompt from scratch. Build your character,
-              generate reference photos directly in Titans, then use the video
-              prompt and step-by-step guide to bring it together in Higgsfield.
-              Includes 15 lifetime photo credits and access to our AI-only Discord section.
+              Turn one real take into an AI product video. Build your character,
+              generate reference photos, and follow the workflow from prompt to video.
             </p>
+            <p class="ai-inline-price"><strong>$29.99</strong><span>one-time · no subscription</span></p>
             <div class="hero-actions">
               <a class="button-primary" href="#checkout"
                 >Get the AI Prompt Builder</a
               ><a class="button-secondary" href="#how-it-works"
-                >See how it works</a
+                >Explore the workflow</a
               >
             </div>
+            <p class="ai-included-note">15 lifetime photo credits included. Higgsfield video credits sold separately.</p>
             <p class="checkout-fallback">
               Already own AI Content or Titans Exclusive?
               <a href="/auth/whop/login?next=%2Fprompt%2F"
@@ -113,8 +113,7 @@
             <div class="ai-showcase-flow">
               <article class="ai-showcase-step ai-showcase-record">
                 <div class="ai-showcase-step-heading">
-                  <span aria-hidden="true">01</span>
-                  <h2>Record a video</h2>
+                  <h2>Before</h2>
                 </div>
                 <div class="ai-showcase-media">
                   <video
@@ -135,30 +134,9 @@
                   </video>
                 </div>
               </article>
-              <div class="ai-showcase-connector" aria-hidden="true">→</div>
-              <article class="ai-showcase-step ai-showcase-prompts">
-                <div class="ai-showcase-step-heading">
-                  <span aria-hidden="true">02</span>
-                  <h2>Create your character</h2>
-                </div>
-                <div class="ai-showcase-character">
-                  <img
-                    src="/assets/hero-example/hero-character.png"
-                    alt="The different person selected for the AI transformation"
-                    width="411"
-                    height="445"
-                    decoding="async"
-                  />
-                  <div class="ai-showcase-prompt-tags" aria-hidden="true">
-                    <span>Image prompt</span><span>Video prompt</span>
-                  </div>
-                </div>
-              </article>
-              <div class="ai-showcase-connector" aria-hidden="true">→</div>
               <article class="ai-showcase-step ai-showcase-finish">
                 <div class="ai-showcase-step-heading">
-                  <span aria-hidden="true">03</span>
-                  <h2>Plug in. Get your AI video.</h2>
+                  <h2>After</h2>
                 </div>
                 <div class="ai-showcase-media">
                   <video
@@ -167,7 +145,7 @@
                     loop
                     playsinline
                     webkit-playsinline
-                    preload="metadata"
+                    preload="none"
                     poster="/assets/hero-example/hero-result.jpg"
                     data-showcase-video="result"
                     aria-label="Finished realistic AI video featuring the selected person"
@@ -181,14 +159,15 @@
               </article>
             </div>
             <figcaption class="checkout-fallback">
-              Press Play to watch each example. Videos won’t start automatically as you scroll.
+              <strong>Same take. New character.</strong>
+              Press Play to compare. Videos stay inline and never autoplay.
             </figcaption>
           </figure>
           <aside
             class="price-panel ai-hero-price"
             aria-label="Titans AI Content pricing"
           >
-            <p class="eyebrow">Buy it by itself</p>
+            <p class="eyebrow">One purchase. The complete AI workflow.</p>
             <p class="product-price">
               <strong>$29.99</strong><span> one-time</span>
             </p>
@@ -277,14 +256,13 @@
 
       <section id="how-it-works" class="commerce-section">
         <div class="commerce-container">
-          <p class="eyebrow">What it solves</p>
+          <p class="eyebrow">How it works</p>
           <h2 class="section-heading">
-            Better direction in. More usable AI content out.
+            Three steps. Your product in hand.
           </h2>
           <p class="section-copy">
-            Generic prompts often produce inconsistent people, awkward framing,
-            and artificial movement. Titans turns the creative choices that
-            matter into a guided prompt-building process.
+            Your video guides the movement. Your reference images guide the character.
+            Titans helps you put them together.
           </p>
           <div class="detail-grid">
             <article class="detail-block">
@@ -317,11 +295,11 @@
         </div>
       </section>
 
-      <section class="commerce-section">
+      <section id="included" class="commerce-section ai-included-section">
         <div class="commerce-container">
           <p class="eyebrow">What you get</p>
           <h2 class="section-heading">
-            Your tools, reference photos, and workflow in one place.
+            Everything inside AI Prompter + Guide.
           </h2>
           <div class="detail-grid">
             <article class="detail-block">
