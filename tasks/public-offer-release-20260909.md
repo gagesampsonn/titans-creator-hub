@@ -7,3 +7,9 @@
 - Two homepage paths, all existing sections, and third-party video-cost disclosure preserved. No Higgsfield mention added.
 - Full Node tests and launch validator passed. Browser checked desktop and 320px banner/hero/checkout; no overlap or clipped price.
 - Three-file immutable release copied from `20260909-159042a`; strict payload/archive verification and all unrelated files checked unchanged. Previous pointer is the rollback target. Backend remains untouched.
+
+## Published
+
+- Live release: `/srv/titans-marketing/releases/20260909-69809e8`, pushed through GitHub first.
+- Archive SHA256: `362dabb3d15e6e658b4c03af1a44d33c47c281044606358200c182fec10bc919`.
+- All three live files match the release archive; immediate auth health and homepage/AI/Exclusive response checks passed.
