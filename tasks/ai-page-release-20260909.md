@@ -42,3 +42,19 @@ Copy current 20260909-746dc20, verify all unrelated files remain hash-identical,
 atomically switch current, verify live /ai/ and auth health. Roll back by restoring
 the prior static symlink if verification fails. Auth remains 20260908-62962ca;
 no service restart, schema migration or customer-data changes.
+
+## Live verification
+
+Published 8cf19aa to /srv/titans-marketing/releases/20260909-8cf19aa.
+Archive SHA256: 80ed56dca7e52068cea8d42c1fbd315ab8a41d1653570c2a0a51cb2dc6372315.
+The live response matches the committed file byte-for-byte; /ai/ and auth health
+return 200. Browser verifies all three videos remain paused after scrolling to
+the workflow and checkout, all nine workflow/benefit headings render, and no
+horizontal overflow appears. The existing Whop checkout displays $29.99 and the
+same plan_bJeNjIIJAtzSR. No purchase was submitted.
+
+No first-party browser errors. The third-party Whop checkout reports sessionKey
+and script-parsing diagnostics while still rendering its price/payment form;
+these are outside the unchanged checkout integration and are not asserted to be
+fixed by this AI-page update. Native iPhone Safari/fullscreen behavior still needs
+the user's physical-device confirmation; no automatic playback call remains.
