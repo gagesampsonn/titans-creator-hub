@@ -4,6 +4,10 @@ Reference supplied: https://debate-beats-late-cell.trycloudflare.com/
 
 Applied the reference's compact headline, adjacent price/action, and two-column
 before/after media treatment to `/ai/`, using the existing dark Titans tokens.
+Follow-up: per the user's correction, the AI landing page now uses the reference's
+warm-white surfaces, dark text and orange actions, including a light checkout
+theme. Tokens and overrides remain scoped to this page; other Titans pages
+retain their existing themes.
 Retained the homepage's two paths, page section order, navigation, all current
 benefits, $29.99 one-time price, Whop plan, return URL and referral scripts.
 Did not import the reference's promotion timer, unverified $59 comparison price,
