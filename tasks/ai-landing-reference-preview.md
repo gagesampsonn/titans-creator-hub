@@ -8,6 +8,12 @@ Follow-up: per the user's correction, the AI landing page now uses the reference
 warm-white surfaces, dark text and orange actions, including a light checkout
 theme. Tokens and overrides remain scoped to this page; other Titans pages
 retain their existing themes.
+Typography follow-up: matched the reference's Geist family, 600-weight 54px
+desktop headline, 32px section headings, 18px card headings, and 14px CTAs.
+Phone typography scales down with compact spacing and 44–48px button targets.
+The header is sticky in normal document flow so content is not obscured.
+The supplied `pfp-titan.png` is copied unchanged to `assets/titans-logo-light.png`;
+CSS frames its central mark without distorting or regenerating the artwork.
 Retained the homepage's two paths, page section order, navigation, all current
 benefits, $29.99 one-time price, Whop plan, return URL and referral scripts.
 Did not import the reference's promotion timer, unverified $59 comparison price,

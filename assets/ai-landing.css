@@ -14,8 +14,21 @@
   --titan-positive: #237b4b;
   background: var(--titan-bg);
   color: var(--titan-text);
+  font-family: Geist, Helvetica, Arial, sans-serif;
+  font-size: 1rem;
+  line-height: 1.5;
 }
-.ai-landing .commerce-header { background: var(--titan-bg); border-color: var(--titan-line); }
+.ai-landing .commerce-header { position: sticky; inset: 0 0 auto; background: var(--titan-bg); border-color: var(--titan-line); }
+.ai-landing .commerce-nav-shell { min-height: 4rem; }
+.ai-landing .commerce-brand { font-size: 1.0625rem; font-weight: 600; letter-spacing: normal; gap: .625rem; }
+.ai-brand-mark { display: block; position: relative; width: 2.5rem; height: 3.5rem; overflow: hidden; flex: 0 0 2.5rem; }
+/* Frame the central mark in the supplied square image; preserve the source file. */
+.ai-landing .ai-brand-mark img { position: absolute; width: 6rem; height: 6rem; max-width: none; left: 50%; top: 50%; transform: translate(-50%, -50%); border: 0; border-radius: 0; object-fit: contain; mix-blend-mode: multiply; }
+.ai-landing .commerce-links a,
+.ai-landing .button-quiet { font-size: .875rem; font-weight: 400; }
+.ai-landing .button-primary,
+.ai-landing .button-secondary { font-size: .875rem; font-weight: 600; line-height: 1.3; min-height: 3rem; }
+.ai-landing .commerce-actions .button-primary { font-size: .8125rem; min-height: 2.75rem; }
 .ai-landing .commerce-brand,
 .ai-landing .commerce-links a,
 .ai-landing .button-quiet,
@@ -57,13 +70,13 @@
 }
 .ai-landing .ai-hero-copy { grid-area: copy; max-width: 31rem; }
 .ai-landing .ai-hero-copy h1 {
-  font-size: clamp(2.25rem, 4vw, 3.5rem); line-height: 1.08;
-  letter-spacing: -.045em; max-width: none; margin: 1rem 0 1.5rem;
-  text-transform: none; font-weight: 700;
+  font-size: clamp(2.25rem, 4vw, 3.375rem); line-height: 1.04;
+  letter-spacing: -.04em; max-width: none; margin: 1rem 0 1.5rem;
+  text-transform: none; font-weight: 600;
 }
-.ai-landing .product-hero-copy { font-size: 1.0625rem; line-height: 1.7; max-width: 29rem; }
+.ai-landing .product-hero-copy { font-size: 1.0625rem; line-height: 1.5; max-width: 29rem; }
 .ai-inline-price { display: flex; align-items: baseline; gap: .75rem; flex-wrap: wrap; margin: 1.5rem 0; }
-.ai-inline-price strong { font-size: 2rem; letter-spacing: -.04em; }
+.ai-inline-price strong { font-size: 2.25rem; font-weight: 600; line-height: 1.1; letter-spacing: -.04em; }
 .ai-inline-price span, .ai-included-note { color: var(--titan-muted); font-size: .8125rem; line-height: 1.6; }
 .ai-landing .hero-actions { gap: .75rem; }
 .ai-landing .button-primary { color: var(--titan-bg); background: var(--titan-coral); border-radius: .5rem; }
@@ -100,21 +113,22 @@
 .ai-landing .ai-hero-price .button-primary { align-self: center; min-width: 12rem; }
 .ai-landing .ai-hero-price small { grid-column: 1 / -1; margin: 0; }
 .ai-landing .commerce-section { padding-block: 3.5rem; }
-.ai-landing .section-heading { font-size: clamp(1.625rem, 3vw, 2.25rem); letter-spacing: -.035em; max-width: 42rem; }
-.ai-landing .section-copy { max-width: 46rem; }
+.ai-landing .section-heading { font-size: clamp(1.625rem, 3vw, 2rem); font-weight: 600; line-height: 1.15; letter-spacing: -.04em; max-width: 42rem; }
+.ai-landing .section-copy { max-width: 46rem; font-size: 1rem; line-height: 1.5; }
 .ai-landing .detail-grid { gap: 1rem; }
 .ai-landing .detail-block { background: var(--titan-surface); border: 1px solid var(--titan-line); border-radius: .625rem; padding: 1.5rem; }
-.ai-landing .detail-block h3 { font-size: 1.125rem; }
-.ai-landing .detail-block p { font-size: .9375rem; line-height: 1.7; }
+.ai-landing .detail-block h3 { font-size: 1.125rem; font-weight: 600; line-height: 1.3; letter-spacing: -.02em; }
+.ai-landing .detail-block p { font-size: .9375rem; line-height: 1.5; }
 .ai-landing .ai-results-layout { grid-template-columns: minmax(0, 1fr) minmax(0, 22rem); gap: 3rem; align-items: center; }
 .ai-landing .ai-video-proof { max-width: 22rem; }
 .ai-landing .checkout-panel { min-width: 0; }
 .ai-landing .faq-list summary { min-height: 3rem; }
+.ai-landing .eyebrow { font-weight: 600; letter-spacing: .08em; }
 @media (max-width: 920px) {
   .ai-landing .ai-product-hero { padding-top: 2rem; }
   .ai-landing .ai-product-hero-grid { grid-template-columns: minmax(0, 1fr); grid-template-areas: "copy" "media" "offer"; gap: 2rem; width: 100%; padding-inline: 1rem; }
   .ai-landing .ai-hero-copy { max-width: none; }
-  .ai-landing .ai-hero-copy h1 { font-size: clamp(2rem, 9vw, 2.5rem); }
+  .ai-landing .ai-hero-copy h1 { font-size: clamp(2rem, 9.2vw, 2.5rem); margin: .75rem 0 1rem; }
   .ai-landing .ai-transformation-showcase { max-width: 30rem; margin-inline: auto; }
   .ai-landing .ai-showcase-flow { gap: .5rem; }
   .ai-landing .ai-hero-price { grid-template-columns: minmax(0, 1fr); }
@@ -125,6 +139,22 @@
   .ai-landing .commerce-section { padding-block: 2.5rem; }
   .ai-landing .detail-grid { grid-template-columns: minmax(0, 1fr); }
   .ai-landing .hero-actions a { min-height: 3rem; }
+}
+@media (max-width: 480px) {
+  .ai-landing .ai-product-hero { padding-top: 1.25rem; }
+  .ai-landing .ai-product-hero-grid { gap: 1.5rem; }
+  .ai-landing .product-hero-copy { font-size: 1rem; margin-top: 1rem; }
+  .ai-inline-price { margin: 1.25rem 0; gap: .5rem; }
+  .ai-inline-price strong { font-size: 2rem; }
+  .ai-inline-price span { font-size: .75rem; }
+  .ai-landing .hero-actions { margin-top: 1rem; gap: .5rem; }
+  .ai-landing .hero-actions .button-secondary { min-height: 2.75rem; border-color: transparent; background: transparent; }
+  .ai-landing .ai-included-note,
+  .ai-landing .ai-hero-copy .checkout-fallback { font-size: .75rem; line-height: 1.5; margin-top: .75rem; }
+  .ai-landing .detail-block { padding: 1.25rem; }
+  .ai-landing .commerce-section { padding-block: 2rem; }
+  .ai-landing .faq-list { margin-top: 1.5rem; }
+  .ai-landing .faq-list summary { font-size: .9375rem; font-weight: 600; }
 }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
