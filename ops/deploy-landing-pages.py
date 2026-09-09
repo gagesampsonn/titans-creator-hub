@@ -17,9 +17,17 @@ FILES = {'index.html', 'ai/index.html', 'exclusive/index.html',
          'assets/ai-promotion-preview.js', 'assets/ai-promotion-preview.css'}
 
 
+def stream_digest(stream):
+    # The Contabo host uses Python 3.10 (file_digest was added in 3.11).
+    checksum = hashlib.sha256()
+    for chunk in iter(lambda: stream.read(1024 * 1024), b''):
+        checksum.update(chunk)
+    return checksum.hexdigest()
+
+
 def digest(path):
     with path.open('rb') as stream:
-        return hashlib.file_digest(stream, 'sha256').hexdigest()
+        return stream_digest(stream)
 
 
 def guard(condition, code):
@@ -65,7 +73,7 @@ def main():
         guard(release.is_dir() and not release.is_symlink(), 'release_not_prepared')
         for member in members:
             with bundle.extractfile(member) as source:
-                expected = hashlib.file_digest(source, 'sha256').hexdigest()
+                expected = stream_digest(source)
             guard(digest(release / member.name) == expected, 'payload_mismatch')
         for old in PREVIOUS.rglob('*'):
             relative = old.relative_to(PREVIOUS)
