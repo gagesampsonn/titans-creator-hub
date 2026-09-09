@@ -1,0 +1,21 @@
+/* Reuse the AI light-theme typography without changing Exclusive's content or grids. */
+.exclusive-landing .product-hero { background: var(--titan-bg); padding-top: 3.5rem; }
+.exclusive-landing .product-hero h1 {
+  font-size: clamp(2.25rem, 4vw, 3.375rem);
+  font-weight: 600;
+  line-height: 1.04;
+  letter-spacing: -.04em;
+  text-transform: none;
+}
+.exclusive-landing .price-panel,
+.exclusive-landing .proof-tile { background: var(--titan-surface); border-color: var(--titan-line); box-shadow: none; }
+.exclusive-landing .product-price strong { color: var(--titan-text); font-weight: 600; }
+.exclusive-landing .text-link { color: var(--titan-coral); }
+.exclusive-landing .text-link:hover { color: var(--titan-coral-light); }
+@media (max-width: 920px) {
+  .exclusive-landing .product-hero { padding-top: 2rem; }
+  .exclusive-landing .product-hero h1 { font-size: clamp(2rem, 9.2vw, 2.5rem); }
+}
+@media (max-width: 480px) {
+  .exclusive-landing .product-hero { padding-top: 1.25rem; }
+}
