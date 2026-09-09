@@ -44,7 +44,8 @@ test('AI offer accurately describes included tools and separates Exclusive benef
     assert.ok(copy.includes(phrase), `Missing benefit: ${phrase}`);
   }
   assert.ok(copy.includes('Each new photo or selfie uses one credit'));
-  assert.ok(copy.includes('Higgsfield and other third-party video tools are separate'));
+  assert.ok(copy.includes('Third-party video tools are separate'));
+  assert.doesNotMatch(html, /higgs\s*field/i, 'landing page must not name the external video provider');
   assert.ok(copy.includes('does not include the main Titans community'));
   assert.ok(!copy.includes('does not include Titans Discord'));
   assert.ok(copy.includes('plan_bJeNjIIJAtzSR'));
