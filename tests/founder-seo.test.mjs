@@ -19,7 +19,7 @@ test('homepage connects Titans to its co-founder with factual organization marku
 });
 
 test('co-founder mention is visible once in the footer, not a new sales section', () => {
-  const body = html.split('<body>')[1];
+  const body = html.split(/<body\b[^>]*>/)[1];
   const main = body.split('</main>')[0];
   assert.equal((body.match(/Gage Sampson/g) || []).length, 1);
   assert.ok(!main.includes('Gage Sampson'));
