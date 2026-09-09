@@ -1,4 +1,5 @@
 import { stages, stageForTarget } from './stages.mjs';
+import { installAppearanceReference } from './appearance-reference.mjs';
 
 if (!['localhost', '127.0.0.1'].includes(location.hostname)) throw Error('Local preview only');
 const $ = id => document.getElementById(id);
@@ -36,7 +37,7 @@ for (const [index, stage] of stages.entries()) {
   }
   if (stage.id === 'motion') {
     const recording = document.createElement('div'); recording.className = 'wf-recording';
-    recording.innerHTML = '<p>Film the exact performance you want to recreate. Keep the subject clearly visible and leave room for their movement.</p><div><h3>On your phone</h3><p>Record → trim in CapCut or your editor → save the clip and a clear frame.</p></div><div><h3>On your computer</h3><p>Transfer the original clip from your phone → trim in your editor → export the motion reference.</p></div>';
+    recording.innerHTML = '<p>Film the exact performance you want to recreate. Keep the subject clearly visible and leave room for their movement.</p><div><h3>On your phone</h3><p>Record → trim in CapCut or your editor → save the motion clip.</p></div><div><h3>On your computer</h3><p>Transfer the original clip from your phone → trim in your editor → export the motion reference.</p></div>';
     const recordDetails = disclosure('Record your own motion', recording); recordDetails.open = true; tools.append(recordDetails);
     const downloader = $('tiktokDownloader');
     const downloadDetails = disclosure('Use a TikTok or Instagram link', downloader);
@@ -109,4 +110,5 @@ for (const service of ['tiktok', 'instagram']) {
   }, true);
 }
 restoreRoute();
+installAppearanceReference();
 document.body.classList.add('wf-ready');

@@ -9,6 +9,11 @@ export function composeWorkflowPreview(source) {
   return source.replace(/\r\n?/g, '\n')
     .replace('<script src="/assets/member-access.js" defer></script>', '')
     .replace('<script type="module" src="/assets/image-builder.js"></script>', '')
+    .replace('function buildImagePrompt(shouldReroll = false, categoriesToReroll = null) {', `function buildImagePrompt(shouldReroll = false, categoriesToReroll = null) {
+      if (window.TitansAppearanceReference?.active) {
+        imagePromptOutput.textContent = window.TitansAppearanceReference.buildPrompt(productInstruction.value);
+        return;
+      }`)
     .replace(/    const resultVideos = [\s\S]*?\n    syncReferenceImageHelp\(\);/, '    syncReferenceImageHelp();')
     .replace(/<iframe\b[\s\S]*?<\/iframe>/g, '<p>Walkthrough video remains available in the live guide.</p>')
     .replace(/<video\b/g, '<video controls')
@@ -18,7 +23,7 @@ export function composeWorkflowPreview(source) {
 export function createWorkflowPreview() {
   const types = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css', '.png': 'image/png', '.jpg': 'image/jpeg', '.webp': 'image/webp', '.svg': 'image/svg+xml', '.mp4': 'video/mp4' };
   const files = new Map();
-  for (const name of ['workflow-app.js', 'workflow.css', 'stages.mjs']) files.set(`/__workflow/${name}`, join(import.meta.dirname, name));
+  for (const name of ['workflow-app.js', 'workflow.css', 'stages.mjs', 'appearance-reference.mjs']) files.set(`/__workflow/${name}`, join(import.meta.dirname, name));
   for (const name of ['demo-app.js', 'demo-style.css', 'demo-model.mjs', 'panel.html']) files.set(`/__demo/${name}`, join(root, 'ops/builder-preview', name));
   for (const name of ['character-library.js', 'character-compatibility.js', 'character-summary.js', 'character-controls.css']) files.set(`/prompt/${name}`, join(root, 'prompt', name));
   files.set('/assets/image-builder.css', join(root, 'assets/image-builder.css'));

@@ -2,11 +2,11 @@
 export const stages = [
   { id: 'motion', name: 'Motion', title: 'Start with the movement.', subtitle: 'Record your own clip or download a reference you have permission to use.',
     sections: ['motion-reference'], targets: ['tiktokDownloader', 'instagramDownloader'],
-    steps: ['Choose the framing, movement and timing you want in the final video.', 'Trim to the part you want to recreate. A clean 1080p export is a practical starting point.', 'Save the video and take a clear frame to guide your character’s pose.'],
+    steps: ['Choose the framing, movement and timing you want in the final video.', 'Trim to the part you want to recreate. A clean 1080p export is a practical starting point.', 'Save the motion clip. Choose your character’s appearance separately in the next step.'],
     output: 'A trimmed motion video, ready to become @Video1.' },
   { id: 'character', name: 'Character', title: 'Build the person in your video.', subtitle: 'Choose their look, create a portrait, then add an optional close-up for more facial detail.',
     sections: ['character-builder', 'character-examples'], targets: ['titans-image-flow', 'imagePromptOutput'],
-    steps: ['Choose your character settings. Reroll individual traits and lock the ones you want to keep.', 'Generate a portrait from your finished prompt, with one optional reference photo.', 'Create a selfie from the original if you want a second angle. Download both originals.'],
+    steps: ['Upload a photo of the look you want, or create a character with the controls. The photo is an appearance reference, not the person from your motion video.', 'With a reference photo, generate an ankles-up portrait facing the camera. Your photo supplies the appearance instead of random traits.', 'Create a selfie from the original if you want a second angle. Download both originals.'],
     output: 'Main portrait @Image1 · Optional close-up @Image2. Each new photo uses one image credit.' },
   { id: 'setup', name: 'Video setup', title: 'Put your references together.', subtitle: 'Your video supplies the motion. Your photos supply the identity.',
     sections: ['higgsfield-setup'], targets: [],

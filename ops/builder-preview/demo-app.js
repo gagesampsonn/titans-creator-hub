@@ -15,6 +15,11 @@ jump.addEventListener('click', () => $('titans-image-flow').scrollIntoView({beha
 $('copyImagePromptBtn').after(jump);
 const demo = createDemoSession();
 let uploading = false, uploadUrl = null;
+function clearReference() {
+  if (uploadUrl) URL.revokeObjectURL(uploadUrl); uploadUrl = null;
+  $('flow-reference').value = ''; $('flow-upload-image').removeAttribute('src'); $('flow-upload').hidden = true;
+  document.dispatchEvent(new CustomEvent('titans:reference-change', { detail: { present: false } }));
+}
 function status(text, error = false) { $('flow-status').textContent = text; $('flow-status').classList.toggle('flow-error',error); }
 function render() {
   const state = demo.snapshot();
@@ -82,7 +87,7 @@ for (const pack of PACKS) {
   card.append(title,quantity,button); $('flow-packs').append(card);
 }
 $('flow-reference').addEventListener('change',async () => {
-  const file = $('flow-reference').files[0]; if (!file) return;
+  const file = $('flow-reference').files[0]; if (!file) { clearReference(); render(); return; }
   uploading = true; render(); let nextUrl;
   try {
     if (!['image/png','image/jpeg','image/webp'].includes(file.type) || file.size > 8*1024*1024) throw Error('invalid_file');
@@ -91,18 +96,19 @@ $('flow-reference').addEventListener('change',async () => {
     if (image.naturalWidth > 4096 || image.naturalHeight > 4096) throw Error('dimensions');
     if (uploadUrl) URL.revokeObjectURL(uploadUrl);
     uploadUrl = nextUrl; $('flow-upload-image').src = nextUrl; $('flow-upload').hidden = false;
+    document.dispatchEvent(new CustomEvent('titans:reference-change', { detail: { present: true } }));
     status('Reference preview selected. It stays in this browser; mock results do not use this upload.');
   } catch {
     if(nextUrl) URL.revokeObjectURL(nextUrl);
-    $('flow-reference').value = '';
+    clearReference();
     status('Choose a valid PNG, JPG or WebP up to 8 MB and 4096 × 4096 pixels.',true);
   } finally { uploading = false; render(); }
 });
 $('flow-remove').addEventListener('click',() => {
-  if(uploadUrl) URL.revokeObjectURL(uploadUrl); uploadUrl = null;
-  $('flow-reference').value = ''; $('flow-upload-image').removeAttribute('src'); $('flow-upload').hidden = true;
-  status('Reference removed. Your character prompt is unchanged.');
+  clearReference();
+  status('Reference removed. The character prompt is ready to use without an upload.');
 });
 render();
 new MutationObserver(render).observe($('imagePromptOutput'),{childList:true,characterData:true,subtree:true});
+document.dispatchEvent(new CustomEvent('titans:image-panel-ready'));
 if (location.hash === '#titans-image-flow') $('titans-image-flow').scrollIntoView({block:'start'});

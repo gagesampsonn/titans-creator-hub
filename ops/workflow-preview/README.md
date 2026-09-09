@@ -10,6 +10,7 @@ This is a local design proposal based on the supplied realistic AI video workflo
 
 - Motion: record your own clip, expand the existing TikTok/Instagram downloader interfaces, or review the real reference examples.
 - Character: existing character controls, locks, full prompt, image/selfie mock and credit-pack preview.
+  The optional upload is now an **appearance reference**, not a video frame. A validated upload automatically replaces the random character prompt with a camera-facing, ankles-up portrait prompt using that appearance. Random identity fields are disabled/hidden while the reference is active; product/outfit instructions still apply. Removing or rejecting the upload returns to the existing character controls. The old video-frame and separate avatar-reference modes are hidden in this local proposal. This changes the displayed/copied/mock-submitted prompt, not the fixed saved mock photo.
 - Video setup: existing Higgsfield destination and setup screenshot; external video generation still requires its own credits.
 - Video prompt: existing replacement prompt, strictness and 1–6 image reference selector.
 - Finish: review/edit guidance, existing case studies and publishing checklist.
