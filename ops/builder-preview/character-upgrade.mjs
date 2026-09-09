@@ -18,8 +18,8 @@ export function composeCharacterUpgrade(current,supplied,{ assetRoot = '/__demo'
   ]) html = html.replace(section(html,start,end),section(upgrade,start,end));
   const styleStart = '    .image-generator-output {', styleEnd = '    .slot-card.is-spinning .slot-value {';
   html = html.replace(section(html,styleStart,styleEnd),section(upgrade,styleStart,styleEnd));
-  html = html.replace(/  <script src="\/(?:__demo|prompt)\/character-(?:library|summary)\.js"><\/script>\n/g,'');
-  html = html.replace('  <script>',`  <script src="${assetRoot}/character-library.js"></script>\n  <script src="${assetRoot}/character-summary.js"></script>\n  <script>`);
+  html = html.replace(/  <script src="\/(?:__demo|prompt)\/character-(?:library|compatibility|summary)\.js"><\/script>\n/g,'');
+  html = html.replace('  <script>',`  <script src="${assetRoot}/character-library.js"></script>\n  <script src="${assetRoot}/character-compatibility.js"></script>\n  <script src="${assetRoot}/character-summary.js"></script>\n  <script>`);
   html = html.replace(/data-lock="(body|face|hair|eyes|skin|outfit)" aria-pressed="false"/g, '$& aria-label="Lock $1"');
   const unlock = 'if (lockButton) lockButton.setAttribute("aria-pressed", "false");';
   if (html.split(unlock).length !== 3) throw Error('Character auto-unlock boundary changed');

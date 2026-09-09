@@ -8,6 +8,9 @@ test('released builder keeps authentication and real tools while loading compact
   assert.match(html, /src="\/assets\/member-access.js" defer/);
   assert.match(html, /src="\/prompt\/character-library.js"/);
   assert.match(html, /src="\/prompt\/character-summary.js"/);
+  assert.match(html, /src="\/prompt\/character-compatibility.js"/);
+  assert.match(html, /src="\/assets\/image-builder.js"/);
+  assert.match(html, /href="\/assets\/image-builder.css"/);
   assert.match(html, /<details class="prompt-details">/);
   assert.match(html, /A picture is taken of a:/);
   assert.match(html, /id="instagramDownloader"/);

@@ -3955,6 +3955,7 @@
   </footer>
 
   <script src="./character-library.js"></script>
+  <script src="./character-compatibility.js"></script>
   <script src="./character-summary.js"></script>
   <script>
     const TIKTOK_API_BASE = "https://app.titansagency.co";
@@ -5106,14 +5107,19 @@
 
     let lastCharacterRoll = null;
     const characterLibrary = window.TITANS_CHARACTER_LIBRARY;
+    const characterCompatibility = window.TITANS_CHARACTER_COMPATIBILITY;
     const characterSummary = window.TITANS_CHARACTER_SUMMARY;
     const visibleCharacterCategories = ["body", "face", "hair", "eyes", "skin", "outfit"];
     const lockedCharacterCategories = new Set();
     const recentEntryIds = new Map();
+    const recentTraitGroups = new Map();
     const recentCharacterSignatures = [];
 
     if (!characterLibrary || !Array.isArray(characterLibrary.entries)) {
       throw new Error("Titans character library failed to load.");
+    }
+    if (!characterCompatibility || typeof characterCompatibility.isEntryCompatible !== "function") {
+      throw new Error("Titans character compatibility rules failed to load.");
     }
     if (!characterSummary || typeof characterSummary.summarize !== "function") {
       throw new Error("Titans character summary helper failed to load.");
@@ -5345,13 +5351,7 @@
     }
 
     function isEntryCompatible(entry, context) {
-      const { tags = {} } = entry;
-      if (tags.ageMin && context.age < tags.ageMin) return false;
-      if (tags.ageMax && context.age > tags.ageMax) return false;
-      if (tags.genders && !tags.genders.includes(context.gender)) return false;
-      if (entry.category === "outfit" && !context.ignoreProfession && tags.professions?.length && !tags.professions.includes(context.profession)) return false;
-      if (context.styleFamily && entry.category === "outfit" && !tags.styleFamily?.includes(context.styleFamily)) return false;
-      return true;
+      return characterCompatibility.isEntryCompatible(entry, context);
     }
 
     function recentFor(category) {
@@ -5364,6 +5364,15 @@
       const recent = recentFor(entry.category);
       recent.unshift(entry.id);
       recentEntryIds.set(entry.category, [...new Set(recent)].slice(0, 14));
+
+      const traitGroup = characterCompatibility.traitGroup(entry);
+      if (traitGroup) {
+        const groups = recentTraitGroups.get(entry.category) || [];
+        recentTraitGroups.set(
+          entry.category,
+          [traitGroup, ...groups.filter((group) => group !== traitGroup)].slice(0, 2)
+        );
+      }
     }
 
     function effectiveEntryWeight(entry, category, context) {
@@ -5403,7 +5412,12 @@
       const compatible = libraryEntries(category).filter((entry) => isEntryCompatible(entry, context) && predicate(entry));
       const recent = new Set(recentFor(category));
       const fresh = compatible.filter((entry) => !recent.has(entry.id));
-      const candidates = fresh.length ? fresh : compatible;
+      const freshCandidates = fresh.length ? fresh : compatible;
+      const candidates = characterCompatibility.preferFreshTraitGroups(
+        freshCandidates,
+        category,
+        recentTraitGroups.get(category) || []
+      );
       if (!candidates.length) throw new Error(`No compatible ${category} entries were found.`);
 
       const total = candidates.reduce((sum, entry) => sum + effectiveEntryWeight(entry, category, context), 0);

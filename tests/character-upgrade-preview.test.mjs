@@ -56,6 +56,7 @@ function characterEngine() {
     clearTimeout(id) { timers.delete(id); }
   });
   vm.runInContext(readFileSync(join(upgradeRoot, 'character-library.js'), 'utf8'), context);
+  vm.runInContext(readFileSync(join(upgradeRoot, 'character-compatibility.js'), 'utf8'), context);
   vm.runInContext(readFileSync(join(upgradeRoot, 'character-summary.js'), 'utf8'), context);
   const html = composeCharacterUpgrade(current, supplied);
   vm.runInContext(html.slice(html.indexOf('    const genericBucket = {'), html.indexOf('    const modeCopy = {')), context);
@@ -110,4 +111,22 @@ test('an age change that unlocks incompatible hair also resets its visible lock 
   assert.equal(vm.runInContext('lockedCharacterCategories.has("hair")', engine.context), false);
   assert.equal(button.attributes['aria-pressed'], 'false');
   assert.equal(button.textContent, 'Lock');
+});
+
+test('automatic wardrobe respects presentation and excludes mislabeled student workwear', () => {
+  const { context } = characterEngine();
+  assert.equal(vm.runInContext(`isEntryCompatible({category:'outfit',fragment:'a floral dress',tags:{presentation:['feminine'],professions:['creator']}},{age:24,gender:'male',profession:'creator'})`, context), false);
+  assert.equal(vm.runInContext(`isEntryCompatible({category:'outfit',fragment:'construction work boots and utility pants',tags:{presentation:['neutral'],professions:['collegeStudent']}},{age:24,gender:'female',profession:'collegeStudent'})`, context), false);
+  assert.equal(vm.runInContext(`isEntryCompatible({category:'outfit',fragment:'neutral casual clothes',tags:{presentation:['neutral'],professions:['creator']}},{age:24,gender:'male',profession:'creator'})`, context), true);
+});
+
+test('skin rerolls rotate broad complexion groups without reducing the library', () => {
+  const { context } = characterEngine();
+  const groups = vm.runInContext(`Array.from({length:9},()=>{
+    const entry=weightedEntry('skin',{age:24,gender:'female',profession:'creator'});
+    rememberEntry(entry);
+    const depth=entry.tags.depth[0];
+    return ['very-fair','fair','light','light-medium'].includes(depth)?'light':['medium','medium-tan','tan'].includes(depth)?'medium':'deep';
+  })`, context);
+  for(let i=2;i<groups.length;i++) assert.equal(new Set(groups.slice(i-2,i+1)).size,3);
 });
