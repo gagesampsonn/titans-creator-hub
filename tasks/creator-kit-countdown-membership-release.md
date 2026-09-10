@@ -12,6 +12,13 @@
 
 - Timer tests: exactly five days, day rollover, synchronized placements, refresh/late arrivals, expiration and reopening after expiration. Public-offer and membership-content regressions added/updated.
 - Full Node suite and launch validator pass. Whop read-only API confirms Weekly USD 15 every 7 days, no added initial fee; same existing plan and return URL retained.
-- Local browser checks cover desktop, 320/390px mobile, working countdown, smaller homepage logo, comparison navigation and mobile menu. Native video controls and deliberate playback preserved.
+- Local browser checks cover desktop, 320/390px mobile layouts, working countdown, smaller homepage logo and comparison navigation. Shared mobile-menu behavior is unchanged. Native video controls and deliberate playback preserved.
 - Deploy only the ten public HTML/CSS/JS files listed by `ops/deploy-landing-pages.py`, from a pushed Git commit. Copy current release `20260909-69809e8`, verify unrelated files and symlinks unchanged, then atomically switch current.
 - Previous release retained for rollback; private auth `20260908-62962ca`, data, credentials, credit balances, and Caddy unchanged. No paid test transaction submitted.
+
+## Published and verified
+
+- Published implementation commit `eeccc14` through GitHub and activated immutable Contabo release `/srv/titans-marketing/releases/20260909-eeccc14`.
+- Release archive SHA256: `c5a18e28ca641bdebd0b2e0612a739ea0022230a0c91e029e0394f998f455f7e`. All ten live public files match the release archive bytes.
+- Live homepage and AI timers were synchronized and ticking. AI checkout displayed USD 29.99 due today; Weekly checkout displayed USD 15 per week and USD 15 due today.
+- Live homepage and Titans overview screenshots confirmed the light styling and smaller homepage header logo. Backend and configured checkout prices remain unchanged.
