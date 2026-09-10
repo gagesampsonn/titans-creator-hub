@@ -13,7 +13,9 @@ test('public homepage and AI page show the real checkout price with the requeste
     assert.match(banner, /href="(?:\/ai\/)?#checkout"/);
     assert.match(html, /\/assets\/ai-offer\.css/);
     assert.doesNotMatch(html, /src="[^\"]*ai-promotion-preview\.js/);
-    assert.doesNotMatch(banner, /role="timer"|ends in|ends soon|limited.time/i);
+    assert.match(banner, /data-ai-offer-timer role="timer"/);
+    assert.match(banner, /AI Creator Kit/);
+    assert.match(html, /src="\/assets\/ai-offer-timer\.js/);
   }
 });
 test('AI price contrast appears beside the hero price and directly above Whop checkout', () => {

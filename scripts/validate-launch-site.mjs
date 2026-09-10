@@ -375,9 +375,9 @@ if (ai) {
 
   for (const preservedConversionCopy of [
     "Your product.<br />New character.",
-    "Get the AI Prompt Builder",
+    "Get the AI Creator Kit",
     "Explore the workflow",
-    "Buy AI Content",
+    "Buy AI Creator Kit",
   ]) {
     if (!ai.includes(preservedConversionCopy)) {
       failures.push(`AI redesign removed conversion content: ${preservedConversionCopy}`);

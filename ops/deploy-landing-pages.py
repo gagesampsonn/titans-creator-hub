@@ -9,9 +9,11 @@ import tarfile
 import urllib.request
 
 BASE = Path('/srv/titans-marketing')
-PREVIOUS = BASE / 'releases/20260909-159042a'
+PREVIOUS = BASE / 'releases/20260909-69809e8'
 AUTH = Path('/opt/titans-whop-auth/releases/20260908-62962ca')
-FILES = {'index.html', 'ai/index.html', 'assets/ai-offer.css'}
+FILES = {'index.html', 'ai/index.html', 'exclusive/index.html', 'weekly/index.html',
+         'titans/index.html', 'checkout/complete/index.html', 'assets/ai-offer.css',
+         'assets/ai-offer-timer.js', 'assets/home-landing.css', 'assets/membership-landing.css'}
 
 
 def stream_digest(stream):

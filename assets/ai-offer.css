@@ -1,4 +1,4 @@
-/* Public offer display. No visitor timer or unconfigured checkout price change. */
+/* Public offer display with a fixed campaign deadline, never a visitor reset. */
 .ai-offer-banner {
   display: flex; align-items: center; justify-content: center; flex-wrap: wrap;
   gap: .25rem 1.5rem; min-height: 2.75rem; padding: .375rem 1rem;
@@ -6,6 +6,9 @@
   font-size: .8125rem; line-height: 1.5;
 }
 .ai-offer-banner > span { display: inline-flex; align-items: baseline; gap: .5rem; }
+.ai-offer-banner[hidden], .ai-offer-countdown[hidden], .ai-regular-price[hidden], .ai-offer-checkout s[hidden] { display: none; }
+[data-ai-offer-timer] { font-variant-numeric: tabular-nums; font-weight: 700; white-space: nowrap; }
+.ai-offer-checkout .ai-offer-countdown { margin: .75rem 0 0; font-size: .8125rem; letter-spacing: normal; text-transform: none; }
 .ai-offer-banner s { text-decoration-thickness: 1.5px; }
 .ai-offer-banner strong, .ai-offer-banner b { font-weight: 600; }
 .ai-offer-banner b { margin-left: .25rem; text-decoration: underline; text-underline-offset: .2em; }
@@ -18,8 +21,8 @@
 .ai-offer-checkout strong { color: var(--titan-text); font-size: 2rem; font-weight: 600; letter-spacing: -.04em; }
 .ai-offer-checkout s { color: var(--titan-dim); text-decoration-color: var(--titan-coral); }
 .ai-offer-checkout div > span { color: var(--titan-muted); font-size: .8125rem; }
-.ai-landing:has(.ai-offer-banner) .commerce-section { scroll-margin-top: 3rem; }
+.ai-landing:has(.ai-offer-banner:not([hidden])) .commerce-section { scroll-margin-top: 3rem; }
 @media (max-width: 480px) {
   .ai-offer-banner { flex-direction: column; gap: 0; padding: .375rem .75rem; font-size: .75rem; }
-  .ai-landing:has(.ai-offer-banner) .commerce-section { scroll-margin-top: 4rem; }
+  .ai-landing:has(.ai-offer-banner:not([hidden])) .commerce-section { scroll-margin-top: 4rem; }
 }

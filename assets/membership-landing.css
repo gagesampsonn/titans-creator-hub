@@ -1,0 +1,41 @@
+/* Extend the approved AI palette/type scale to the community membership pages. */
+.weekly-landing .product-hero, .titans-landing .titans-hero { padding-top: 3.5rem; background: var(--titan-bg); }
+.weekly-landing .product-hero h1, .titans-landing .titans-hero-copy h1 {
+  color: var(--titan-text); font-size: clamp(2.25rem, 4vw, 3.375rem);
+  font-weight: 600; line-height: 1.04; letter-spacing: -.04em; text-transform: none;
+}
+.weekly-landing .price-panel, .weekly-landing .proof-tile { background: var(--titan-surface); border-color: var(--titan-line); box-shadow: none; }
+.weekly-landing .product-price strong { color: var(--titan-text); font-weight: 600; }
+.weekly-landing .text-link { color: var(--titan-coral); }
+.weekly-landing .text-link:hover { color: var(--titan-coral-light); }
+.titans-landing .titans-hero { padding-bottom: 3.5rem; }
+.titans-landing .titans-hero-grid { gap: 3rem; }
+.titans-landing .titans-hero-copy > p:not(.eyebrow) { font-size: 1.0625rem; line-height: 1.5; margin-top: 1rem; }
+.titans-landing .titans-hero-art { border-color: var(--titan-line); border-radius: .625rem; box-shadow: none; }
+.titans-landing .titans-compare { padding: 3.5rem 1rem; border-color: var(--titan-line); background: var(--titan-surface); }
+.titans-landing .titans-section-intro h2, .titans-landing .titans-proof-panel h2 { color: var(--titan-text); font-size: clamp(1.625rem, 3vw, 2rem); font-weight: 600; line-height: 1.15; letter-spacing: -.04em; }
+.titans-landing .titans-section-intro > p:not(.eyebrow), .titans-landing .titans-proof-panel p:not(.eyebrow) { line-height: 1.5; }
+.titans-landing .titans-plan-grid { margin-top: 2rem; gap: 1.5rem; }
+.titans-landing .titans-plan-card { min-height: 0; padding: 1.5rem; background: var(--titan-bg); border-color: var(--titan-line); border-radius: .625rem; box-shadow: none; }
+.titans-landing .titans-plan-featured { border-color: var(--titan-coral); }
+.titans-landing .titans-plan-topline { font-weight: 600; letter-spacing: .06em; }
+.titans-landing .titans-plan-topline strong { padding: 0; border: 0; border-radius: 0; font-weight: 600; font-size: .6875rem; }
+.titans-landing .titans-plan-card h3 { margin-top: 1.5rem; color: var(--titan-text); font-size: 1.5rem; font-weight: 600; }
+.titans-landing .titans-plan-price strong { color: var(--titan-text); font-size: 2.25rem; font-weight: 600; }
+.titans-landing .titans-plan-summary { margin-top: 1rem; line-height: 1.5; }
+.titans-landing .titans-feature-list { margin-block: 1.5rem; padding-top: 1.5rem; }
+.titans-landing .titans-feature-list li { color: var(--titan-muted); }
+.titans-landing .titans-feature-list li span { font-weight: 600; }
+.titans-landing .titans-proof-cta { padding: 3.5rem 1rem; border-color: var(--titan-line); background: var(--titan-bg); }
+.titans-landing .titans-proof-panel { gap: 2rem; padding: 2rem; border-color: var(--titan-line); border-radius: .625rem; background: var(--titan-surface); }
+@media (max-width: 920px) {
+  .weekly-landing .product-hero, .titans-landing .titans-hero { padding-top: 2rem; }
+  .weekly-landing .product-hero h1, .titans-landing .titans-hero-copy h1 { font-size: clamp(2rem, 9.2vw, 2.5rem); }
+  .titans-landing .titans-hero-grid { gap: 1.5rem; }
+}
+@media (max-width: 560px) {
+  .weekly-landing .product-hero { padding-top: 1.25rem; }
+  .titans-landing .titans-hero, .titans-landing .titans-compare, .titans-landing .titans-proof-cta { padding: 2rem 1rem; }
+  .titans-landing .titans-plan-card, .titans-landing .titans-proof-panel { padding: 1.25rem; }
+  .titans-landing .titans-hero-copy > p:not(.eyebrow) { font-size: 1rem; }
+}
